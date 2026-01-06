@@ -224,18 +224,62 @@ export class EnhancedPurchaseEmailService {
 
   /**
    * Create in-app notification for seller about new order
-   * NOTE: Notifications are now created in CheckoutSuccess.tsx to prevent duplicates
    */
   private static async createSellerNotification(purchaseData: PurchaseEmailData): Promise<void> {
-    // Notifications are created in CheckoutSuccess.tsx to prevent duplicate notifications
+    try {
+      // Fetch seller user_id from the order
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .select('seller_id')
+        .eq('id', purchaseData.orderId)
+        .single();
+
+      if (orderError || !order?.seller_id) {
+        throw new Error('Failed to fetch seller information');
+      }
+
+      // Create notification using NotificationService
+      await NotificationService.createOrderConfirmation(
+        order.seller_id,
+        purchaseData.orderId,
+        purchaseData.bookTitle,
+        true // isForSeller
+      );
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Failed to create seller notification:', errorMsg);
+      // Non-fatal - notification failure shouldn't block the process
+    }
   }
 
   /**
    * Create in-app notification for buyer about order confirmation
-   * NOTE: Notifications are now created in CheckoutSuccess.tsx to prevent duplicates
    */
   private static async createBuyerNotification(purchaseData: PurchaseEmailData): Promise<void> {
-    // Notifications are created in CheckoutSuccess.tsx to prevent duplicate notifications
+    try {
+      // Fetch buyer user_id from the order
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .select('buyer_id')
+        .eq('id', purchaseData.orderId)
+        .single();
+
+      if (orderError || !order?.buyer_id) {
+        throw new Error('Failed to fetch buyer information');
+      }
+
+      // Create notification using NotificationService
+      await NotificationService.createOrderConfirmation(
+        order.buyer_id,
+        purchaseData.orderId,
+        purchaseData.bookTitle,
+        false // isForSeller
+      );
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Failed to create buyer notification:', errorMsg);
+      // Non-fatal - notification failure shouldn't block the process
+    }
   }
 }
 
