@@ -169,14 +169,14 @@ await emailService.sendEmail({
 - **Use Case**: After successful delivery and payment processing
 - **Includes**: Transaction details, new balance, payout options
 
-#### 9. **Seller Credit Notification**
+#### 15. **Seller Credit Notification**
 - **File**: `templates/seller-credit-notification.ts`
 - **Purpose**: Alternative notification for seller payment confirmation
 - **Recipient**: Seller
 - **Use Case**: Payment confirmation and wallet updates
 - **Includes**: Credit amount, transaction details, next steps
 
-#### 10. **Denial Email** (Payment Delayed)
+#### 16. **Denial Email** (Payment Delayed)
 - **File**: `templates/denial.ts`
 - **Purpose**: Notify seller of delivery issues causing payment delays
 - **Recipient**: Seller
