@@ -471,7 +471,7 @@ const BankingDetailsForm: React.FC<BankingDetailsFormProps> = ({
             Add Banking Details
           </CardTitle>
           <CardDescription className="text-book-700">
-            Create your secure Paystack subaccount for faster payments
+            Create your secure subaccount for faster payments
           </CardDescription>
         </CardHeader>
 

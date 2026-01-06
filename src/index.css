@@ -181,7 +181,7 @@ body {
   }
 
   /* Ensure payment popup container is mobile-friendly */
-  .paystack-container-mobile {
+  .payment-container-mobile {
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 !important;
