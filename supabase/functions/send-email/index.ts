@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -154,61 +153,83 @@ serve(async (req) => {
     );
   }
 
-  /* -------------------- SMTP -------------------- */
-  const smtpKey = Deno.env.get("BREVO_SMTP_KEY");
-  const smtpUser =
-    Deno.env.get("BREVO_SMTP_USER") || "8e237b002@smtp-brevo.com";
-  const defaultFrom =
-    Deno.env.get("DEFAULT_FROM_EMAIL") ||
-    "info@rebookedsolutions.co.za";
+  /* -------------------- BREVO API -------------------- */
+  const brevoApiKey = Deno.env.get("BREVO_API_KEY");
+  const defaultFrom = Deno.env.get("DEFAULT_FROM_EMAIL") || "info@rebookedsolutions.co.za";
 
-  if (!smtpKey) {
-    console.error("❌ SMTP key missing");
+  if (!brevoApiKey) {
+    console.error("❌ BREVO_API_KEY missing");
     return new Response(
       JSON.stringify({
         success: false,
-        error: "SMTP_NOT_CONFIGURED",
+        error: "EMAIL_NOT_CONFIGURED",
+        message: "BREVO_API_KEY is not set",
       }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 
-  const client = new SMTPClient({
-    connection: {
-      hostname: "smtp-relay.brevo.com",
-      port: 587,
-      tls: true,
-      auth: {
-        username: smtpUser,
-        password: smtpKey,
-      },
-    },
-  });
+  // Format recipients for Brevo API
+  const toArray = Array.isArray(emailRequest.to) ? emailRequest.to : [emailRequest.to];
+  const recipients = toArray.map(email => ({ email }));
+
+  // Build the request body for Brevo's transactional email API
+  const brevoPayload: Record<string, unknown> = {
+    sender: { email: emailRequest.from || defaultFrom },
+    to: recipients,
+    subject: emailRequest.subject,
+  };
+
+  if (emailRequest.html) {
+    brevoPayload.htmlContent = emailRequest.html;
+  }
+  if (emailRequest.text) {
+    brevoPayload.textContent = emailRequest.text;
+  }
+  if (emailRequest.replyTo) {
+    brevoPayload.replyTo = { email: emailRequest.replyTo };
+  }
 
   try {
-    await client.send({
-      from: emailRequest.from || defaultFrom,
-      to: Array.isArray(emailRequest.to)
-        ? emailRequest.to
-        : [emailRequest.to],
-      subject: emailRequest.subject,
-      content: emailRequest.text || "",
-      html: emailRequest.html,
-      replyTo: emailRequest.replyTo,
+    console.log("📧 Sending via Brevo API...");
+    
+    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "api-key": brevoApiKey,
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+      body: JSON.stringify(brevoPayload),
     });
 
-    await client.close();
+    const responseData = await response.json();
+
+    if (!response.ok) {
+      console.error("❌ Brevo API error:", responseData);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "EMAIL_SEND_FAILED",
+          message: responseData.message || "Failed to send email via Brevo",
+        }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    console.log("✅ Email sent successfully via Brevo:", responseData);
 
     return new Response(
-      JSON.stringify({ success: true }),
+      JSON.stringify({ success: true, messageId: responseData.messageId }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (err) {
-    console.error("❌ SMTP send failed:", err);
+    console.error("❌ Email send failed:", err);
     return new Response(
       JSON.stringify({
         success: false,
         error: "EMAIL_SEND_FAILED",
+        message: err instanceof Error ? err.message : "Unknown error",
       }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
