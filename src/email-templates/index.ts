@@ -13,8 +13,6 @@ export { createOrderDeclinedBuyerEmail, sendOrderDeclinedBuyerEmail, type OrderD
 export { createOrderDeclinedSellerEmail, sendOrderDeclinedSellerEmail, type OrderDeclinedSellerData } from './templates/order-declined-seller';
 export { createOrderConfirmedBuyerEmail, sendOrderConfirmedBuyerEmail, type OrderConfirmedBuyerData } from './templates/order-confirmed-buyer';
 export { createOrderConfirmedSellerEmail, sendOrderConfirmedSellerEmail, type OrderConfirmedSellerData } from './templates/order-confirmed-seller';
-export { createOrderCollectionBuyerEmail, sendOrderCollectionBuyerEmail, type OrderCollectionBuyerData } from './templates/order-collection-buyer';
-export { createOrderCollectionSellerEmail, sendOrderCollectionSellerEmail, type OrderCollectionSellerData } from './templates/order-collection-seller';
 
 // Delivery & Feedback Templates
 export { createDeliveryConfirmationRequestEmail, sendDeliveryConfirmationRequestEmail, type DeliveryConfirmationRequestData } from './templates/delivery-confirmation-request';
