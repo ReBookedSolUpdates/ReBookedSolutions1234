@@ -380,7 +380,7 @@ const GettingStarted = () => {
                     </h3>
                     <ul className="list-disc pl-6 space-y-1 text-gray-700 text-sm">
                       <li>Valid email address for order updates and receipts.</li>
-                      <li>Secure payment method (processed by Paystack).</li>
+                      <li>Secure payment method (processed by BobPay).</li>
                     </ul>
                   </div>
                   <div className="rounded-lg border border-gray-200 p-4 bg-white/60">
