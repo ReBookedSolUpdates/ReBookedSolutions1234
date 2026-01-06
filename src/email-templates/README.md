@@ -162,7 +162,7 @@ await emailService.sendEmail({
 
 ### **Payment & Notification Templates**
 
-#### 8. **Wallet Credit Notification**
+#### 14. **Wallet Credit Notification**
 - **File**: `templates/wallet-credit-notification.ts`
 - **Purpose**: Notify seller when payment is added to their wallet
 - **Recipient**: Seller
