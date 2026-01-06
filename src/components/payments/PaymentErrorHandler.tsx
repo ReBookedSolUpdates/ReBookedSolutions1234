@@ -164,13 +164,6 @@ Time: ${new Date().toISOString()}
 
         {/* Additional help text */}
         <div className="text-sm text-gray-600 space-y-2">
-          {errorObj.type === "paystack" && (
-            <p>
-              💡 <strong>Tip:</strong> If you're using a debit card, ensure you
-              have sufficient funds and that online payments are enabled.
-            </p>
-          )}
-
           {errorObj.type === "network" && (
             <p>
               💡 <strong>Tip:</strong> Try switching to a different network
