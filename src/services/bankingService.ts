@@ -402,13 +402,6 @@ export class BankingService {
     bankCode: string,
   ): Promise<{ valid: boolean; accountName?: string; error?: string }> {
     try {
-      if (!PAYSTACK_CONFIG.isConfigured()) {
-        return {
-          valid: false,
-          error: "Account validation service not available",
-        };
-      }
-
       const { data, error } = await supabase.functions.invoke(
         "validate-account-number",
         {
