@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { EnhancedPurchaseEmailService } from "@/services/enhancedPurchaseEmailService";
+import { emailService } from "@/services/emailService";
 import { OrderConfirmation } from "@/types/checkout";
 import Step4Confirmation from "@/components/checkout/Step4Confirmation";
 
@@ -92,6 +92,137 @@ const CheckoutEmailTest: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const sendTestSellerEmail = async (purchaseData: {
+    orderId: string;
+    bookTitle: string;
+    bookPrice: number;
+    sellerName: string;
+    sellerEmail: string;
+    buyerName: string;
+    orderDate: string;
+  }): Promise<boolean> => {
+    const sellerEmailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background-color: #e74c3c; color: white; padding: 20px; text-align: center;">
+          <h1 style="margin: 0;">🚨 New Book Sale - Action Required!</h1>
+        </div>
+        <div style="padding: 30px; background-color: #f8f9fa;">
+          <p>Hello ${purchaseData.sellerName},</p>
+          <p><strong>Great news!</strong> Someone just purchased your book and is waiting for confirmation.</p>
+
+          <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #e17055; margin-top: 0;">⏰ ACTION REQUIRED WITHIN 48 HOURS</h3>
+            <p><strong>You must confirm this sale to proceed with the order.</strong></p>
+          </div>
+
+          <div style="background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #2d3436; margin-top: 0;">Sale Details</h3>
+            <p><strong>Book:</strong> ${purchaseData.bookTitle}</p>
+            <p><strong>Price:</strong> R${purchaseData.bookPrice}</p>
+            <p><strong>Buyer:</strong> ${purchaseData.buyerName}</p>
+            <p><strong>Order ID:</strong> ${purchaseData.orderId}</p>
+            <p><strong>Order Date:</strong> ${purchaseData.orderDate}</p>
+          </div>
+
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${window.location.origin}/books"
+               style="background-color: #00b894; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+              CONFIRM SALE NOW
+            </a>
+          </div>
+
+          <p><strong>What happens next:</strong></p>
+          <ul>
+            <li>Log in to your ReBooked Solutions account</li>
+            <li>Click "Commit Sale" for this book</li>
+            <li>We'll arrange pickup from your location</li>
+            <li>You'll receive payment after delivery</li>
+          </ul>
+
+          <p style="color: #e17055;"><strong>Important:</strong> If you don't confirm within 48 hours, the order will be automatically cancelled and refunded.</p>
+
+          <p>Thank you for using ReBooked Solutions!</p>
+        </div>
+      </div>
+    `;
+
+    try {
+      await emailService.sendEmail({
+        to: purchaseData.sellerEmail,
+        subject: "🚨 NEW SALE - Confirm Your Book Sale (48hr deadline)",
+        html: sellerEmailHtml,
+        text: `NEW SALE - Action Required! Book: ${purchaseData.bookTitle}, Price: R${purchaseData.bookPrice}. You have 48 hours to confirm this sale. Login to ReBooked Solutions to confirm.`,
+      });
+      return true;
+    } catch (error) {
+      console.error("Failed to send seller email:", error);
+      return false;
+    }
+  };
+
+  const sendTestBuyerEmail = async (purchaseData: {
+    orderId: string;
+    bookTitle: string;
+    bookPrice: number;
+    sellerName: string;
+    buyerName: string;
+    buyerEmail: string;
+    orderTotal: number;
+    orderDate: string;
+  }): Promise<boolean> => {
+    const buyerEmailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background-color: #00b894; color: white; padding: 20px; text-align: center;">
+          <h1 style="margin: 0;">📚 Purchase Confirmed!</h1>
+        </div>
+        <div style="padding: 30px; background-color: #f8f9fa;">
+          <p>Hello ${purchaseData.buyerName},</p>
+          <p><strong>Thank you for your purchase!</strong> Your payment has been processed successfully.</p>
+
+          <div style="background-color: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #00b894; margin-top: 0;">Order Summary</h3>
+            <p><strong>Book:</strong> ${purchaseData.bookTitle}</p>
+            <p><strong>Price:</strong> R${purchaseData.bookPrice}</p>
+            <p><strong>Seller:</strong> ${purchaseData.sellerName}</p>
+            <p><strong>Order ID:</strong> ${purchaseData.orderId}</p>
+            <p><strong>Order Date:</strong> ${purchaseData.orderDate}</p>
+            <p><strong>Total Paid:</strong> R${purchaseData.orderTotal}</p>
+          </div>
+
+          <div style="background-color: #e8f4fd; border: 1px solid #74b9ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #0984e3; margin-top: 0;">⏳ Waiting for Seller Confirmation</h3>
+            <p>The seller has 48 hours to confirm your order. Once confirmed, your book will be shipped immediately.</p>
+          </div>
+
+          <p><strong>What happens next:</strong></p>
+          <ul>
+            <li>The seller will confirm your order within 48 hours</li>
+            <li>Once confirmed, your book will be shipped immediately</li>
+            <li>You'll receive tracking information via SMS/email</li>
+            <li>Delivery typically takes 1-3 business days</li>
+          </ul>
+
+          <p><strong>If the seller doesn't confirm:</strong> You'll receive a full automatic refund within 48 hours.</p>
+
+          <p>Thank you for choosing ReBooked Solutions!</p>
+        </div>
+      </div>
+    `;
+
+    try {
+      await emailService.sendEmail({
+        to: purchaseData.buyerEmail,
+        subject: "📚 Purchase Confirmed - Waiting for Seller Response",
+        html: buyerEmailHtml,
+        text: `Purchase Confirmed! Book: ${purchaseData.bookTitle}, Total: R${purchaseData.orderTotal}. Waiting for seller confirmation within 48 hours.`,
+      });
+      return true;
+    } catch (error) {
+      console.error("Failed to send buyer email:", error);
+      return false;
+    }
+  };
+
   const handleSendTestEmails = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -104,7 +235,7 @@ const CheckoutEmailTest: React.FC = () => {
     setEmailResult(null);
 
     try {
-      const result = await EnhancedPurchaseEmailService.sendPurchaseEmailsWithFallback({
+      const purchaseData = {
         orderId: formData.orderId,
         bookId: formData.bookId,
         bookTitle: formData.bookTitle,
@@ -115,16 +246,26 @@ const CheckoutEmailTest: React.FC = () => {
         buyerEmail: formData.buyerEmail,
         orderTotal: parseFloat(formData.orderTotal),
         orderDate: formData.orderDate,
-      });
+      };
+
+      // Send both emails in parallel
+      const [sellerEmailSent, buyerEmailSent] = await Promise.all([
+        sendTestSellerEmail(purchaseData),
+        sendTestBuyerEmail(purchaseData),
+      ]);
+
+      const success = sellerEmailSent && buyerEmailSent;
 
       setEmailResult({
-        success: result.sellerEmailSent && result.buyerEmailSent,
-        message: result.message,
-        sellerEmailSent: result.sellerEmailSent,
-        buyerEmailSent: result.buyerEmailSent,
+        success,
+        message: success
+          ? "Both emails sent successfully!"
+          : "One or more emails failed to send. Check the details below.",
+        sellerEmailSent,
+        buyerEmailSent,
       });
 
-      if (result.sellerEmailSent && result.buyerEmailSent) {
+      if (success) {
         toast.success("Test emails sent successfully! ✅", {
           description: "Check your inbox for both seller and buyer confirmation emails.",
           duration: 5000,
