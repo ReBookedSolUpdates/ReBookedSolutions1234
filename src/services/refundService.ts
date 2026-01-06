@@ -131,69 +131,7 @@ export class RefundService {
   }
 
   /**
-   * Create refund through Paystack API
-   */
-  private static async createPaystackRefund(
-    transactionReference: string,
-    amount: number,
-    reason: string,
-  ): Promise<{
-    success: boolean;
-    refundReference?: string;
-    status?: string;
-    expectedDate?: string;
-    paystackData?: any;
-    error?: string;
-  }> {
-    try {
-      if (!PAYSTACK_SECRET_KEY) {
-        throw new Error("Paystack secret key not configured");
-      }
-
-      const refundData = {
-        transaction: transactionReference,
-        amount: Math.round(amount * 100), // Convert to kobo
-        currency: "ZAR",
-        customer_note: reason,
-        merchant_note: `Refund processed for transaction ${transactionReference}`,
-      };
-
-      const response = await fetch("https://api.paystack.co/refund", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(refundData),
-      });
-
-      const result = await response.json();
-
-      if (!result.status) {
-        throw new Error(result.message || "Paystack refund request failed");
-      }
-
-      // Calculate expected refund date (usually 3-5 business days)
-      const expectedDate = new Date();
-      expectedDate.setDate(expectedDate.getDate() + 5);
-
-      return {
-        success: true,
-        refundReference: result.data.id,
-        status: result.data.status || "pending",
-        expectedDate: expectedDate.toISOString(),
-        paystackData: result.data,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Paystack API error",
-      };
-    }
-  }
-
-  /**
-   * Check refund status from Paystack
+   * Check refund status from database
    */
   static async checkRefundStatus(refundId: string): Promise<{
     success: boolean;
@@ -203,30 +141,21 @@ export class RefundService {
     error?: string;
   }> {
     try {
-      if (!PAYSTACK_SECRET_KEY) {
-        throw new Error("Paystack secret key not configured");
-      }
+      const { data: refund, error } = await supabase
+        .from("refund_transactions")
+        .select("*")
+        .eq("id", refundId)
+        .single();
 
-      const response = await fetch(
-        `https://api.paystack.co/refund/${refundId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
-          },
-        },
-      );
-
-      const result = await response.json();
-
-      if (!result.status) {
-        throw new Error(result.message || "Failed to fetch refund status");
+      if (error || !refund) {
+        throw new Error("Refund not found");
       }
 
       return {
         success: true,
-        status: result.data.status,
-        amount: result.data.amount / 100, // Convert from kobo
-        processedAt: result.data.created_at,
+        status: refund.status,
+        amount: refund.amount,
+        processedAt: refund.created_at,
       };
     } catch (error) {
       return {
