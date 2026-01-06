@@ -22,7 +22,7 @@ interface PurchaseEmailData {
 export class EnhancedPurchaseEmailService {
   
   /**
-   * Send purchase confirmation emails with guaranteed fallbacks
+   * Send purchase confirmation emails directly
    * Called after successful payment completion
    */
   static async sendPurchaseEmailsWithFallback(purchaseData: PurchaseEmailData): Promise<{
@@ -32,57 +32,65 @@ export class EnhancedPurchaseEmailService {
   }> {
     let sellerEmailSent = false;
     let buyerEmailSent = false;
-    
+    const errors: string[] = [];
+
     try {
-      // Send seller notification (they need to know about the sale to commit)
+      // Send seller notification directly (they need to know about the sale to commit)
       try {
         await this.sendSellerPurchaseNotification(purchaseData);
         sellerEmailSent = true;
       } catch (sellerError) {
-        await this.queueSellerEmailForFallback(purchaseData);
+        const errorMsg = sellerError instanceof Error ? sellerError.message : 'Unknown error';
+        errors.push(`Seller email failed: ${errorMsg}`);
       }
 
-      // Create in-app notification for seller (regardless of email success)
+      // Create in-app notification for seller
       try {
         await this.createSellerNotification(purchaseData);
       } catch (notifError) {
+        const errorMsg = notifError instanceof Error ? notifError.message : 'Unknown error';
+        errors.push(`Seller notification failed: ${errorMsg}`);
       }
 
       // Add small delay to prevent stream conflicts
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      // Send buyer receipt/confirmation
+      // Send buyer receipt/confirmation directly
       try {
         await this.sendBuyerPurchaseReceipt(purchaseData);
         buyerEmailSent = true;
       } catch (buyerError) {
-        await this.queueBuyerEmailForFallback(purchaseData);
+        const errorMsg = buyerError instanceof Error ? buyerError.message : 'Unknown error';
+        errors.push(`Buyer email failed: ${errorMsg}`);
       }
 
-      // Create in-app notification for buyer (regardless of email success)
+      // Create in-app notification for buyer
       try {
         await this.createBuyerNotification(purchaseData);
       } catch (notifError) {
+        const errorMsg = notifError instanceof Error ? notifError.message : 'Unknown error';
+        errors.push(`Buyer notification failed: ${errorMsg}`);
       }
-      
-      // Additional fallback: Queue verification email
-      await this.queuePurchaseVerificationEmail(purchaseData);
-      
+
+      // Log any errors that occurred
+      if (errors.length > 0) {
+        console.warn('Purchase email service warnings:', errors);
+      }
+
       return {
         sellerEmailSent,
         buyerEmailSent,
-        message: `Purchase emails sent - Seller: ${sellerEmailSent ? 'sent' : 'queued'}, Buyer: ${buyerEmailSent ? 'sent' : 'queued'}`
+        message: `Purchase emails sent - Seller: ${sellerEmailSent ? 'sent directly' : 'failed'}, Buyer: ${buyerEmailSent ? 'sent directly' : 'failed'}`
       };
 
     } catch (error) {
-      
-      // Final fallback: Queue urgent manual processing
-      await this.queueUrgentManualProcessing(purchaseData);
-      
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Critical error in purchase email service:', errorMsg);
+
       return {
         sellerEmailSent: false,
         buyerEmailSent: false,
-        message: "Emails queued for urgent manual processing"
+        message: `Email sending failed: ${errorMsg}`
       };
     }
   }
