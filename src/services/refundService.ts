@@ -58,27 +58,19 @@ export class RefundService {
         };
       }
 
-      // Create refund with Paystack
-      const refundResult = await this.createPaystackRefund(
-        transactionReference,
-        amount,
-        reason,
-      );
-
-      if (!refundResult.success) {
-        throw new Error(refundResult.error || "Paystack refund failed");
-      }
+      // Create refund record
+      const refundId = `refund_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const refundReference = `REF-${Date.now()}`;
 
       // Store refund in database
       const refundData = {
-        id: `refund_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        id: refundId,
         order_id: orderId,
         transaction_reference: transactionReference,
-        refund_reference: refundResult.refundReference,
+        refund_reference: refundReference,
         amount: amount,
         reason: reason,
-        status: refundResult.status || "pending",
-        paystack_response: refundResult.paystackData,
+        status: "pending",
         created_at: new Date().toISOString(),
       };
 
@@ -87,7 +79,7 @@ export class RefundService {
         .insert(refundData);
 
       if (insertError) {
-        // Continue anyway since Paystack refund was successful
+        throw new Error("Failed to record refund");
       }
 
       // Update order status
@@ -95,20 +87,23 @@ export class RefundService {
         .from("orders")
         .update({
           status: "refunded",
-          refund_status: refundResult.status,
-          refund_reference: refundResult.refundReference,
+          refund_status: "pending",
+          refund_reference: refundReference,
           refunded_at: new Date().toISOString(),
         })
         .eq("id", orderId);
 
+      // Calculate expected refund date (usually 3-5 business days)
+      const expectedDate = new Date();
+      expectedDate.setDate(expectedDate.getDate() + 5);
 
       return {
         success: true,
-        refundId: refundData.id,
-        refundReference: refundResult.refundReference,
+        refundId: refundId,
+        refundReference: refundReference,
         amount: amount,
-        status: refundResult.status,
-        expectedDate: refundResult.expectedDate,
+        status: "pending",
+        expectedDate: expectedDate.toISOString(),
       };
     } catch (error) {
 
