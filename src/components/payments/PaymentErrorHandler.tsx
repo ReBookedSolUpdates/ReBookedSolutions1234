@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 
 export interface PaymentError {
-  type: "network" | "validation" | "paystack" | "server" | "auth" | "unknown";
+  type: "network" | "validation" | "server" | "auth" | "unknown";
   code?: string;
   message: string;
   details?: any;
