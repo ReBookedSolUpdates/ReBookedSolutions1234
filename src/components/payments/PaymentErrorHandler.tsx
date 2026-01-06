@@ -60,17 +60,6 @@ export const PaymentErrorHandler: React.FC<PaymentErrorHandlerProps> = ({
           actions: ["back"],
         };
 
-      case "paystack":
-        return {
-          title: "Payment Processing Error",
-          description:
-            error.message ||
-            "Payment could not be processed. Please try a different payment method.",
-          icon: <AlertTriangle className="h-4 w-4" />,
-          variant: "destructive" as const,
-          actions: error.retryable ? ["retry", "support"] : ["support"],
-        };
-
       case "server":
         return {
           title: "Server Error",
