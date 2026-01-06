@@ -1,5 +1,4 @@
 import { supabase } from "@/integrations/supabase/client";
-import { PAYSTACK_CONFIG } from "@/config/paystack";
 import type {
   BankingDetails,
   BankingSubaccount,
@@ -403,13 +402,6 @@ export class BankingService {
     bankCode: string,
   ): Promise<{ valid: boolean; accountName?: string; error?: string }> {
     try {
-      if (!PAYSTACK_CONFIG.isConfigured()) {
-        return {
-          valid: false,
-          error: "Account validation service not available",
-        };
-      }
-
       const { data, error } = await supabase.functions.invoke(
         "validate-account-number",
         {
