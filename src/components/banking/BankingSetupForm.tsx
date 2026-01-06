@@ -33,7 +33,7 @@ import {
   getBankCode,
   isValidAccountNumber,
   isValidEmail,
-} from "@/config/paystack";
+} from "@/config/banking";
 import { BankingService } from "@/services/bankingService";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
