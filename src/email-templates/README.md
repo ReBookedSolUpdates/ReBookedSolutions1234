@@ -62,30 +62,79 @@ await emailService.sendEmail({
 
 ## 📧 Available Templates
 
-### 1. **Wallet Credit Notification**
+### **Order Management Templates**
+
+#### 1. **Pending Commit Email** (Seller Action Required)
+- **File**: `templates/pending-commit.ts`
+- **Purpose**: Urgent reminder for seller to confirm/commit to sale within 48 hours
+- **Recipient**: Seller
+- **Use Case**: After buyer purchases, seller must confirm within 48 hours
+- **Includes**: Deadline warning, earnings breakdown, action link
+
+#### 2. **Order Confirmed - Buyer** (Book on the Way)
+- **File**: `templates/order-confirmed-buyer.ts`
+- **Purpose**: Notify buyer that seller has confirmed and book is on the way
+- **Recipient**: Buyer
+- **Use Case**: When seller commits to sale and prepares for pickup
+- **Includes**: Order details, delivery method, tracking info
+
+#### 3. **Order Confirmed - Seller** (Prepare for Pickup)
+- **File**: `templates/order-confirmed-seller.ts`
+- **Purpose**: Confirm seller commitment and ask to prepare for pickup
+- **Recipient**: Seller
+- **Use Case**: After seller commits to order
+- **Includes**: Pickup instructions, payment confirmation timeline
+
+#### 4. **Order Declined - Buyer** (Refund Processed)
+- **File**: `templates/order-declined-buyer.ts`
+- **Purpose**: Notify buyer when seller declines and refund is processed
+- **Recipient**: Buyer
+- **Use Case**: When seller declines to commit to sale
+- **Includes**: Refund status, order details, next steps
+
+#### 5. **Order Declined - Seller** (Confirmation)
+- **File**: `templates/order-declined-seller.ts`
+- **Purpose**: Confirm seller's decline of order
+- **Recipient**: Seller
+- **Use Case**: After seller declines commitment
+- **Includes**: Stock restoration confirmation, next steps
+
+#### 6. **Order Collection - Buyer** (Tracking Info)
+- **File**: `templates/order-collection-buyer.ts`
+- **Purpose**: Notify buyer that order has been collected and is shipping
+- **Recipient**: Buyer
+- **Use Case**: When courier collects book from seller
+- **Includes**: Tracking number, expected delivery date
+
+#### 7. **Order Collection - Seller** (Confirmation)
+- **File**: `templates/order-collection-seller.ts`
+- **Purpose**: Confirm that order has been collected
+- **Recipient**: Seller
+- **Use Case**: After courier collects book from seller
+- **Includes**: Payment status, tracking reference
+
+### **Payment & Notification Templates**
+
+#### 8. **Wallet Credit Notification**
 - **File**: `templates/wallet-credit-notification.ts`
 - **Purpose**: Notify seller when payment is added to their wallet
 - **Recipient**: Seller
 - **Use Case**: After successful delivery and payment processing
+- **Includes**: Transaction details, new balance, payout options
 
-### 2. **Seller Credit Notification**
+#### 9. **Seller Credit Notification**
 - **File**: `templates/seller-credit-notification.ts`
 - **Purpose**: Alternative notification for seller payment confirmation
 - **Recipient**: Seller
 - **Use Case**: Payment confirmation and wallet updates
+- **Includes**: Credit amount, transaction details, next steps
 
-### 3. **Pending Commit Email**
-- **File**: `templates/pending-commit.ts`
-- **Purpose**: Urgent reminder for seller to confirm/commit to sale
-- **Recipient**: Seller
-- **Use Case**: After purchase, seller has 48 hours to confirm
-- **Key**: Includes deadline warning
-
-### 4. **Denial Email**
+#### 10. **Denial Email** (Payment Delayed)
 - **File**: `templates/denial.ts`
 - **Purpose**: Notify seller of delivery issues causing payment delays
 - **Recipient**: Seller
 - **Use Case**: When there are issues with order delivery
+- **Includes**: Issue explanation, what happens next, investigation timeline
 
 ## 🎨 Styling
 
