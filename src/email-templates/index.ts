@@ -15,3 +15,11 @@ export { createOrderConfirmedBuyerEmail, sendOrderConfirmedBuyerEmail, type Orde
 export { createOrderConfirmedSellerEmail, sendOrderConfirmedSellerEmail, type OrderConfirmedSellerData } from './templates/order-confirmed-seller';
 export { createOrderCollectionBuyerEmail, sendOrderCollectionBuyerEmail, type OrderCollectionBuyerData } from './templates/order-collection-buyer';
 export { createOrderCollectionSellerEmail, sendOrderCollectionSellerEmail, type OrderCollectionSellerData } from './templates/order-collection-seller';
+
+// Delivery & Feedback Templates
+export { createDeliveryConfirmationRequestEmail, sendDeliveryConfirmationRequestEmail, type DeliveryConfirmationRequestData } from './templates/delivery-confirmation-request';
+export { createDeliveryConfirmedBuyerEmail, sendDeliveryConfirmedBuyerEmail, type DeliveryConfirmedBuyerData } from './templates/delivery-confirmed-buyer';
+export { createDeliveryComplaintAcknowledgmentBuyerEmail, sendDeliveryComplaintAcknowledgmentBuyerEmail, type DeliveryComplaintAcknowledgmentBuyerData } from './templates/delivery-complaint-acknowledgment-buyer';
+export { createDeliveryComplaintNotificationSellerEmail, sendDeliveryComplaintNotificationSellerEmail, type DeliveryComplaintNotificationSellerData } from './templates/delivery-complaint-notification-seller';
+export { createSellerWaitingForDeliveryConfirmationEmail, sendSellerWaitingForDeliveryConfirmationEmail, type SellerWaitingForDeliveryConfirmationData } from './templates/seller-waiting-for-delivery-confirmation';
+export { createPaymentOnTheWayBankTransferEmail, sendPaymentOnTheWayBankTransferEmail, type PaymentOnTheWayBankTransferData } from './templates/payment-on-the-way-bank-transfer';
