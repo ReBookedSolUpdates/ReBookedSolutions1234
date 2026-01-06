@@ -268,21 +268,6 @@ export const classifyPaymentError = (error: any): PaymentError => {
     };
   }
 
-  // Paystack specific errors
-  if (
-    errorLower.includes("paystack") ||
-    errorLower.includes("payment declined") ||
-    errorLower.includes("insufficient funds") ||
-    errorLower.includes("card")
-  ) {
-    return {
-      type: "paystack",
-      message: errorMessage,
-      retryable: true,
-      details: error,
-    };
-  }
-
   // Server errors
   if (
     errorLower.includes("server") ||
