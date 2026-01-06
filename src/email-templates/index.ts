@@ -2,8 +2,16 @@
 export { EMAIL_STYLES, EMAIL_FOOTER, createEmailTemplate, type EmailTemplate, type EmailTemplateData } from './styles';
 export { EMAIL_TEMPLATES, getTemplateById, getTemplatesByCategory, getAllTemplateCategories } from './registry';
 
-// Template modules
+// Payment & Notification Templates
 export { createWalletCreditNotificationEmail, sendWalletCreditNotificationEmail, type WalletCreditNotificationData } from './templates/wallet-credit-notification';
 export { createSellerCreditNotificationEmail, sendSellerCreditNotificationEmail, type SellerCreditNotificationData } from './templates/seller-credit-notification';
-export { createPendingCommitEmail, sendPendingCommitEmail, type PendingCommitEmailData } from './templates/pending-commit';
 export { createDenialEmailTemplate, sendDenialEmail, type DenialEmailData } from './templates/denial';
+
+// Order Management Templates
+export { createPendingCommitEmail, sendPendingCommitEmail, type PendingCommitEmailData } from './templates/pending-commit';
+export { createOrderDeclinedBuyerEmail, sendOrderDeclinedBuyerEmail, type OrderDeclinedBuyerData } from './templates/order-declined-buyer';
+export { createOrderDeclinedSellerEmail, sendOrderDeclinedSellerEmail, type OrderDeclinedSellerData } from './templates/order-declined-seller';
+export { createOrderConfirmedBuyerEmail, sendOrderConfirmedBuyerEmail, type OrderConfirmedBuyerData } from './templates/order-confirmed-buyer';
+export { createOrderConfirmedSellerEmail, sendOrderConfirmedSellerEmail, type OrderConfirmedSellerData } from './templates/order-confirmed-seller';
+export { createOrderCollectionBuyerEmail, sendOrderCollectionBuyerEmail, type OrderCollectionBuyerData } from './templates/order-collection-buyer';
+export { createOrderCollectionSellerEmail, sendOrderCollectionSellerEmail, type OrderCollectionSellerData } from './templates/order-collection-seller';

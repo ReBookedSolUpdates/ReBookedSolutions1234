@@ -373,7 +373,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
     })
   },
 
-  // BANKING EMAILS  
+  // BANKING EMAILS
   {
     id: 'banking-setup-success',
     name: 'Banking Setup Success',
@@ -420,6 +420,238 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
         `
       ),
       text: `Banking Setup Complete!\n\nHello ${data.userName}!\n\nYour banking details are set up.\nSubaccount: ${data.subaccountCode}\n\nYou can now sell books and receive payments to your bank account.`
+    })
+  },
+
+  // ORDER MANAGEMENT EMAILS
+  {
+    id: 'order-declined-buyer',
+    name: 'Order Declined (Buyer)',
+    description: 'Notifies buyer when seller declines order',
+    category: 'orders',
+    requiredFields: ['buyerName', 'orderId', 'bookTitle', 'totalAmount'],
+    defaultData: {
+      buyerName: 'Jane Doe',
+      orderId: 'ORD-12345',
+      bookTitle: 'Mathematics Grade 12',
+      totalAmount: 250.00,
+      reason: 'Seller unable to fulfill order',
+      refundProcessed: true
+    },
+    generator: (data) => ({
+      subject: 'Order Declined - Refund Processed - ReBooked Solutions',
+      html: createEmailTemplate(
+        {
+          title: 'Order Declined - Refund Processed',
+          headerType: 'error',
+          headerText: '❌ Order Declined'
+        },
+        `
+        <p>Hello ${data.buyerName},</p>
+        <p>We're sorry to inform you that your order has been declined by the seller.</p>
+        <div class="info-box-error">
+          <h3>📋 Order Details</h3>
+          <p><strong>Order ID:</strong> ${data.orderId}</p>
+          <p><strong>Book:</strong> ${data.bookTitle}</p>
+          <p><strong>Amount:</strong> R${data.totalAmount.toFixed(2)}</p>
+          ${data.reason ? `<p><strong>Reason:</strong> ${data.reason}</p>` : ''}
+        </div>
+        <div class="info-box-success">
+          <h3 style="margin-top: 0; color: #10b981;">💰 Refund Status</h3>
+          <p style="margin: 0;">Your refund of <strong>R${data.totalAmount.toFixed(2)}</strong> has been successfully processed.</p>
+        </div>
+        `
+      ),
+      text: `Order Declined\n\nHello ${data.buyerName},\n\nYour order ${data.orderId} has been declined.\nAmount: R${data.totalAmount.toFixed(2)}\n\nYour refund has been processed.`
+    })
+  },
+
+  {
+    id: 'order-declined-seller',
+    name: 'Order Declined (Seller)',
+    description: 'Confirms seller decline of order',
+    category: 'orders',
+    requiredFields: ['sellerName', 'orderId', 'bookTitle'],
+    defaultData: {
+      sellerName: 'John Smith',
+      orderId: 'ORD-12345',
+      bookTitle: 'Mathematics Grade 12',
+      reason: 'Unable to fulfill'
+    },
+    generator: (data) => ({
+      subject: 'Order Decline Confirmation - ReBooked Solutions',
+      html: createEmailTemplate(
+        {
+          title: 'Order Decline Confirmation',
+          headerType: 'error',
+          headerText: '✅ Order Decline Confirmed'
+        },
+        `
+        <p>Hello ${data.sellerName},</p>
+        <p>You have successfully declined the order commitment.</p>
+        <div class="info-box-success">
+          <h3>📋 Order Details</h3>
+          <p><strong>Order ID:</strong> ${data.orderId}</p>
+          <p><strong>Book Title:</strong> ${data.bookTitle}</p>
+        </div>
+        <p>The buyer has been notified and refunded. Your book stock has been automatically restored.</p>
+        `
+      ),
+      text: `Order Decline Confirmation\n\nHello ${data.sellerName},\n\nYou have declined order ${data.orderId}.\nThe buyer has been refunded and your stock restored.`
+    })
+  },
+
+  {
+    id: 'order-confirmed-buyer',
+    name: 'Order Confirmed (Buyer)',
+    description: 'Confirms order and notifies buyer that book is on the way',
+    category: 'orders',
+    requiredFields: ['buyerName', 'sellerName', 'orderId', 'bookTitles'],
+    defaultData: {
+      buyerName: 'Jane Doe',
+      sellerName: 'John Smith',
+      orderId: 'ORD-12345',
+      bookTitles: ['Mathematics Grade 12'],
+      deliveryType: 'door',
+      trackingNumber: 'TRACK-123456'
+    },
+    generator: (data) => ({
+      subject: '🎉 Order Confirmed - Book on the Way - ReBooked Solutions',
+      html: createEmailTemplate(
+        {
+          title: 'Order Confirmed',
+          headerType: 'default',
+          headerText: '🎉 Order Confirmed!'
+        },
+        `
+        <p>Hello ${data.buyerName},</p>
+        <p><strong>Great news!</strong> ${data.sellerName} has confirmed your order and your book is on the way!</p>
+        <div class="info-box">
+          <h3>📚 Order Details</h3>
+          <p><strong>Order ID:</strong> ${data.orderId}</p>
+          <p><strong>Book(s):</strong> ${data.bookTitles.join(', ')}</p>
+          <p><strong>Estimated Delivery:</strong> 2-3 business days</p>
+          ${data.trackingNumber ? `<p><strong>Tracking:</strong> ${data.trackingNumber}</p>` : ''}
+        </div>
+        <p>A courier will collect the book and deliver it to you within 2-3 business days.</p>
+        `
+      ),
+      text: `Order Confirmed!\n\nHello ${data.buyerName},\n\n${data.sellerName} confirmed your order.\nOrder ID: ${data.orderId}\nEstimated Delivery: 2-3 business days`
+    })
+  },
+
+  {
+    id: 'order-confirmed-seller',
+    name: 'Order Confirmed (Seller)',
+    description: 'Confirms seller commitment and asks to prepare for pickup',
+    category: 'orders',
+    requiredFields: ['sellerName', 'buyerName', 'orderId', 'bookTitles'],
+    defaultData: {
+      sellerName: 'John Smith',
+      buyerName: 'Jane Doe',
+      orderId: 'ORD-12345',
+      bookTitles: ['Mathematics Grade 12'],
+      pickupType: 'door',
+      trackingNumber: 'TRACK-123456'
+    },
+    generator: (data) => ({
+      subject: '✅ Order Committed - Prepare for Pickup - ReBooked Solutions',
+      html: createEmailTemplate(
+        {
+          title: 'Order Commitment Confirmed',
+          headerType: 'default',
+          headerText: '✅ Order Commitment Confirmed!'
+        },
+        `
+        <p>Hello ${data.sellerName},</p>
+        <p>Thank you! You've successfully committed to sell your book(s).</p>
+        <div class="info-box">
+          <h3>📋 Order Details</h3>
+          <p><strong>Order ID:</strong> ${data.orderId}</p>
+          <p><strong>Book(s):</strong> ${data.bookTitles.join(', ')}</p>
+          <p><strong>Buyer:</strong> ${data.buyerName}</p>
+        </div>
+        <p>A courier will contact you within 24 hours to arrange pickup. Please have your books ready.</p>
+        <p>You'll receive payment once the buyer confirms delivery.</p>
+        `
+      ),
+      text: `Order Commitment Confirmed\n\nHello ${data.sellerName},\n\nYou committed to order ${data.orderId}.\nCourier will contact you for pickup within 24 hours.\nPayment released after delivery confirmation.`
+    })
+  },
+
+  {
+    id: 'order-collection-buyer',
+    name: 'Order Collection (Buyer)',
+    description: 'Notifies buyer that order has been collected and is shipping',
+    category: 'orders',
+    requiredFields: ['buyerName', 'orderId', 'bookTitles'],
+    defaultData: {
+      buyerName: 'Jane Doe',
+      orderId: 'ORD-12345',
+      bookTitles: ['Mathematics Grade 12'],
+      trackingReference: 'TRACK-123456'
+    },
+    generator: (data) => ({
+      subject: '📦 Your Order is on the Way! - ReBooked Solutions',
+      html: createEmailTemplate(
+        {
+          title: 'Order Collected and Shipping',
+          headerType: 'default',
+          headerText: '📦 Your Order is on the Way!'
+        },
+        `
+        <p>Hello ${data.buyerName},</p>
+        <p>Exciting news! Your order has been collected and is being shipped to you.</p>
+        <div class="info-box">
+          <h3>📚 Order Details</h3>
+          <p><strong>Order ID:</strong> ${data.orderId}</p>
+          <p><strong>Book(s):</strong> ${data.bookTitles.join(', ')}</p>
+          ${data.trackingReference ? `<p><strong>Tracking:</strong> ${data.trackingReference}</p>` : ''}
+          <p><strong>Expected Delivery:</strong> 2-3 business days</p>
+        </div>
+        <p>You can track your shipment using the tracking number provided above.</p>
+        `
+      ),
+      text: `Your Order is on the Way!\n\nHello ${data.buyerName},\n\nOrder ${data.orderId} has been collected and is shipping.\nBook(s): ${data.bookTitles.join(', ')}\n${data.trackingReference ? `Tracking: ${data.trackingReference}\n` : ''}Expected Delivery: 2-3 business days`
+    })
+  },
+
+  {
+    id: 'order-collection-seller',
+    name: 'Order Collection (Seller)',
+    description: 'Confirms order collection and pending payment',
+    category: 'orders',
+    requiredFields: ['sellerName', 'orderId', 'bookTitles'],
+    defaultData: {
+      sellerName: 'John Smith',
+      orderId: 'ORD-12345',
+      bookTitles: ['Mathematics Grade 12'],
+      trackingReference: 'TRACK-123456'
+    },
+    generator: (data) => ({
+      subject: '📦 Order Collected Successfully - ReBooked Solutions',
+      html: createEmailTemplate(
+        {
+          title: 'Order Collected',
+          headerType: 'default',
+          headerText: '📦 Order Collected Successfully!'
+        },
+        `
+        <p>Hello ${data.sellerName},</p>
+        <p>Great news! Your book(s) have been successfully collected and is being shipped to the buyer.</p>
+        <div class="info-box">
+          <h3>📚 Order Details</h3>
+          <p><strong>Order ID:</strong> ${data.orderId}</p>
+          <p><strong>Book(s):</strong> ${data.bookTitles.join(', ')}</p>
+          ${data.trackingReference ? `<p><strong>Tracking:</strong> ${data.trackingReference}</p>` : ''}
+        </div>
+        <div class="info-box-success">
+          <h3 style="margin-top: 0; color: #10b981;">💰 Payment Status</h3>
+          <p style="margin: 0;">Payment is pending buyer confirmation. You'll be notified once it's processed.</p>
+        </div>
+        `
+      ),
+      text: `Order Collected Successfully\n\nHello ${data.sellerName},\n\nOrder ${data.orderId} collected and shipping.\nPayment pending buyer confirmation.\n${data.trackingReference ? `Tracking: ${data.trackingReference}` : ''}`
     })
   }
 ];
