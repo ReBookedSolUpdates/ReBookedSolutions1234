@@ -124,7 +124,7 @@ serve(async (req) => {
               .from("orders")
               .update({ status: "completed", delivery_status: "delivered", updated_at: new Date().toISOString() })
               .eq("tracking_number", tracking_number)
-              .select("id, book_id, seller_id, buyer_id")
+              .select("id, book_id, seller_id, buyer_id, buyer_email")
               .single();
 
             if (updatedOrderError) {
@@ -145,6 +145,117 @@ serve(async (req) => {
               } catch (notifErr) {
               }
 
+              // Send delivery confirmation request email to buyer
+              try {
+                const { data: buyerData } = await supabase
+                  .from("users")
+                  .select("email, full_name")
+                  .eq("id", updatedOrderRow.buyer_id)
+                  .single();
+
+                if (buyerData?.email) {
+                  const deadlineDate = new Date();
+                  deadlineDate.setHours(deadlineDate.getHours() + 48);
+                  const deadlineDateStr = deadlineDate.toLocaleDateString('en-ZA', {
+                    weekday: 'short',
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  });
+
+                  // Fetch book title
+                  let bookTitle = "Your Book";
+                  try {
+                    const { data: bookData } = await supabase
+                      .from("books")
+                      .select("title")
+                      .eq("id", updatedOrderRow.book_id)
+                      .single();
+                    if (bookData?.title) {
+                      bookTitle = bookData.title;
+                    }
+                  } catch (bookErr) {
+                  }
+
+                  await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+                    },
+                    body: JSON.stringify({
+                      templateId: 'delivery-confirmation-request',
+                      to: buyerData.email,
+                      data: {
+                        buyerName: buyerData.full_name || 'Buyer',
+                        orderId: updatedOrderRow.id,
+                        bookTitles: [bookTitle],
+                        deadlineDate: deadlineDateStr,
+                      }
+                    })
+                  });
+                }
+              } catch (emailErr) {
+              }
+            }
+
+            // Send seller waiting email to seller
+            if (updatedOrderRow && updatedOrderRow.seller_id) {
+              try {
+                const { data: sellerData } = await supabase
+                  .from("users")
+                  .select("email, full_name")
+                  .eq("id", updatedOrderRow.seller_id)
+                  .single();
+
+                if (sellerData?.email) {
+                  const deadlineDate = new Date();
+                  deadlineDate.setHours(deadlineDate.getHours() + 48);
+                  const deadlineDateStr = deadlineDate.toLocaleDateString('en-ZA', {
+                    weekday: 'short',
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  });
+
+                  // Fetch book title
+                  let bookTitle = "Your Book";
+                  try {
+                    const { data: bookData } = await supabase
+                      .from("books")
+                      .select("title")
+                      .eq("id", updatedOrderRow.book_id)
+                      .single();
+                    if (bookData?.title) {
+                      bookTitle = bookData.title;
+                    }
+                  } catch (bookErr) {
+                  }
+
+                  await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+                    },
+                    body: JSON.stringify({
+                      templateId: 'seller-waiting-for-delivery-confirmation',
+                      to: sellerData.email,
+                      data: {
+                        sellerName: sellerData.full_name || 'Seller',
+                        orderId: updatedOrderRow.id,
+                        bookTitles: [bookTitle],
+                        deadlineDate: deadlineDateStr,
+                      }
+                    })
+                  });
+                }
+              } catch (emailErr) {
+              }
             }
 
             try {

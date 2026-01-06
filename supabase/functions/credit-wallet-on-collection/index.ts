@@ -321,6 +321,35 @@ serve(async (req) => {
 
     // If seller has active banking details, payment will be sent directly
     if (bankingDetails) {
+      // Send bank transfer email to seller
+      const sellerEmail = order.seller_email;
+      const sellerName = order.seller_full_name || "Seller";
+
+      if (sellerEmail) {
+        try {
+          // Send bank transfer email using the send-email function
+          await fetch(`${SUPABASE_URL}/functions/v1/send-email`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+            },
+            body: JSON.stringify({
+              templateId: 'payment-on-the-way-bank-transfer',
+              to: sellerEmail,
+              data: {
+                sellerName: sellerName,
+                bookTitle: book.title,
+                orderId: order_id,
+              }
+            })
+          });
+        } catch (emailErr) {
+          // Log email error but don't fail the whole function
+          console.error("Failed to send bank transfer email:", emailErr);
+        }
+      }
+
       return new Response(
         JSON.stringify({
           success: true,

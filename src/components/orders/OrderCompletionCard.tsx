@@ -239,108 +239,19 @@ const OrderCompletionCard: React.FC<OrderCompletionCardProps> = ({
           if (receivedStatus === "received") {
             // Buyer: Thank you and next steps
             if (buyerEmail) {
-              const html = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Thank you — Order Received</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f3fef7;
-      padding: 20px;
-      color: #1f4e3d;
-    }
-    .container {
-      max-width: 500px;
-      margin: auto;
-      background-color: #ffffff;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    }
-    .header {
-      background-color: #3ab26f;
-      padding: 25px;
-      text-align: center;
-      border-radius: 10px 10px 0 0;
-      color: white;
-    }
-    .btn {
-      display: inline-block;
-      padding: 12px 20px;
-      background-color: #3ab26f;
-      color: white;
-      text-decoration: none;
-      border-radius: 5px;
-      margin-top: 20px;
-      font-weight: bold;
-    }
-    .footer-text {
-      font-size: 13px;
-      color: #4e7a63;
-      margin-top: 20px;
-    }
-    .social-links a {
-      color: #3ab26f;
-      text-decoration: none;
-      display: inline-block;
-      margin-right: 10px;
-      font-size: 14px;
-    }
-    .slogan {
-      font-size: 14px;
-      font-style: italic;
-      color: #1f4e3d;
-      margin-top: 25px;
-      text-align: center;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1 style="margin:0;font-size:22px;">Thank you — Order Received</h1>
-    </div>
-    <div style="padding:20px;">
-      <p>Hello \${buyerFullName},</p>
-      <p>
-        Thanks for shopping with us! We hope you enjoy <strong>\${bookTitle}</strong>.
-      </p>
-      <p>
-        When you're done with it, you can list it on ReBooked Solutions and make your money back.
-        Buy smart, sell smart — keep the cycle going. ♻️
-      </p>
-      <a href="https://rebookedsolutions.co.za/orders/\${orderId}" class="btn">
-        View Your Order
-      </a>
-      <p class="footer-text">
-        Follow us & stay updated:
-      </p>
-      <div class="social-links">
-        <a href="https://www.instagram.com/rebooked.solutions?igsh=M2ZsNjd2aTNmZmRh">Instagram</a>
-        <a href="https://www.facebook.com/people/Rebooked-Solutions/61577195802238/?mibextid=wwXIfr&rdid=zzSy70C45G7ABaBF&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F16ngKMps6U%2F%3Fmibextid%3DwwXIfr">Facebook</a>
-        <a href="https://www.tiktok.com/@rebooked.solution">TikTok</a>
-        <a href="https://x.com/RebookedSol">X (Twitter)</a>
-      </div>
-      <p class="footer-text">
-        If you need any assistance, feel free to email us at
-        <a href="mailto:support@rebookedsolutions.co.za" style="color:#3ab26f;">support@rebookedsolutions.co.za</a>.
-      </p>
-      <p class="footer-text">
-        Share ReBooked with your friends & family so they can save too.
-        Together we make textbooks affordable.
-      </p>
-      <p class="slogan">"Pre-Loved Pages, New Adventure"</p>
-      <p class="footer-text">— ReBooked Solutions</p>
-    </div>
-  </div>
-</body>
-</html>`;
-              const text = `Thank you — Order Received\n\nHello ${buyerFullName},\n\nThanks for confirming receipt of ${bookTitle}. We will release payment to the seller shortly.\n\nView order: https://rebookedsolutions.co.za/orders/${orderId}\n\n— ReBooked Solutions`;
-
               try {
-                await emailService.sendEmail({ to: buyerEmail, subject: "Thank you — Order Received", html, text });
+                const { createDeliveryConfirmedBuyerEmail } = await import("@/email-templates");
+                const deliveryConfirmedTemplate = createDeliveryConfirmedBuyerEmail({
+                  buyerName: buyerEmail,
+                  bookTitle,
+                  orderId,
+                });
+                await emailService.sendEmail({
+                  to: buyerEmail,
+                  subject: deliveryConfirmedTemplate.subject,
+                  html: deliveryConfirmedTemplate.html,
+                  text: deliveryConfirmedTemplate.text
+                });
               } catch (emailErr) {
               }
             }
@@ -360,109 +271,23 @@ const OrderCompletionCard: React.FC<OrderCompletionCardProps> = ({
 
                 if (hasBankingDetails) {
                   // Seller has banking details - send "Payment on the way" email
-                  const html = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Payment on the Way</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f3fef7;
-      padding: 20px;
-      color: #1f4e3d;
-    }
-    .container {
-      max-width: 500px;
-      margin: auto;
-      background-color: #ffffff;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    }
-    .header {
-      background-color: #3ab26f;
-      padding: 25px;
-      text-align: center;
-      border-radius: 10px 10px 0 0;
-      color: white;
-    }
-    .btn {
-      display: inline-block;
-      padding: 12px 20px;
-      background-color: #3ab26f;
-      color: white;
-      text-decoration: none;
-      border-radius: 5px;
-      margin-top: 20px;
-      font-weight: bold;
-    }
-    .footer-text {
-      font-size: 13px;
-      color: #4e7a63;
-      margin-top: 20px;
-    }
-    .social-links a {
-      color: #3ab26f;
-      text-decoration: none;
-      display: inline-block;
-      margin-right: 10px;
-      font-size: 14px;
-    }
-    .slogan {
-      font-size: 14px;
-      font-style: italic;
-      color: #1f4e3d;
-      margin-top: 25px;
-      text-align: center;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1 style="margin:0;font-size:22px;">Payment on the Way</h1>
-    </div>
-    <div style="padding:20px;">
-      <p>Hello \${sellerFullName},</p>
-      <p>
-        The buyer has confirmed delivery of <strong>\${bookTitle}</strong>
-        (Order ID: \${orderId.slice(-8)}). Your payment is now being processed.
-      </p>
-      <a href="https://rebookedsolutions.co.za/seller/orders/\${orderId}" class="btn">
-        View Order
-      </a>
-      <p class="footer-text">
-        Keep sharing your <strong>ReBooked Mini</strong> — the more you share, the more chances to earn and receive updates like this!
-      </p>
-      <p class="footer-text">
-        Follow us for updates and tips:
-      </p>
-      <div class="social-links">
-        <a href="https://www.instagram.com/rebooked.solutions?igsh=M2ZsNjd2aTNmZmRh">Instagram</a>
-        <a href="https://www.facebook.com/people/Rebooked-Solutions/61577195802238/?mibextid=wwXIfr&rdid=zzSy70C45G7ABaBF&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F16ngKMps6U%2F%3Fmibextid%3DwwXIfr">Facebook</a>
-        <a href="https://www.tiktok.com/@rebooked.solution">TikTok</a>
-        <a href="https://x.com/RebookedSol">X (Twitter)</a>
-      </div>
-      <p class="footer-text">
-        If you need any help, email us at
-        <a href="mailto:support@rebookedsolutions.co.za" style="color:#3ab26f;">support@rebookedsolutions.co.za</a>.
-      </p>
-      <p class="slogan">"Pre-Loved Pages, New Adventure"</p>
-      <p class="footer-text">— ReBooked Solutions</p>
-    </div>
-  </div>
-</body>
-</html>`;
-                  const text = `Payment on the way\n\nHello ${sellerFullName},\n\nThe buyer has confirmed delivery of ${bookTitle} (Order ID: ${orderId.slice(-8)}). We will process your payment and notify you once released.\n\nView order: https://rebookedsolutions.co.za/seller/orders/${orderId}`;
-
-                  console.log("📤 Sending 'Payment on the way' email to:", sellerEmail);
-                  await emailService.sendEmail({
-                    to: sellerEmail,
-                    subject: "Payment on the way — ReBooked Solutions",
-                    html,
-                    text,
-                  });
+                  try {
+                    const { createPaymentOnTheWayBankTransferEmail } = await import("@/email-templates");
+                    const paymentTemplate = createPaymentOnTheWayBankTransferEmail({
+                      sellerName: sellerFullName,
+                      bookTitle,
+                      orderId,
+                    });
+                    console.log("📤 Sending 'Payment on the way' email to:", sellerEmail);
+                    await emailService.sendEmail({
+                      to: sellerEmail,
+                      subject: paymentTemplate.subject,
+                      html: paymentTemplate.html,
+                      text: paymentTemplate.text,
+                    });
+                  } catch (bankingEmailErr) {
+                    throw bankingEmailErr;
+                  }
                 } else {
                   // Seller does NOT have banking details - send wallet credit notification email
                   const creditAmount = totalAmount * 0.9; // 90% of total amount
@@ -510,202 +335,41 @@ const OrderCompletionCard: React.FC<OrderCompletionCardProps> = ({
           } else if (receivedStatus === "not_received") {
             // Buyer: Acknowledge report
             if (buyerEmail) {
-              const html = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>We've Received Your Report</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f3fef7;
-      padding: 20px;
-      color: #1f4e3d;
-    }
-    .container {
-      max-width: 500px;
-      margin: auto;
-      background-color: #ffffff;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    }
-    .header {
-      background-color: #3ab26f;
-      padding: 25px;
-      text-align: center;
-      border-radius: 10px 10px 0 0;
-      color: white;
-    }
-    .btn {
-      display: inline-block;
-      padding: 12px 20px;
-      background-color: #3ab26f;
-      color: white;
-      text-decoration: none;
-      border-radius: 5px;
-      margin-top: 20px;
-      font-weight: bold;
-    }
-    .footer-text {
-      font-size: 13px;
-      color: #4e7a63;
-      margin-top: 20px;
-    }
-    .social-links a {
-      color: #3ab26f;
-      text-decoration: none;
-      display: inline-block;
-      margin-right: 10px;
-      font-size: 14px;
-    }
-    .slogan {
-      font-size: 14px;
-      font-style: italic;
-      color: #1f4e3d;
-      margin-top: 25px;
-      text-align: center;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1 style="margin:0;font-size:22px;">We've Received Your Report</h1>
-    </div>
-    <div style="padding:20px;">
-      <p>Hello \${buyerFullName},</p>
-      <p>
-        Thank you for reporting an issue with your order <strong>\${orderId.slice(-8)}</strong>.
-        Our support team will contact you shortly to investigate: "<em>\${feedback.trim()}</em>"
-      </p>
-      <a href="https://rebookedsolutions.co.za/orders/\${orderId}" class="btn">
-        View Order
-      </a>
-      <p class="footer-text">
-        Follow us for updates:
-      </p>
-      <div class="social-links">
-        <a href="https://www.instagram.com/rebooked.solutions?igsh=M2ZsNjd2aTNmZmRh">Instagram</a>
-        <a href="https://www.facebook.com/people/Rebooked-Solutions/61577195802238/?mibextid=wwXIfr&rdid=zzSy70C45G7ABaBF&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F16ngKMps6U%2F%3Fmibextid%3DwwXIfr">Facebook</a>
-        <a href="https://www.tiktok.com/@rebooked.solution">TikTok</a>
-        <a href="https://x.com/RebookedSol">X (Twitter)</a>
-      </div>
-      <p class="footer-text">
-        If you need any further assistance, email us at
-        <a href="mailto:support@rebookedsolutions.co.za" style="color:#3ab26f;">support@rebookedsolutions.co.za</a>.
-      </p>
-      <p class="slogan">"Pre-Loved Pages, New Adventure"</p>
-      <p class="footer-text">— ReBooked Solutions</p>
-    </div>
-  </div>
-</body>
-</html>`;
-              const text = `We've received your report\n\nHello ${buyerFullName},\n\nThank you for reporting an issue with your order ${orderId.slice(-8)}. Our support team will contact you shortly to investigate: "${feedback.trim()}"\n\nView order: https://rebookedsolutions.co.za/orders/${orderId}`;
-
               try {
-                await emailService.sendEmail({ to: buyerEmail, subject: "We've received your report — ReBooked Solutions", html, text });
+                const { createDeliveryComplaintAcknowledgmentBuyerEmail } = await import("@/email-templates");
+                const complaintAckTemplate = createDeliveryComplaintAcknowledgmentBuyerEmail({
+                  buyerName: buyerEmail,
+                  orderId,
+                  bookTitle,
+                  feedback,
+                });
+                await emailService.sendEmail({
+                  to: buyerEmail,
+                  subject: complaintAckTemplate.subject,
+                  html: complaintAckTemplate.html,
+                  text: complaintAckTemplate.text
+                });
               } catch (emailErr) {
               }
             }
 
             // Seller: Notify issue finalising order
             if (sellerEmail) {
-              const html = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Issue Finalising Order</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f3fef7;
-      padding: 20px;
-      color: #1f4e3d;
-    }
-    .container {
-      max-width: 500px;
-      margin: auto;
-      background-color: #ffffff;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    }
-    .header {
-      background-color: #3ab26f;
-      padding: 25px;
-      text-align: center;
-      border-radius: 10px 10px 0 0;
-      color: white;
-    }
-    .btn {
-      display: inline-block;
-      padding: 12px 20px;
-      background-color: #3ab26f;
-      color: white;
-      text-decoration: none;
-      border-radius: 5px;
-      margin-top: 20px;
-      font-weight: bold;
-    }
-    .footer-text {
-      font-size: 13px;
-      color: #4e7a63;
-      margin-top: 20px;
-    }
-    .social-links a {
-      color: #3ab26f;
-      text-decoration: none;
-      display: inline-block;
-      margin-right: 10px;
-      font-size: 14px;
-    }
-    .slogan {
-      font-size: 14px;
-      font-style: italic;
-      color: #1f4e3d;
-      margin-top: 25px;
-      text-align: center;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1 style="margin:0;font-size:22px;">Issue Finalising Order</h1>
-    </div>
-    <div style="padding:20px;">
-      <p>Hello \${sellerFullName},</p>
-      <p>
-        We encountered an issue while finalising Order ID: <strong>\${orderId.slice(-8)}</strong> for <strong>\${bookTitle}</strong>.
-        Our team is investigating and may contact you for more information.
-      </p>
-      <a href="https://rebookedsolutions.co.za/seller/orders/\${orderId}" class="btn">
-        View Order
-      </a>
-      <p class="footer-text">
-        Follow us for updates:
-      </p>
-      <div class="social-links">
-        <a href="https://www.instagram.com/rebooked.solutions?igsh=M2ZsNjd2aTNmZmRh">Instagram</a>
-        <a href="https://www.facebook.com/people/Rebooked-Solutions/61577195802238/?mibextid=wwXIfr&rdid=zzSy70C45G7ABaBF&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F16ngKMps6U%2F%3Fmibextid%3DwwXIfr">Facebook</a>
-        <a href="https://www.tiktok.com/@rebooked.solution">TikTok</a>
-        <a href="https://x.com/RebookedSol">X (Twitter)</a>
-      </div>
-      <p class="footer-text">
-        If you need any help, email us at
-        <a href="mailto:support@rebookedsolutions.co.za" style="color:#3ab26f;">support@rebookedsolutions.co.za</a>.
-      </p>
-      <p class="slogan">"Pre-Loved Pages, New Adventure"</p>
-      <p class="footer-text">— ReBooked Solutions</p>
-    </div>
-  </div>
-</body>
-</html>`;
-              const text = `Issue finalising order\n\nHello ${sellerFullName},\n\nWe encountered an issue while finalising Order ID: ${orderId.slice(-8)} for ${bookTitle}. Our team is investigating and may contact you for more information.\n\nView order: https://rebookedsolutions.co.za/seller/orders/${orderId}`;
-
               try {
-                await emailService.sendEmail({ to: sellerEmail, subject: "Issue finalising order — ReBooked Solutions", html, text });
+                const { createDeliveryComplaintNotificationSellerEmail } = await import("@/email-templates");
+                const complaintNotifTemplate = createDeliveryComplaintNotificationSellerEmail({
+                  sellerName: sellerFullName,
+                  orderId,
+                  bookTitle,
+                  buyerName: buyerFullName,
+                  feedback,
+                });
+                await emailService.sendEmail({
+                  to: sellerEmail,
+                  subject: complaintNotifTemplate.subject,
+                  html: complaintNotifTemplate.html,
+                  text: complaintNotifTemplate.text
+                });
               } catch (emailErr) {
               }
             }

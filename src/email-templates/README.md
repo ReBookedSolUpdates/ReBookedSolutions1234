@@ -113,23 +113,70 @@ await emailService.sendEmail({
 - **Use Case**: After courier collects book from seller
 - **Includes**: Payment status, tracking reference
 
+### **Delivery & Feedback Templates**
+
+#### 8. **Delivery Confirmation Request** (Buyer Confirmation)
+- **File**: `templates/delivery-confirmation-request.ts`
+- **Purpose**: Request buyer to confirm they received their books
+- **Recipient**: Buyer
+- **Use Case**: When order delivery_status = 'delivered' in database
+- **Includes**: Order details, 48-hour deadline, Yes/No buttons, auto-confirmation notice
+- **Triggers**: bobgo-webhook when delivery status updates
+
+#### 9. **Delivery Confirmed - Buyer** (Thank You)
+- **File**: `templates/delivery-confirmed-buyer.ts`
+- **Purpose**: Thank buyer for confirming delivery
+- **Recipient**: Buyer
+- **Use Case**: When buyer selects "Yes, I received it" in OrderCompletionCard
+- **Includes**: Gratitude message, reselling reminder, order link
+
+#### 10. **Delivery Complaint Acknowledgment - Buyer**
+- **File**: `templates/delivery-complaint-acknowledgment-buyer.ts`
+- **Purpose**: Acknowledge buyer's complaint about delivery issues
+- **Recipient**: Buyer
+- **Use Case**: When buyer selects "No, there's an issue" in OrderCompletionCard
+- **Includes**: Issue acknowledgment, support contact info, investigation timeline
+
+#### 11. **Delivery Complaint Notification - Seller**
+- **File**: `templates/delivery-complaint-notification-seller.ts`
+- **Purpose**: Notify seller about buyer's complaint
+- **Recipient**: Seller
+- **Use Case**: When buyer submits complaint/issue in OrderCompletionCard
+- **Includes**: Issue notification, payment hold notice, action required
+
+#### 12. **Seller Waiting for Delivery Confirmation**
+- **File**: `templates/seller-waiting-for-delivery-confirmation.ts`
+- **Purpose**: Notify seller that order is delivered and waiting for buyer confirmation
+- **Recipient**: Seller
+- **Use Case**: When order delivery_status = 'delivered' in database
+- **Includes**: Delivery notification, 48-hour timeline, payment release info, next steps
+- **Triggers**: bobgo-webhook when delivery status updates
+
+#### 13. **Payment on the Way - Bank Transfer**
+- **File**: `templates/payment-on-the-way-bank-transfer.ts`
+- **Purpose**: Notify seller that payment is being processed to their bank account
+- **Recipient**: Seller
+- **Use Case**: When buyer confirms receipt AND seller has banking_subaccounts.status = 'active'
+- **Includes**: Payment confirmation, processing details, order link
+- **Replaces**: Wallet credit email for sellers with active banking setup
+
 ### **Payment & Notification Templates**
 
-#### 8. **Wallet Credit Notification**
+#### 14. **Wallet Credit Notification**
 - **File**: `templates/wallet-credit-notification.ts`
 - **Purpose**: Notify seller when payment is added to their wallet
 - **Recipient**: Seller
 - **Use Case**: After successful delivery and payment processing
 - **Includes**: Transaction details, new balance, payout options
 
-#### 9. **Seller Credit Notification**
+#### 15. **Seller Credit Notification**
 - **File**: `templates/seller-credit-notification.ts`
 - **Purpose**: Alternative notification for seller payment confirmation
 - **Recipient**: Seller
 - **Use Case**: Payment confirmation and wallet updates
 - **Includes**: Credit amount, transaction details, next steps
 
-#### 10. **Denial Email** (Payment Delayed)
+#### 16. **Denial Email** (Payment Delayed)
 - **File**: `templates/denial.ts`
 - **Purpose**: Notify seller of delivery issues causing payment delays
 - **Recipient**: Seller
