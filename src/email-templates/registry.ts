@@ -653,6 +653,241 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
       ),
       text: `Order Collected Successfully\n\nHello ${data.sellerName},\n\nOrder ${data.orderId} collected and shipping.\nPayment pending buyer confirmation.\n${data.trackingReference ? `Tracking: ${data.trackingReference}` : ''}`
     })
+  },
+
+  {
+    id: 'delivery-confirmation-request',
+    name: 'Delivery Confirmation Request (Buyer)',
+    description: 'Requests buyer to confirm delivery of their order',
+    category: 'orders',
+    requiredFields: ['buyerName', 'orderId', 'bookTitles', 'deadlineDate'],
+    defaultData: {
+      buyerName: 'Jane Doe',
+      orderId: 'ORD-12345',
+      bookTitles: ['Mathematics Grade 12'],
+      deadlineDate: '2 March 2024'
+    },
+    generator: (data) => ({
+      subject: 'Confirm your delivery — ReBooked Solutions',
+      html: createEmailTemplate(
+        {
+          title: 'Delivery Confirmation',
+          headerType: 'default',
+          headerText: '📦 Did You Receive Your Books?'
+        },
+        `
+        <p>Hello ${data.buyerName},</p>
+        <p>We believe your order has been delivered. Please confirm that you've received your book(s):</p>
+
+        <div class="info-box">
+          <p><strong>Order ID:</strong> ${data.orderId.slice(-8)}</p>
+          <p><strong>Books:</strong> ${data.bookTitles.join(", ")}</p>
+          <p><strong>Confirm by:</strong> ${data.deadlineDate}</p>
+        </div>
+
+        <p><strong>Why we need this confirmation:</strong></p>
+        <ul>
+          <li>Confirms the seller's payment can be released</li>
+          <li>Protects you and the seller</li>
+          <li>Helps us maintain quality service</li>
+        </ul>
+
+        <p style="text-align: center; margin: 30px 0;">
+          <a href="https://rebookedsolutions.co.za/orders/${data.orderId}?confirm=yes" class="btn" style="background-color: #10b981; margin-right: 10px;">Yes, I Received It</a>
+          <a href="https://rebookedsolutions.co.za/orders/${data.orderId}?confirm=no" class="btn" style="background-color: #dc2626;">No, There's an Issue</a>
+        </p>
+
+        <div class="info-box-warning">
+          <p><strong>⏰ Important:</strong> You have until <strong>${data.deadlineDate}</strong> to confirm. If you don't respond, the order will be automatically confirmed.</p>
+        </div>
+        `
+      ),
+      text: `Confirm your delivery\n\nHello ${data.buyerName},\n\nWe believe your order has been delivered. Please confirm receipt:\n\nOrder ID: ${data.orderId.slice(-8)}\nBooks: ${data.bookTitles.join(", ")}\nConfirm by: ${data.deadlineDate}\n\nYes: https://rebookedsolutions.co.za/orders/${data.orderId}?confirm=yes\nNo: https://rebookedsolutions.co.za/orders/${data.orderId}?confirm=no`
+    })
+  },
+
+  {
+    id: 'delivery-confirmed-buyer',
+    name: 'Delivery Confirmed (Buyer)',
+    description: 'Thank you email sent to buyer after confirming delivery',
+    category: 'orders',
+    requiredFields: ['buyerName', 'bookTitle', 'orderId'],
+    defaultData: {
+      buyerName: 'Jane Doe',
+      bookTitle: 'Mathematics Grade 12',
+      orderId: 'ORD-12345'
+    },
+    generator: (data) => ({
+      subject: 'Thank you — Order Received',
+      html: createEmailTemplate(
+        {
+          title: 'Order Received',
+          headerType: 'default',
+          headerText: 'Thank you — Order Received'
+        },
+        `
+        <p>Hello ${data.buyerName},</p>
+        <p>Thanks for shopping with us! We hope you enjoy <strong>${data.bookTitle}</strong>.</p>
+        <p>When you're done with it, you can list it on ReBooked Solutions and make your money back. Buy smart, sell smart — keep the cycle going. ♻️</p>
+        <p style="text-align: center; margin: 30px 0;">
+          <a href="https://rebookedsolutions.co.za/orders/${data.orderId}" class="btn">View Your Order</a>
+        </p>
+        <p>Share ReBooked with your friends & family so they can save too. Together we make textbooks affordable.</p>
+        `
+      ),
+      text: `Thank you — Order Received\n\nHello ${data.buyerName},\n\nThanks for confirming receipt of ${data.bookTitle}. We will release payment to the seller shortly.\n\nView order: https://rebookedsolutions.co.za/orders/${data.orderId}`
+    })
+  },
+
+  {
+    id: 'delivery-complaint-acknowledgment-buyer',
+    name: 'Delivery Complaint Acknowledgment (Buyer)',
+    description: 'Acknowledges buyer complaint about delivery',
+    category: 'orders',
+    requiredFields: ['buyerName', 'orderId', 'bookTitle', 'feedback'],
+    defaultData: {
+      buyerName: 'Jane Doe',
+      orderId: 'ORD-12345',
+      bookTitle: 'Mathematics Grade 12',
+      feedback: 'Book arrived damaged'
+    },
+    generator: (data) => ({
+      subject: 'We\'ve received your report — ReBooked Solutions',
+      html: createEmailTemplate(
+        {
+          title: 'We\'ve Received Your Report',
+          headerType: 'default',
+          headerText: 'We\'ve Received Your Report'
+        },
+        `
+        <p>Hello ${data.buyerName},</p>
+        <p>Thank you for reporting an issue with your order <strong>${data.orderId.slice(-8)}</strong>. Our support team will contact you shortly to investigate: "<em>${data.feedback.trim()}</em>"</p>
+        <p style="text-align: center; margin: 30px 0;">
+          <a href="https://rebookedsolutions.co.za/orders/${data.orderId}" class="btn">View Order</a>
+        </p>
+        <p>If you need any further assistance, email us at <a href="mailto:support@rebookedsolutions.co.za">support@rebookedsolutions.co.za</a>.</p>
+        `
+      ),
+      text: `We've received your report\n\nHello ${data.buyerName},\n\nThank you for reporting an issue. Our support team will contact you shortly.\n\nView order: https://rebookedsolutions.co.za/orders/${data.orderId}`
+    })
+  },
+
+  {
+    id: 'delivery-complaint-notification-seller',
+    name: 'Delivery Complaint Notification (Seller)',
+    description: 'Notifies seller about buyer complaint regarding delivery',
+    category: 'orders',
+    requiredFields: ['sellerName', 'orderId', 'bookTitle', 'buyerName', 'feedback'],
+    defaultData: {
+      sellerName: 'John Smith',
+      orderId: 'ORD-12345',
+      bookTitle: 'Mathematics Grade 12',
+      buyerName: 'Jane Doe',
+      feedback: 'Book arrived damaged'
+    },
+    generator: (data) => ({
+      subject: 'Issue finalising order — ReBooked Solutions',
+      html: createEmailTemplate(
+        {
+          title: 'Issue Finalising Order',
+          headerType: 'error',
+          headerText: 'Issue Finalising Order'
+        },
+        `
+        <p>Hello ${data.sellerName},</p>
+        <p>We encountered an issue while finalising Order ID: <strong>${data.orderId.slice(-8)}</strong> for <strong>${data.bookTitle}</strong>. Our team is investigating and may contact you for more information.</p>
+        <p style="text-align: center; margin: 30px 0;">
+          <a href="https://rebookedsolutions.co.za/seller/orders/${data.orderId}" class="btn">View Order</a>
+        </p>
+        <p>If you need any help, email us at <a href="mailto:support@rebookedsolutions.co.za">support@rebookedsolutions.co.za</a>.</p>
+        `
+      ),
+      text: `Issue finalising order\n\nHello ${data.sellerName},\n\nWe encountered an issue with Order ID: ${data.orderId.slice(-8)}. Our team is investigating.\n\nView order: https://rebookedsolutions.co.za/seller/orders/${data.orderId}`
+    })
+  },
+
+  {
+    id: 'seller-waiting-for-delivery-confirmation',
+    name: 'Seller Waiting for Delivery Confirmation',
+    description: 'Notifies seller that order has been delivered and waiting for buyer confirmation',
+    category: 'orders',
+    requiredFields: ['sellerName', 'orderId', 'bookTitles', 'deadlineDate'],
+    defaultData: {
+      sellerName: 'John Smith',
+      orderId: 'ORD-12345',
+      bookTitles: ['Mathematics Grade 12'],
+      deadlineDate: '2 March 2024'
+    },
+    generator: (data) => ({
+      subject: 'Waiting for buyer confirmation — ReBooked Solutions',
+      html: createEmailTemplate(
+        {
+          title: 'Awaiting Buyer Confirmation',
+          headerType: 'default',
+          headerText: '⏳ Awaiting Buyer Confirmation'
+        },
+        `
+        <p>Hello ${data.sellerName},</p>
+        <p>Your book(s) have been delivered! We're now waiting for the buyer to confirm receipt.</p>
+
+        <div class="info-box">
+          <p><strong>Order ID:</strong> ${data.orderId.slice(-8)}</p>
+          <p><strong>Books:</strong> ${data.bookTitles.join(", ")}</p>
+          <p><strong>Buyer Confirmation Deadline:</strong> ${data.deadlineDate}</p>
+        </div>
+
+        <div class="info-box-success">
+          <p><strong>✅ Payment Status:</strong> Once the buyer confirms delivery, your payment will be released to your account within 1-2 business days.</p>
+        </div>
+
+        <p><strong>What happens next:</strong></p>
+        <ol>
+          <li>Buyer has until <strong>${data.deadlineDate}</strong> to confirm receipt</li>
+          <li>If they confirm, your payment is released immediately</li>
+          <li>If they don't confirm within 48 hours, the order auto-confirms and payment is released</li>
+          <li>You'll receive an email notification once payment is processed</li>
+        </ol>
+
+        <p style="text-align: center; margin: 30px 0;">
+          <a href="https://rebookedsolutions.co.za/seller/orders/${data.orderId}" class="btn">View Order Details</a>
+        </p>
+        `
+      ),
+      text: `Waiting for buyer confirmation\n\nHello ${data.sellerName},\n\nYour book(s) have been delivered. Awaiting buyer confirmation by ${data.deadlineDate}.\n\nOnce confirmed, your payment will be released within 1-2 business days.\n\nView order: https://rebookedsolutions.co.za/seller/orders/${data.orderId}`
+    })
+  },
+
+  {
+    id: 'payment-on-the-way-bank-transfer',
+    name: 'Payment on the Way - Bank Transfer',
+    description: 'Notifies seller that payment is being processed to their bank account',
+    category: 'orders',
+    requiredFields: ['sellerName', 'bookTitle', 'orderId'],
+    defaultData: {
+      sellerName: 'John Smith',
+      bookTitle: 'Mathematics Grade 12',
+      orderId: 'ORD-12345'
+    },
+    generator: (data) => ({
+      subject: 'Payment on the way — ReBooked Solutions',
+      html: createEmailTemplate(
+        {
+          title: 'Payment on the Way',
+          headerType: 'default',
+          headerText: 'Payment on the Way'
+        },
+        `
+        <p>Hello ${data.sellerName},</p>
+        <p>The buyer has confirmed delivery of <strong>${data.bookTitle}</strong> (Order ID: ${data.orderId.slice(-8)}). Your payment is now being processed.</p>
+        <p style="text-align: center; margin: 30px 0;">
+          <a href="https://rebookedsolutions.co.za/seller/orders/${data.orderId}" class="btn">View Order</a>
+        </p>
+        <p>Keep sharing your <strong>ReBooked Mini</strong> — the more you share, the more chances to earn and receive updates like this!</p>
+        <p>If you need any help, email us at <a href="mailto:support@rebookedsolutions.co.za">support@rebookedsolutions.co.za</a>.</p>
+        `
+      ),
+      text: `Payment on the way\n\nHello ${data.sellerName},\n\nThe buyer has confirmed delivery of ${data.bookTitle} (Order ID: ${data.orderId.slice(-8)}). We will process your payment and notify you once released.\n\nView order: https://rebookedsolutions.co.za/seller/orders/${data.orderId}`
+    })
   }
 ];
 
