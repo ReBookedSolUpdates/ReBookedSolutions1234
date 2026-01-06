@@ -165,15 +165,15 @@ export async function markCollected(orderId: string) {
   });
 }
 
-export async function initializePaystackPayment(paymentData: any) {
-  return callEdgeFunction('initialize-paystack-payment', {
+export async function initializePayment(paymentData: any) {
+  return callEdgeFunction('initialize-payment', {
     method: 'POST',
     body: paymentData
   });
 }
 
-export async function verifyPaystackPayment(reference: string) {
-  return callEdgeFunction('verify-paystack-payment', {
+export async function verifyPayment(reference: string) {
+  return callEdgeFunction('verify-payment', {
     method: 'POST',
     body: { reference }
   });
