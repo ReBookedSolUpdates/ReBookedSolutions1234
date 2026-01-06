@@ -128,7 +128,7 @@ const GettingStarted = () => {
                   </div>
                   <span className="font-semibold text-base">Pay</span>
                 </div>
-                <p className="text-gray-600 text-sm">Secure checkout with Paystack</p>
+                <p className="text-gray-600 text-sm">Secure checkout with BobPay</p>
               </div>
               <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-blue-50 to-white p-4 hover:shadow-md transition">
                 <div className="flex items-center gap-3 text-gray-900 mb-2">
