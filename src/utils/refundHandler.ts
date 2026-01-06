@@ -19,11 +19,11 @@ interface PaymentTransaction {
  */
 export const detectPaymentProvider = async (
   orderId: string
-): Promise<'bobpay' | 'paystack' | 'unknown'> => {
+): Promise<'bobpay' | 'unknown'> => {
   try {
     const { data: transaction, error } = await supabase
       .from('payment_transactions')
-      .select('payment_method, paystack_response')
+      .select('payment_method')
       .eq('order_id', orderId)
       .single();
 
@@ -31,19 +31,9 @@ export const detectPaymentProvider = async (
       return 'unknown';
     }
 
-    // Check payment_method field first
+    // Check payment_method field
     if (transaction.payment_method === 'bobpay') {
       return 'bobpay';
-    }
-
-    // Check response for provider indicator
-    if (transaction.paystack_response?.provider === 'bobpay') {
-      return 'bobpay';
-    }
-
-    // Default to paystack if method is not explicitly bobpay
-    if (transaction.payment_method === 'paystack' || !transaction.payment_method) {
-      return 'paystack';
     }
 
     return 'unknown';
