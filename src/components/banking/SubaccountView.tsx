@@ -124,7 +124,7 @@ const SubaccountView: React.FC<SubaccountViewProps> = ({
     return new Intl.NumberFormat("en-ZA", {
       style: "currency",
       currency: currency,
-    }).format(amount / 100); // Paystack amounts are in kobo/cents
+    }).format(amount / 100);
   };
 
   if (isLoading) {
