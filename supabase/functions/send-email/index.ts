@@ -1,5 +1,5 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import nodemailer from "https://esm.sh/nodemailer@6.9.7";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -42,11 +42,14 @@ function checkRateLimit(clientIP: string, to: string): { allowed: boolean; reset
 }
 
 serve(async (req) => {
+  console.log("📧 send-email function called, method:", req.method);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
   }
 
   if (req.method !== "POST") {
+    console.log("❌ Method not allowed:", req.method);
     return new Response(
       JSON.stringify({
         success: false,
@@ -62,10 +65,21 @@ serve(async (req) => {
 
   try {
     const emailRequest: EmailRequest = await req.json();
+    console.log("📧 Email request received:", {
+      to: emailRequest.to,
+      subject: emailRequest.subject,
+      test: emailRequest.test
+    });
+
+    const smtpKey = Deno.env.get("BREVO_SMTP_KEY");
+    const smtpUser = Deno.env.get("BREVO_SMTP_USER") || "8e237b002@smtp-brevo.com";
+    const defaultFrom = Deno.env.get("DEFAULT_FROM_EMAIL") || "noreply@rebookedsolutions.co.za";
 
     if (emailRequest.test === true) {
-      const smtpKey = Deno.env.get("BREVO_SMTP_KEY");
-      const smtpUser = Deno.env.get("BREVO_SMTP_USER") || "8e237b002@smtp-brevo.com";
+      console.log("🧪 Test mode - checking config:", {
+        hasSmtpKey: !!smtpKey,
+        smtpUser
+      });
 
       return new Response(
         JSON.stringify({
@@ -89,6 +103,7 @@ serve(async (req) => {
     const rateCheck = checkRateLimit(clientIP, toEmail);
 
     if (!rateCheck.allowed) {
+      console.log("⚠️ Rate limit exceeded for:", clientIP, toEmail);
       return new Response(
         JSON.stringify({
           success: false,
@@ -106,51 +121,58 @@ serve(async (req) => {
       );
     }
 
-    const smtpKey = Deno.env.get("BREVO_SMTP_KEY");
-    const smtpUser = Deno.env.get("BREVO_SMTP_USER") || "8e237b002@smtp-brevo.com";
-    const defaultFrom = Deno.env.get("DEFAULT_FROM_EMAIL") || '"ReBooked Solutions" <noreply@rebookedsolutions.co.za>';
+    console.log("🔧 SMTP config:", {
+      hasSmtpKey: !!smtpKey,
+      smtpUser,
+      defaultFrom
+    });
 
     if (!smtpKey) {
+      console.error("❌ BREVO_SMTP_KEY not configured");
       throw new Error("BREVO_SMTP_KEY environment variable is required");
     }
 
-    const transporter = nodemailer.createTransport({
-      host: "smtp-relay.brevo.com",
-      port: 587,
-      secure: false,
-      auth: {
-        user: smtpUser,
-        pass: smtpKey,
+    console.log("📤 Creating SMTP client...");
+    const client = new SMTPClient({
+      connection: {
+        hostname: "smtp-relay.brevo.com",
+        port: 587,
+        tls: true,
+        auth: {
+          username: smtpUser,
+          password: smtpKey,
+        },
       },
-      pool: true,
-      maxConnections: 5,
-      maxMessages: 10,
-      connectionTimeout: 60000,
-      greetingTimeout: 30000,
-      socketTimeout: 60000,
     });
 
-    await transporter.verify();
+    const toAddresses = Array.isArray(emailRequest.to) ? emailRequest.to : [emailRequest.to];
+    const fromAddress = emailRequest.from || defaultFrom;
 
-    const mailOptions = {
-      from: emailRequest.from || defaultFrom,
+    console.log("📨 Sending email to:", toAddresses);
+
+    await client.send({
+      from: fromAddress,
+      to: toAddresses,
+      subject: emailRequest.subject,
+      content: emailRequest.text || "",
+      html: emailRequest.html,
+      replyTo: emailRequest.replyTo,
+    });
+
+    await client.close();
+
+    console.log("✅ Email sent successfully:", {
       to: emailRequest.to,
       subject: emailRequest.subject,
-      html: emailRequest.html,
-      text: emailRequest.text,
-      replyTo: emailRequest.replyTo,
-    };
-
-    const info = await transporter.sendMail(mailOptions);
+    });
 
     return new Response(
       JSON.stringify({
         success: true,
-        messageId: info.messageId,
+        messageId: `${Date.now()}-${Math.random().toString(36).substring(7)}`,
         details: {
-          accepted: info.accepted,
-          rejected: info.rejected,
-          response: info.response,
+          accepted: toAddresses,
+          rejected: [],
         },
       }),
       {
@@ -159,6 +181,8 @@ serve(async (req) => {
       }
     );
   } catch (error) {
+    console.error("❌ Email sending error:", error);
+    console.error("Error stack:", error instanceof Error ? error.stack : "No stack");
 
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
 
