@@ -129,15 +129,17 @@ export const createNewEmail = (data: NewEmailData) => {
 4. **Test before sending** - Use the testing utilities in the codebase
 5. **Keep templates simple** - Don't mix logic with templates
 
-## 🔄 Migration from Old Locations
+## 🔄 Migration Complete ✅
 
-Old import paths are still supported for backward compatibility:
-- `@/utils/emailTemplates/*` → Use `@/email-templates` instead
-- `@/utils/emailTemplateRegistry` → Use `@/email-templates` instead
-- `@/utils/emailStyles` → Use `@/email-templates` instead
+All email templates have been consolidated into the `src/email-templates/` folder. Legacy template files from `src/utils/emailTemplates/` have been removed:
+- ❌ Removed: `src/utils/emailTemplates/denialEmailTemplate.ts`
+- ❌ Removed: `src/utils/emailTemplates/pendingCommitTemplate.ts`
+- ❌ Removed: `src/utils/emailTemplates/sellerCreditNotificationTemplate.ts`
+- ❌ Removed: `src/utils/emailTemplates/walletCreditNotificationTemplate.ts`
 
-### Updated Files:
-- ✅ `src/components/orders/OrderCompletionCard.tsx` - Import path updated
+**All imports should now use the canonical location:**
+- ✅ `@/email-templates` (primary location)
+- ✅ `@/email-templates/templates/*` (for direct template imports)
 
 ## 📚 References
 
