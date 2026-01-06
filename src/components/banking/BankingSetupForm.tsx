@@ -641,7 +641,7 @@ const BankingSetupForm: React.FC<BankingSetupFormProps> = ({
                     • You'll receive email updates on your verification status
                   </li>
                   <li>• Once verified, you can start receiving payments</li>
-                  <li>• Payments are processed securely through Paystack</li>
+                  <li>• Payments are processed securely through our payment system</li>
                 </ul>
               </div>
             </div>
