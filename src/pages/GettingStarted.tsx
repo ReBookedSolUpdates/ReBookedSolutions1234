@@ -407,7 +407,7 @@ const GettingStarted = () => {
                         Use filters to find the right edition and condition.
                       </TimelineStep>
                       <TimelineStep n={2} title="Click Buy Now and complete secure payment.">
-                        Payments are processed by Paystack.
+                        Payments are processed by BobPay.
                       </TimelineStep>
                       <TimelineStep n={3} title="Wait for seller confirmation (within 48 hours).">
                         You’ll be notified via email and notifications.

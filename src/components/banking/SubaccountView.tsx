@@ -124,7 +124,7 @@ const SubaccountView: React.FC<SubaccountViewProps> = ({
     return new Intl.NumberFormat("en-ZA", {
       style: "currency",
       currency: currency,
-    }).format(amount / 100); // Paystack amounts are in kobo/cents
+    }).format(amount / 100);
   };
 
   if (isLoading) {
@@ -193,7 +193,7 @@ const SubaccountView: React.FC<SubaccountViewProps> = ({
                 Subaccount Overview
               </CardTitle>
               <CardDescription className="text-book-700">
-                Your Paystack subaccount details and settings
+                Your subaccount details and settings
               </CardDescription>
             </div>
             <div className="flex gap-2">

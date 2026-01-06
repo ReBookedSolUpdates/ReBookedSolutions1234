@@ -408,7 +408,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
           <ul>
             <li>Payments are held in escrow until delivery confirmation</li>
             <li>Funds are released to your account within 1-2 business days after delivery</li>
-            <li>All transactions are processed securely through Paystack</li>
+            <li>All transactions are processed securely through our payment system</li>
           </ul>
         </div>
 

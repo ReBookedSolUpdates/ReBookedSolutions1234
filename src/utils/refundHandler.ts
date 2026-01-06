@@ -19,11 +19,11 @@ interface PaymentTransaction {
  */
 export const detectPaymentProvider = async (
   orderId: string
-): Promise<'bobpay' | 'paystack' | 'unknown'> => {
+): Promise<'bobpay' | 'unknown'> => {
   try {
     const { data: transaction, error } = await supabase
       .from('payment_transactions')
-      .select('payment_method, paystack_response')
+      .select('payment_method')
       .eq('order_id', orderId)
       .single();
 
@@ -31,19 +31,9 @@ export const detectPaymentProvider = async (
       return 'unknown';
     }
 
-    // Check payment_method field first
+    // Check payment_method field
     if (transaction.payment_method === 'bobpay') {
       return 'bobpay';
-    }
-
-    // Check response for provider indicator
-    if (transaction.paystack_response?.provider === 'bobpay') {
-      return 'bobpay';
-    }
-
-    // Default to paystack if method is not explicitly bobpay
-    if (transaction.payment_method === 'paystack' || !transaction.payment_method) {
-      return 'paystack';
     }
 
     return 'unknown';
@@ -96,54 +86,25 @@ export const handleIntelligentRefund = async (
       };
     }
 
-    // For uncommitted orders, detect payment provider and use appropriate refund function
-    const provider = await detectPaymentProvider(order_id);
+    // For uncommitted orders, use BobPay refund
+    const { data, error } = await supabase.functions.invoke('bobpay-refund', {
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: {
+        order_id,
+        reason: reason || 'Refund requested',
+      },
+    });
 
-    if (provider === 'bobpay') {
-      // Use BobPay refund for uncommitted BobPay orders
-      const { data, error } = await supabase.functions.invoke('bobpay-refund', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: {
-          order_id,
-          reason: reason || 'Refund requested',
-        },
-      });
-
-      if (error || !data?.success) {
-        throw new Error(error?.message || data?.error || 'BobPay refund failed');
-      }
-
-      return {
-        success: true,
-        message: `Refund processed successfully: ${data.data?.message || 'Refund in progress'}`,
-      };
-    } else if (provider === 'paystack') {
-      // Use Paystack refund (existing refund-management function) for uncommitted Paystack orders
-      if (!orderData.payment_reference) {
-        throw new Error('Payment reference not found');
-      }
-
-      const { data, error } = await supabase.functions.invoke('refund-management', {
-        body: {
-          payment_reference: orderData.payment_reference,
-          reason: reason || 'Refund requested',
-          order_id,
-        },
-      });
-
-      if (error || !data?.success) {
-        throw new Error(error?.message || data?.error || 'Paystack refund failed');
-      }
-
-      return {
-        success: true,
-        message: 'Refund processed successfully',
-      };
-    } else {
-      throw new Error('Unable to determine payment provider for refund');
+    if (error || !data?.success) {
+      throw new Error(error?.message || data?.error || 'Refund failed');
     }
+
+    return {
+      success: true,
+      message: `Refund processed successfully: ${data.data?.message || 'Refund in progress'}`,
+    };
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'Refund failed';
     return {
