@@ -271,109 +271,23 @@ const OrderCompletionCard: React.FC<OrderCompletionCardProps> = ({
 
                 if (hasBankingDetails) {
                   // Seller has banking details - send "Payment on the way" email
-                  const html = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Payment on the Way</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f3fef7;
-      padding: 20px;
-      color: #1f4e3d;
-    }
-    .container {
-      max-width: 500px;
-      margin: auto;
-      background-color: #ffffff;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    }
-    .header {
-      background-color: #3ab26f;
-      padding: 25px;
-      text-align: center;
-      border-radius: 10px 10px 0 0;
-      color: white;
-    }
-    .btn {
-      display: inline-block;
-      padding: 12px 20px;
-      background-color: #3ab26f;
-      color: white;
-      text-decoration: none;
-      border-radius: 5px;
-      margin-top: 20px;
-      font-weight: bold;
-    }
-    .footer-text {
-      font-size: 13px;
-      color: #4e7a63;
-      margin-top: 20px;
-    }
-    .social-links a {
-      color: #3ab26f;
-      text-decoration: none;
-      display: inline-block;
-      margin-right: 10px;
-      font-size: 14px;
-    }
-    .slogan {
-      font-size: 14px;
-      font-style: italic;
-      color: #1f4e3d;
-      margin-top: 25px;
-      text-align: center;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1 style="margin:0;font-size:22px;">Payment on the Way</h1>
-    </div>
-    <div style="padding:20px;">
-      <p>Hello \${sellerFullName},</p>
-      <p>
-        The buyer has confirmed delivery of <strong>\${bookTitle}</strong>
-        (Order ID: \${orderId.slice(-8)}). Your payment is now being processed.
-      </p>
-      <a href="https://rebookedsolutions.co.za/seller/orders/\${orderId}" class="btn">
-        View Order
-      </a>
-      <p class="footer-text">
-        Keep sharing your <strong>ReBooked Mini</strong> — the more you share, the more chances to earn and receive updates like this!
-      </p>
-      <p class="footer-text">
-        Follow us for updates and tips:
-      </p>
-      <div class="social-links">
-        <a href="https://www.instagram.com/rebooked.solutions?igsh=M2ZsNjd2aTNmZmRh">Instagram</a>
-        <a href="https://www.facebook.com/people/Rebooked-Solutions/61577195802238/?mibextid=wwXIfr&rdid=zzSy70C45G7ABaBF&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F16ngKMps6U%2F%3Fmibextid%3DwwXIfr">Facebook</a>
-        <a href="https://www.tiktok.com/@rebooked.solution">TikTok</a>
-        <a href="https://x.com/RebookedSol">X (Twitter)</a>
-      </div>
-      <p class="footer-text">
-        If you need any help, email us at
-        <a href="mailto:support@rebookedsolutions.co.za" style="color:#3ab26f;">support@rebookedsolutions.co.za</a>.
-      </p>
-      <p class="slogan">"Pre-Loved Pages, New Adventure"</p>
-      <p class="footer-text">— ReBooked Solutions</p>
-    </div>
-  </div>
-</body>
-</html>`;
-                  const text = `Payment on the way\n\nHello ${sellerFullName},\n\nThe buyer has confirmed delivery of ${bookTitle} (Order ID: ${orderId.slice(-8)}). We will process your payment and notify you once released.\n\nView order: https://rebookedsolutions.co.za/seller/orders/${orderId}`;
-
-                  console.log("📤 Sending 'Payment on the way' email to:", sellerEmail);
-                  await emailService.sendEmail({
-                    to: sellerEmail,
-                    subject: "Payment on the way — ReBooked Solutions",
-                    html,
-                    text,
-                  });
+                  try {
+                    const { createPaymentOnTheWayBankTransferEmail } = await import("@/email-templates");
+                    const paymentTemplate = createPaymentOnTheWayBankTransferEmail({
+                      sellerName: sellerFullName,
+                      bookTitle,
+                      orderId,
+                    });
+                    console.log("📤 Sending 'Payment on the way' email to:", sellerEmail);
+                    await emailService.sendEmail({
+                      to: sellerEmail,
+                      subject: paymentTemplate.subject,
+                      html: paymentTemplate.html,
+                      text: paymentTemplate.text,
+                    });
+                  } catch (bankingEmailErr) {
+                    throw bankingEmailErr;
+                  }
                 } else {
                   // Seller does NOT have banking details - send wallet credit notification email
                   const creditAmount = totalAmount * 0.9; // 90% of total amount
