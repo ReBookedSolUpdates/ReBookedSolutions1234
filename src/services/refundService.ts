@@ -1,7 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
 
-const PAYSTACK_SECRET_KEY = import.meta.env.VITE_PAYSTACK_SECRET_KEY;
-
 export interface RefundRequest {
   orderId: string;
   transactionReference: string;
