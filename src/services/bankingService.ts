@@ -1,5 +1,4 @@
 import { supabase } from "@/integrations/supabase/client";
-import { PAYSTACK_CONFIG } from "@/config/paystack";
 import type {
   BankingDetails,
   BankingSubaccount,
