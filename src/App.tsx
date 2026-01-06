@@ -30,6 +30,7 @@ import Checkout from "./pages/Checkout";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
 import CheckoutPending from "./pages/CheckoutPending";
 import CheckoutCancel from "./pages/CheckoutCancel";
+import CheckoutEmailTest from "./pages/CheckoutEmailTest";
 
 
 // Auth Pages
@@ -207,6 +208,14 @@ function App() {
                       <Route
                         path="/checkout/cancel"
                         element={<CheckoutCancel />}
+                      />
+                      <Route
+                        path="/checkout/email-test"
+                        element={
+                          <ProtectedRoute>
+                            <CheckoutEmailTest />
+                          </ProtectedRoute>
+                        }
                       />
                       <Route
                         path="/notifications"

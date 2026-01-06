@@ -199,7 +199,7 @@ const OrderCompletionCard: React.FC<OrderCompletionCardProps> = ({
         try {
           const { emailService } = await import("@/services/emailService");
           const { createWalletCreditNotificationEmail } = await import(
-            "@/utils/emailTemplates/walletCreditNotificationTemplate"
+            "@/email-templates"
           );
 
           // Resolve buyer and seller emails if not present on order

@@ -1,9 +1,9 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import nodemailer from "https://esm.sh/nodemailer@6.9.7";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 interface EmailRequest {
@@ -23,7 +23,7 @@ const RATE_LIMIT = {
   windowMs: 60 * 1000,
 };
 
-function checkRateLimit(clientIP: string, to: string): { allowed: boolean; resetTime?: number } {
+function checkRateLimit(clientIP: string, to: string) {
   const key = `${clientIP}-${to}`;
   const now = Date.now();
   const record = rateLimitMap.get(key);
@@ -42,6 +42,9 @@ function checkRateLimit(clientIP: string, to: string): { allowed: boolean; reset
 }
 
 serve(async (req) => {
+  console.log("📧 send-email called:", req.method);
+
+  /* -------------------- CORS -------------------- */
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
   }
@@ -51,127 +54,184 @@ serve(async (req) => {
       JSON.stringify({
         success: false,
         error: "METHOD_NOT_ALLOWED",
-        message: "Email endpoint only accepts POST requests",
+        message: "Only POST requests are allowed",
       }),
-      {
-        status: 405,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { status: 405, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 
+  /* -------------------- CONTENT-TYPE GUARD -------------------- */
+  const contentType = req.headers.get("content-type") || "";
+  if (!contentType.includes("application/json")) {
+    console.error("❌ Invalid Content-Type:", contentType);
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: "INVALID_CONTENT_TYPE",
+        message: "Content-Type must be application/json",
+      }),
+      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
+  }
+
+  /* -------------------- SAFE JSON PARSE -------------------- */
+  let emailRequest: EmailRequest;
+
   try {
-    const emailRequest: EmailRequest = await req.json();
+    const rawBody = await req.text();
 
-    if (emailRequest.test === true) {
-      const smtpKey = Deno.env.get("BREVO_SMTP_KEY");
-      const smtpUser = Deno.env.get("BREVO_SMTP_USER") || "8e237b002@smtp-brevo.com";
-
-      return new Response(
-        JSON.stringify({
-          success: true,
-          message: "Connection test successful",
-          config: {
-            host: "smtp-relay.brevo.com",
-            port: 587,
-            hasAuth: !!smtpKey && !!smtpUser,
-          },
-        }),
-        {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+    if (!rawBody || rawBody.trim() === "") {
+      throw new Error("Empty request body");
     }
 
-    const clientIP = req.headers.get("x-forwarded-for") || "unknown";
-    const toEmail = Array.isArray(emailRequest.to) ? emailRequest.to[0] : emailRequest.to;
-    const rateCheck = checkRateLimit(clientIP, toEmail);
+    emailRequest = JSON.parse(rawBody);
+  } catch (err) {
+    console.error("❌ JSON parse failed:", err);
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: "INVALID_JSON",
+        message: "Request body must be valid JSON",
+      }),
+      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
+  }
 
-    if (!rateCheck.allowed) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "RATE_LIMIT_EXCEEDED",
-          message: "Too many email requests from this client",
-        }),
-        {
-          status: 429,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-            "Retry-After": String(Math.ceil((rateCheck.resetTime! - Date.now()) / 1000)),
-          },
-        }
-      );
-    }
+  /* -------------------- BASIC VALIDATION -------------------- */
+  if (!emailRequest.to || !emailRequest.subject) {
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: "INVALID_PAYLOAD",
+        message: "Missing required email data",
+      }),
+      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
+  }
 
-    const smtpKey = Deno.env.get("BREVO_SMTP_KEY");
-    const smtpUser = Deno.env.get("BREVO_SMTP_USER") || "8e237b002@smtp-brevo.com";
-    const defaultFrom = Deno.env.get("DEFAULT_FROM_EMAIL") || '"ReBooked Solutions" <noreply@rebookedsolutions.co.za>';
+  console.log("📧 Email payload received:", {
+    to: emailRequest.to,
+    subject: emailRequest.subject,
+    test: emailRequest.test,
+  });
 
-    if (!smtpKey) {
-      throw new Error("BREVO_SMTP_KEY environment variable is required");
-    }
-
-    const transporter = nodemailer.createTransport({
-      host: "smtp-relay.brevo.com",
-      port: 587,
-      secure: false,
-      auth: {
-        user: smtpUser,
-        pass: smtpKey,
-      },
-      pool: true,
-      maxConnections: 5,
-      maxMessages: 10,
-      connectionTimeout: 60000,
-      greetingTimeout: 30000,
-      socketTimeout: 60000,
-    });
-
-    await transporter.verify();
-
-    const mailOptions = {
-      from: emailRequest.from || defaultFrom,
-      to: emailRequest.to,
-      subject: emailRequest.subject,
-      html: emailRequest.html,
-      text: emailRequest.text,
-      replyTo: emailRequest.replyTo,
-    };
-
-    const info = await transporter.sendMail(mailOptions);
-
+  /* -------------------- TEST MODE -------------------- */
+  if (emailRequest.test === true) {
     return new Response(
       JSON.stringify({
         success: true,
-        messageId: info.messageId,
-        details: {
-          accepted: info.accepted,
-          rejected: info.rejected,
-          response: info.response,
-        },
+        message: "Email service reachable and JSON parsing works",
+      }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
+  }
+
+  /* -------------------- RATE LIMIT -------------------- */
+  const clientIP = req.headers.get("x-forwarded-for") || "unknown";
+  const toEmail = Array.isArray(emailRequest.to)
+    ? emailRequest.to[0]
+    : emailRequest.to;
+
+  const rateCheck = checkRateLimit(clientIP, toEmail);
+  if (!rateCheck.allowed) {
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: "RATE_LIMIT_EXCEEDED",
+        message: "Too many requests",
       }),
       {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+        status: 429,
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json",
+          "Retry-After": String(
+            Math.ceil((rateCheck.resetTime! - Date.now()) / 1000),
+          ),
+        },
+      },
     );
-  } catch (error) {
+  }
 
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+  /* -------------------- BREVO API -------------------- */
+  const brevoApiKey = Deno.env.get("BREVO_API_KEY");
+  const defaultFrom = Deno.env.get("DEFAULT_FROM_EMAIL") || "info@rebookedsolutions.co.za";
 
+  if (!brevoApiKey) {
+    console.error("❌ BREVO_API_KEY missing");
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: "EMAIL_NOT_CONFIGURED",
+        message: "BREVO_API_KEY is not set",
+      }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
+  }
+
+  // Format recipients for Brevo API
+  const toArray = Array.isArray(emailRequest.to) ? emailRequest.to : [emailRequest.to];
+  const recipients = toArray.map(email => ({ email }));
+
+  // Build the request body for Brevo's transactional email API
+  const brevoPayload: Record<string, unknown> = {
+    sender: { email: emailRequest.from || defaultFrom },
+    to: recipients,
+    subject: emailRequest.subject,
+  };
+
+  if (emailRequest.html) {
+    brevoPayload.htmlContent = emailRequest.html;
+  }
+  if (emailRequest.text) {
+    brevoPayload.textContent = emailRequest.text;
+  }
+  if (emailRequest.replyTo) {
+    brevoPayload.replyTo = { email: emailRequest.replyTo };
+  }
+
+  try {
+    console.log("📧 Sending via Brevo API...");
+    
+    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "api-key": brevoApiKey,
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+      body: JSON.stringify(brevoPayload),
+    });
+
+    const responseData = await response.json();
+
+    if (!response.ok) {
+      console.error("❌ Brevo API error:", responseData);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "EMAIL_SEND_FAILED",
+          message: responseData.message || "Failed to send email via Brevo",
+        }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    console.log("✅ Email sent successfully via Brevo:", responseData);
+
+    return new Response(
+      JSON.stringify({ success: true, messageId: responseData.messageId }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
+  } catch (err) {
+    console.error("❌ Email send failed:", err);
     return new Response(
       JSON.stringify({
         success: false,
         error: "EMAIL_SEND_FAILED",
-        message: errorMessage,
+        message: err instanceof Error ? err.message : "Unknown error",
       }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 });
