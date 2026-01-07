@@ -259,83 +259,100 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
 
       <AlertDialogContent className="w-[calc(100vw-2rem)] sm:w-full max-w-sm sm:max-w-2xl max-h-[90vh] overflow-y-auto mx-auto">
         <AlertDialogHeader>
-          <AlertDialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
-            <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0" />
-            <span className="line-clamp-2 sm:line-clamp-none">Commit to Sale</span>
+          <AlertDialogTitle className="flex items-center gap-3 text-xl sm:text-2xl text-gray-900">
+            <CheckCircle className="w-6 h-6 text-emerald-600 flex-shrink-0" />
+            <span>Confirm Sale</span>
           </AlertDialogTitle>
-          <AlertDialogDescription className="text-sm sm:text-base">
-            You are about to commit to selling <strong>"{bookTitle}"</strong> to {buyerName}.
+          <AlertDialogDescription className="text-base sm:text-lg mt-2">
+            You are about to confirm selling <strong className="text-gray-900">"{bookTitle}"</strong> to <strong className="text-gray-900">{buyerName}</strong>.
           </AlertDialogDescription>
         </AlertDialogHeader>
 
-        <div className="space-y-6 mt-4">
+        <div className="space-y-5 mt-6">
           {/* Delivery Method Display - Shows the original method */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                <span className="text-sm sm:text-base">Delivery Method</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <div className="border border-gray-200 rounded-xl overflow-hidden">
+            <div className="bg-gradient-to-r from-slate-50 to-slate-100 px-4 py-3 border-b border-gray-200">
+              <h4 className="font-semibold text-gray-900 flex items-center gap-2 text-base">
+                <MapPin className="w-5 h-5 text-slate-600 flex-shrink-0" />
+                Delivery Method
+              </h4>
+            </div>
+            <div className="p-4">
               {isLoadingOrder ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+                  <Loader2 className="h-6 w-6 animate-spin text-slate-600" />
                 </div>
               ) : pickupType === "locker" ? (
                 // Show Locker Drop-Off
-                <div className="p-4 border-2 border-purple-500 bg-purple-50 rounded-lg">
+                <div className="p-4 border-2 border-indigo-300 bg-indigo-50 rounded-lg">
                   <div className="flex items-start gap-3">
-                    <Badge className="bg-purple-600 text-white flex-shrink-0 mt-1">Pickup Method</Badge>
+                    <Badge className="bg-indigo-600 text-white flex-shrink-0 mt-0.5">Pickup Method</Badge>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-gray-900 flex items-center gap-2 text-sm sm:text-base">
-                        <MapPin className="w-4 h-4 flex-shrink-0" />
-                        BobGo Locker Drop-Off
-                      </h4>
-                      <p className="text-xs sm:text-sm text-gray-600 mt-2">
-                        You selected locker drop-off when creating this order. The book will be dropped at your designated locker location.
+                      <h5 className="font-semibold text-gray-900 flex items-center gap-2 text-sm sm:text-base">
+                        <MapPin className="w-4 h-4 flex-shrink-0 text-indigo-600" />
+                        Locker Drop-Off
+                      </h5>
+                      <p className="text-sm text-gray-700 mt-2">
+                        The book will be dropped at the designated BobGo locker location as you selected when creating this order.
                       </p>
                     </div>
                   </div>
                 </div>
               ) : (
                 // Show Home Pick-Up
-                <div className="p-4 border-2 border-blue-500 bg-blue-50 rounded-lg">
+                <div className="p-4 border-2 border-blue-300 bg-blue-50 rounded-lg">
                   <div className="flex items-start gap-3">
-                    <Badge className="bg-blue-600 text-white flex-shrink-0 mt-1">Pickup Method</Badge>
+                    <Badge className="bg-blue-600 text-white flex-shrink-0 mt-0.5">Pickup Method</Badge>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-gray-900 flex items-center gap-2 text-sm sm:text-base">
-                        <Home className="w-4 h-4 flex-shrink-0" />
-                        Home Pick-Up (Courier Collection)
-                      </h4>
-                      <p className="text-xs sm:text-sm text-gray-600 mt-2">
-                        You selected home pick-up when creating this order. Our courier will collect the book from your address.
+                      <h5 className="font-semibold text-gray-900 flex items-center gap-2 text-sm sm:text-base">
+                        <Home className="w-4 h-4 flex-shrink-0 text-blue-600" />
+                        Home Pick-Up
+                      </h5>
+                      <p className="text-sm text-gray-700 mt-2">
+                        Our courier will collect the book from your address at a time that's convenient for you.
                       </p>
                     </div>
                   </div>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          {/* Standard Information */}
-          <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-            <h4 className="font-semibold text-blue-800 mb-2 text-sm sm:text-base">
-              What happens after commitment:
+          {/* What Happens Next */}
+          <div className="bg-gradient-to-br from-emerald-50 to-teal-50 p-4 rounded-xl border border-emerald-200">
+            <h4 className="font-semibold text-emerald-900 mb-3 text-base flex items-center gap-2">
+              <CheckCircle className="w-5 h-5 text-emerald-600" />
+              What happens next:
             </h4>
-            <ul className="text-xs sm:text-sm text-blue-700 space-y-1">
-              <li>• Courier pickup will be automatically scheduled</li>
-              <li>• You'll receive pickup/drop-off details via email</li>
-              <li>• You must be available during pickup time window</li>
-              <li>• Standard payment processing timeline</li>
+            <ul className="text-sm text-emerald-800 space-y-2">
+              <li className="flex gap-2">
+                <span className="flex-shrink-0 text-emerald-600 font-bold">1</span>
+                <span>Courier pickup will be automatically scheduled</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="flex-shrink-0 text-emerald-600 font-bold">2</span>
+                <span>You'll receive pickup details via email within 24 hours</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="flex-shrink-0 text-emerald-600 font-bold">3</span>
+                <span>Be available during the scheduled pickup time</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="flex-shrink-0 text-emerald-600 font-bold">4</span>
+                <span>Payment will be processed once delivery is confirmed</span>
+              </li>
             </ul>
           </div>
 
-          <div className="bg-amber-50 p-3 rounded-lg border border-amber-200">
-            <p className="text-xs sm:text-sm text-amber-700">
-              <strong>Important:</strong> Once committed, you are obligated to fulfill this order.
-              Failure to complete the pickup may result in penalties.
-            </p>
+          {/* Important Notice */}
+          <div className="bg-gradient-to-br from-rose-50 to-orange-50 p-4 rounded-xl border border-rose-200">
+            <div className="flex gap-3">
+              <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-rose-800">
+                <strong className="text-rose-900 block mb-1">Important Commitment</strong>
+                <p>Once you confirm, you are obligated to fulfill this order. Failure to complete pickup may result in penalties and affect your seller rating.</p>
+              </div>
+            </div>
           </div>
         </div>
 
