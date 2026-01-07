@@ -635,57 +635,60 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
   return (
     <div className="space-y-6">
       {/* Stats Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <Card>
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+        <Card className="border-l-4 border-l-gray-400 bg-gray-50/50">
           <CardContent className="p-4 text-center">
-            <Package className="h-6 w-6 mx-auto mb-2 text-gray-600" />
-            <p className="text-2xl font-bold">{stats.total}</p>
-            <p className="text-sm text-gray-600">Total Orders</p>
+            <Package className="h-5 w-5 mx-auto mb-2 text-gray-600" />
+            <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
+            <p className="text-xs font-medium text-gray-600 mt-1">Total Orders</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-l-4 border-l-amber-500 bg-amber-50/50">
           <CardContent className="p-4 text-center">
-            <Clock className="h-6 w-6 mx-auto mb-2 text-yellow-600" />
-            <p className="text-2xl font-bold">{stats.pending}</p>
-            <p className="text-sm text-gray-600">Pending</p>
+            <Clock className="h-5 w-5 mx-auto mb-2 text-amber-600" />
+            <p className="text-3xl font-bold text-amber-900">{stats.pending}</p>
+            <p className="text-xs font-medium text-amber-700 mt-1">Pending</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-l-4 border-l-blue-500 bg-blue-50/50">
           <CardContent className="p-4 text-center">
-            <TruckIcon className="h-6 w-6 mx-auto mb-2 text-blue-600" />
-            <p className="text-2xl font-bold">{stats.active}</p>
-            <p className="text-sm text-gray-600">Active</p>
+            <TruckIcon className="h-5 w-5 mx-auto mb-2 text-blue-600" />
+            <p className="text-3xl font-bold text-blue-900">{stats.active}</p>
+            <p className="text-xs font-medium text-blue-700 mt-1">Active</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-l-4 border-l-green-500 bg-green-50/50">
           <CardContent className="p-4 text-center">
-            <CheckCircle className="h-6 w-6 mx-auto mb-2 text-green-600" />
-            <p className="text-2xl font-bold">{stats.completed}</p>
-            <p className="text-sm text-gray-600">Completed</p>
+            <CheckCircle className="h-5 w-5 mx-auto mb-2 text-green-600" />
+            <p className="text-3xl font-bold text-green-900">{stats.completed}</p>
+            <p className="text-xs font-medium text-green-700 mt-1">Completed</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-l-4 border-l-red-500 bg-red-50/50">
           <CardContent className="p-4 text-center">
-            <AlertTriangle className="h-6 w-6 mx-auto mb-2 text-red-600" />
-            <p className="text-2xl font-bold">{stats.cancelled}</p>
-            <p className="text-sm text-gray-600">Cancelled</p>
+            <AlertTriangle className="h-5 w-5 mx-auto mb-2 text-red-600" />
+            <p className="text-3xl font-bold text-red-900">{stats.cancelled}</p>
+            <p className="text-xs font-medium text-red-700 mt-1">Cancelled</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Active Orders */}
-      <div className="mt-6">
-        <h3 className="text-lg font-semibold mb-3">Active Orders</h3>
+      {/* Active Orders Section */}
+      <div className="mt-8">
+        <div className="flex items-center gap-2 mb-4">
+          <TruckIcon className="h-5 w-5 text-blue-600" />
+          <h2 className="text-2xl font-bold text-gray-900">Active Orders</h2>
+        </div>
         {activeOrders.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-8">
+          <Card className="border-l-4 border-l-gray-300 bg-gray-50/50">
+            <CardContent className="text-center py-12">
               <Package className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-              <h4 className="text-base font-semibold mb-2">No active orders</h4>
+              <h4 className="text-lg font-semibold text-gray-900 mb-1">No active orders</h4>
               <p className="text-gray-600">New orders will appear here once created or committed.</p>
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {activeOrders.map((order) => (
               <OrderCard key={order.id} order={order} isCollapsible={false} />
             ))}
@@ -693,18 +696,22 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
         )}
       </div>
 
-      {/* Completed Orders */}
-      <div className="mt-6">
-        <h3 className="text-lg font-semibold mb-3">Completed Orders</h3>
+      {/* Completed Orders Section */}
+      <div className="mt-8">
+        <div className="flex items-center gap-2 mb-4">
+          <CheckCircle className="h-5 w-5 text-green-600" />
+          <h2 className="text-2xl font-bold text-gray-900">Completed Orders</h2>
+        </div>
         {completedOrders.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-8">
-              <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-400" />
-              <p className="text-gray-600">No completed orders yet.</p>
+          <Card className="border-l-4 border-l-gray-300 bg-gray-50/50">
+            <CardContent className="text-center py-12">
+              <CheckCircle className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+              <h4 className="text-lg font-semibold text-gray-900 mb-1">No completed orders</h4>
+              <p className="text-gray-600">Your completed orders will appear here.</p>
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {completedOrders.map((order) => (
               <OrderCard key={order.id} order={order} isCollapsible={true} />
             ))}
@@ -712,18 +719,22 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
         )}
       </div>
 
-      {/* Cancelled Orders */}
-      <div className="mt-6">
-        <h3 className="text-lg font-semibold mb-3">Cancelled Orders</h3>
+      {/* Cancelled Orders Section */}
+      <div className="mt-8">
+        <div className="flex items-center gap-2 mb-4">
+          <AlertTriangle className="h-5 w-5 text-red-600" />
+          <h2 className="text-2xl font-bold text-gray-900">Cancelled Orders</h2>
+        </div>
         {cancelledOrders.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-8">
-              <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-red-400" />
-              <p className="text-gray-600">No cancelled orders.</p>
+          <Card className="border-l-4 border-l-gray-300 bg-gray-50/50">
+            <CardContent className="text-center py-12">
+              <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+              <h4 className="text-lg font-semibold text-gray-900 mb-1">No cancelled orders</h4>
+              <p className="text-gray-600">Your cancelled orders will appear here.</p>
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {cancelledOrders.map((order) => (
               <OrderCard key={order.id} order={order} isCollapsible={true} />
             ))}
