@@ -402,8 +402,8 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
         <div className="space-y-2">
           <div className="flex items-start justify-between gap-1">
             {steps.map((step, idx) => {
-              const isCompleted = idx < currentIndex;
-              const isCurrent = idx === currentIndex;
+              const isCompleted = idx < currentIndex || (idx === currentIndex && currentIndex === steps.length - 1);
+              const isCurrent = idx === currentIndex && currentIndex < steps.length - 1;
               const isPending = idx > currentIndex;
 
               return (
