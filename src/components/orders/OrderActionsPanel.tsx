@@ -68,12 +68,15 @@ const OrderActionsPanel: React.FC<OrderActionsPanelProps> = ({
   const [selectedRescheduleTime, setSelectedRescheduleTime] = useState("");
   const [paymentProcessing, setPaymentProcessing] = useState(false);
 
-  // Align with server-side blocked statuses: ['collected', 'in transit', 'out for delivery', 'delivered']
-  // Also block committed orders - users must contact support for those
-  const blockedStatuses = ["collected", "in transit", "out for delivery", "delivered", "committed"];
+  // Orders can ONLY be cancelled if status is "created"
+  // Blocked statuses: ['collected', 'in transit', 'out for delivery', 'delivered', 'committed']
   const orderStatusLower = (order.status || "").toLowerCase();
   const deliveryStatusLower = (order.delivery_status || "").toLowerCase();
-  const canCancelShipment = !blockedStatuses.includes(orderStatusLower) && !blockedStatuses.includes(deliveryStatusLower);
+
+  // Can cancel only if delivery_status is "created"
+  const canCancelOrder = deliveryStatusLower === "created" ||
+                         (deliveryStatusLower === "" && orderStatusLower === "pending_commit") ||
+                         (deliveryStatusLower === "" && orderStatusLower === "pending");
 
   const showMissedPickupActions = userRole === "seller" && order.delivery_status === "pickup_failed";
 
