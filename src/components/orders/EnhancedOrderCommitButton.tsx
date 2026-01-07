@@ -356,27 +356,27 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
           </div>
         </div>
 
-        <AlertDialogFooter className="mt-6 flex-col sm:flex-row gap-2 sm:gap-0">
+        <AlertDialogFooter className="mt-8 flex-col sm:flex-row gap-3 sm:gap-2">
           <AlertDialogCancel
             disabled={isCommitting}
-            className="w-full sm:w-auto text-sm sm:text-base min-h-[44px]"
+            className="w-full sm:w-auto text-sm sm:text-base min-h-[44px] font-medium"
           >
-            Cancel
+            Not Now
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleCommit}
             disabled={isCommitting || isLoadingOrder}
-            className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-sm sm:text-base min-h-[44px]"
+            className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-sm sm:text-base min-h-[44px] font-semibold"
           >
             {isCommitting ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin flex-shrink-0" />
-                <span>Committing...</span>
+                <span>Confirming...</span>
               </>
             ) : (
               <>
                 <CheckCircle className="w-4 h-4 mr-2 flex-shrink-0" />
-                <span className="truncate">Confirm Commitment</span>
+                <span className="truncate">Yes, Confirm Sale</span>
               </>
             )}
           </AlertDialogAction>
