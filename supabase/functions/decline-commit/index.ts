@@ -173,16 +173,35 @@ serve(async (req) => {
           .single();
 
         if (bookData) {
-          console.log(`[decline-order] Current book state: initial=${bookData.initial_quantity}, sold=${bookData.sold_quantity}, available=${bookData.available_quantity}`);
+          console.log(`[decline-order] Current book state: initial=${bookData.initial_quantity}, sold_qty=${bookData.sold_quantity}, available=${bookData.available_quantity}, sold_flag=${bookData.sold}`);
           
-          // Only restore if there's actually a sold quantity to restore
           // Constraint: (initial_quantity >= sold_quantity) AND ((initial_quantity - sold_quantity) = available_quantity)
-          if (bookData.sold_quantity > 0) {
-            const newSoldQuantity = bookData.sold_quantity - 1;
-            const initialQty = bookData.initial_quantity || 1;
+          const currentSoldQty = bookData.sold_quantity || 0;
+          const initialQty = bookData.initial_quantity || 1;
+          const currentAvailable = bookData.available_quantity || 0;
+          
+          // Check if quantities are already consistent - no need to restore
+          if (currentSoldQty === 0 && currentAvailable === initialQty) {
+            console.log("[decline-order] Book quantities already restored, just updating sold flag");
+            const { error: bookUpdateError } = await supabase
+              .from("books")
+              .update({
+                sold: false,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", bookId);
+
+            if (bookUpdateError) {
+              console.error("[decline-order] Failed to update book sold status:", bookUpdateError.message);
+            } else {
+              console.log("[decline-order] Book marked as not sold");
+            }
+          } else if (currentSoldQty > 0) {
+            // Restore quantities
+            const newSoldQuantity = currentSoldQty - 1;
             const newAvailableQuantity = initialQty - newSoldQuantity;
 
-            console.log(`[decline-order] Book restore: newSold=${newSoldQuantity}, newAvailable=${newAvailableQuantity}`);
+            console.log(`[decline-order] Restoring: newSold=${newSoldQuantity}, newAvailable=${newAvailableQuantity}`);
 
             const { error: bookUpdateError } = await supabase
               .from("books")
@@ -200,20 +219,22 @@ serve(async (req) => {
               console.log("[decline-order] Book availability restored successfully");
             }
           } else {
-            // If sold_quantity is 0, just ensure the book is marked as not sold
-            console.log("[decline-order] sold_quantity is 0, just marking book as not sold");
+            // sold_quantity is 0 but available doesn't match - fix the inconsistency
+            console.log("[decline-order] Fixing inconsistent book state");
             const { error: bookUpdateError } = await supabase
               .from("books")
               .update({
                 sold: false,
+                available_quantity: initialQty,
+                sold_quantity: 0,
                 updated_at: new Date().toISOString(),
               })
               .eq("id", bookId);
 
             if (bookUpdateError) {
-              console.error("[decline-order] Failed to update book sold status:", bookUpdateError.message);
+              console.error("[decline-order] Failed to fix book state:", bookUpdateError.message);
             } else {
-              console.log("[decline-order] Book marked as not sold");
+              console.log("[decline-order] Book state fixed");
             }
           }
         }
