@@ -458,90 +458,132 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
       }
     };
 
+    const isCompleted = ["delivered", "completed"].includes(order.status);
+    const isCancelled = order.status === "cancelled";
+    const isActive = !isCompleted && !isCancelled;
+
     return (
-      <Card className="mb-3 border border-gray-200 shadow-sm rounded-lg">
-        <CardHeader className="py-2 px-4">
-          <div className="flex items-start justify-between gap-2">
+      <Card className={`border-l-4 transition-all duration-200 ${
+        isCancelled
+          ? "border-l-red-500 bg-red-50/30 border border-red-200"
+          : isCompleted
+          ? "border-l-green-500 bg-green-50/30 border border-green-200"
+          : "border-l-blue-500 bg-blue-50/30 border border-blue-200"
+      }`}>
+        {/* Header Section - Always Visible */}
+        <CardHeader className="pb-3 pt-4 px-4">
+          <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
               <OrderHeaderDetails order={order} />
             </div>
-            {isCollapsible && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleToggle}
-                className="ml-2 flex-shrink-0 h-8"
-              >
-                {isExpanded ? (
-                  <>
-                    <ChevronUp className="h-3 w-3" />
-                  </>
-                ) : (
-                  <>
-                    <ChevronDown className="h-3 w-3" />
-                  </>
-                )}
-              </Button>
-            )}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {/* Status Badge */}
+              <Badge className={`text-xs font-medium whitespace-nowrap ${
+                isCancelled
+                  ? "bg-red-600 text-white"
+                  : isCompleted
+                  ? "bg-green-600 text-white"
+                  : "bg-blue-600 text-white"
+              }`}>
+                {isCancelled ? "Cancelled" : isCompleted ? "Completed" : "Active"}
+              </Badge>
+
+              {/* Expand/Collapse Button */}
+              {isCollapsible && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleToggle}
+                  className="h-8 w-8 p-0"
+                >
+                  {isExpanded ? (
+                    <ChevronUp className="h-4 w-4 text-gray-600" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-gray-600" />
+                  )}
+                </Button>
+              )}
+            </div>
           </div>
         </CardHeader>
-        
+
+        {/* Expandable Content Section */}
         {isExpanded && (
-          <CardContent className="space-y-2 px-4 py-2">
+          <CardContent className="space-y-4 px-4 pb-4">
+            {/* Alert Messages */}
             {order.delivery_status === "pickup_failed" && userRole === "seller" && (
-              <Alert className="border-orange-200 bg-orange-50 py-2 px-3">
-                <AlertTriangle className="h-3 w-3 text-orange-600 mt-0.5" />
-                <AlertDescription className="text-xs text-orange-800 ml-2">
-                  <strong>Action Required:</strong> Courier attempted pickup but unavailable. Reschedule or cancel within 24 hours.
+              <Alert className="border-orange-300 bg-orange-50 py-3 px-3">
+                <AlertTriangle className="h-4 w-4 text-orange-600 flex-shrink-0" />
+                <AlertDescription className="text-sm text-orange-800 ml-2">
+                  <strong>Action Required:</strong> Courier attempted pickup but you were unavailable. Please reschedule or cancel within 24 hours.
                 </AlertDescription>
               </Alert>
             )}
 
             {order.delivery_status === "pickup_failed" && userRole === "buyer" && (
-              <Alert className="border-blue-200 bg-blue-50 py-2 px-3">
-                <Clock className="h-3 w-3 text-blue-600 mt-0.5" />
-                <AlertDescription className="text-xs text-blue-800 ml-2">
-                  <strong>Pickup Delayed:</strong> Seller missed pickup. We'll update you once they take action.
+              <Alert className="border-blue-300 bg-blue-50 py-3 px-3">
+                <Clock className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                <AlertDescription className="text-sm text-blue-800 ml-2">
+                  <strong>Pickup Delayed:</strong> The seller missed pickup. We'll update you once they take action.
                 </AlertDescription>
               </Alert>
             )}
 
             {order.delivery_status === "rescheduled_by_seller" && (
-              <Alert className="border-blue-200 bg-blue-50 py-2 px-3">
-                <Calendar className="h-3 w-3 text-blue-600 mt-0.5" />
-                <AlertDescription className="text-xs text-blue-800 ml-2">
-                  <strong>Pickup Rescheduled</strong>
+              <Alert className="border-blue-300 bg-blue-50 py-3 px-3">
+                <Calendar className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                <AlertDescription className="text-sm text-blue-800 ml-2">
+                  <strong>Pickup Rescheduled:</strong> A new pickup time has been arranged.
                 </AlertDescription>
               </Alert>
             )}
 
-            <div className="pt-1" />
-            <OrderTimeline order={order} />
-            <div className="pt-1" />
-            <OrderShipmentSummary order={order} />
-            <div className="pt-1" />
+            {isCancelled && (
+              <Alert className="border-red-300 bg-red-50 py-3 px-3">
+                <AlertTriangle className="h-4 w-4 text-red-600 flex-shrink-0" />
+                <AlertDescription className="text-sm text-red-800 ml-2">
+                  <strong>Order Cancelled:</strong> {order.cancellation_reason || "This order has been cancelled"} {order.cancelled_at ? `on ${formatDate(order.cancelled_at)}` : ""}
+                </AlertDescription>
+              </Alert>
+            )}
 
-            <OrderActionsPanel order={order} userRole={userRole} onOrderUpdate={fetchOrders} />
+            {/* Delivery Timeline */}
+            <div className="bg-white rounded-lg p-3 border border-gray-200">
+              <h4 className="text-sm font-semibold text-gray-900 mb-3">Delivery Progress</h4>
+              <OrderTimeline order={order} />
+            </div>
 
-            {userRole === "buyer" && (["delivered", "completed"].includes(order.status) || order.delivery_status === "delivered") && (
-              <div className="pt-1">
-                <OrderCompletionCard
-                  orderId={order.id}
-                  bookTitle={order.book?.title || "Book"}
-                  sellerName={order.seller?.name || "Seller"}
-                  deliveredDate={order.updated_at}
-                  onFeedbackSubmitted={handleFeedbackSubmitted}
-                  totalAmount={order.total_amount || 0}
-                  sellerId={order.seller_id || ""}
-                />
+            {/* Shipment Summary */}
+            <div className="bg-white rounded-lg p-3 border border-gray-200">
+              <h4 className="text-sm font-semibold text-gray-900 mb-3">Shipment Details</h4>
+              <OrderShipmentSummary order={order} />
+            </div>
+
+            {/* Action Panel */}
+            {!isCancelled && (
+              <OrderActionsPanel order={order} userRole={userRole} onOrderUpdate={fetchOrders} />
+            )}
+
+            {/* Buyer Completion Card */}
+            {userRole === "buyer" && isCompleted && (
+              <OrderCompletionCard
+                orderId={order.id}
+                bookTitle={order.book?.title || "Book"}
+                sellerName={order.seller?.name || "Seller"}
+                deliveredDate={order.updated_at}
+                onFeedbackSubmitted={handleFeedbackSubmitted}
+                totalAmount={order.total_amount || 0}
+                sellerId={order.seller_id || ""}
+              />
+            )}
+
+            {/* Seller Completion Message */}
+            {isCompleted && userRole === "seller" && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                <p className="text-sm text-green-700">
+                  <strong>Order Completed:</strong> {formatDate(order.updated_at)}
+                </p>
               </div>
-            )}
-
-            {["delivered", "completed"].includes(order.status) && userRole === "seller" && (
-              <div className="text-xs text-gray-500 pt-1">Completed on {formatDate(order.updated_at)}</div>
-            )}
-            {order.status === "cancelled" && (
-              <div className="text-xs text-red-600 pt-1">Cancelled: {order.cancellation_reason || "Cancelled"} {order.cancelled_at ? `• ${formatDate(order.cancelled_at)}` : ""}</div>
             )}
           </CardContent>
         )}
