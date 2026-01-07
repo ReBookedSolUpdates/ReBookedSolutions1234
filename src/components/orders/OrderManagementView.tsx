@@ -400,17 +400,26 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
 
         {/* Delivery stages - horizontal timeline */}
         <div className="space-y-2">
-          <div className={`grid gap-2 ${steps.length <= 4 ? "grid-cols-4" : "grid-cols-3 md:grid-cols-5"}`}>
+          <div className="flex items-start justify-between gap-1">
             {steps.map((step, idx) => {
               const isCompleted = idx < currentIndex;
               const isCurrent = idx === currentIndex;
               const isPending = idx > currentIndex;
 
               return (
-                <div key={step} className="flex flex-col items-center gap-1">
-                  <div className="relative flex items-center justify-center">
+                <div key={step} className="flex flex-col items-center gap-2 flex-1">
+                  <div className="flex items-center w-full">
+                    {/* Connector line before circle */}
+                    {idx > 0 && (
+                      <div
+                        className={`flex-1 h-1 ${
+                          idx <= currentIndex ? "bg-green-500" : "bg-gray-300"
+                        }`}
+                      />
+                    )}
+                    {/* Step Circle */}
                     <div
-                      className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
+                      className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold transition-all flex-shrink-0 ${
                         isCompleted
                           ? "bg-green-100 text-green-700 border-2 border-green-500"
                           : isCurrent
@@ -420,13 +429,12 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
                     >
                       {isCompleted ? "✓" : idx + 1}
                     </div>
-                    {/* Connector line between steps */}
+                    {/* Connector line after circle */}
                     {idx < steps.length - 1 && (
                       <div
-                        className={`absolute left-[50%] top-3 w-[calc(100%+8px)] h-0.5 ${
-                          isCompleted ? "bg-green-500" : "bg-gray-200"
+                        className={`flex-1 h-1 ${
+                          idx < currentIndex ? "bg-green-500" : "bg-gray-300"
                         }`}
-                        style={{ transform: "translateX(8px)" }}
                       />
                     )}
                   </div>
