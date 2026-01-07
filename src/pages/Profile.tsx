@@ -30,6 +30,7 @@ import {
   Clock,
   ShoppingBag,
   X,
+  CheckCircle,
 } from "lucide-react";
 import { getUserBooks } from "@/services/book/bookQueries";
 import { deleteBook } from "@/services/book/bookMutations";
@@ -644,30 +645,73 @@ const Profile = () => {
                           const rem = mins % 60;
                           const urgent = hrs < 12;
                           return (
-                            <Card key={c.id} className={urgent ? "border-red-200 bg-red-50" : "border-amber-200 bg-amber-50"}>
-                              <CardContent className="p-4">
-                                <div className="flex flex-col md:flex-row gap-4 md:items-start">
-                                  <div className="w-16 h-20 bg-gray-100 rounded overflow-hidden flex-shrink-0">
-                                    <img src={c.imageUrl || "/placeholder.svg"} onError={(e: any) => (e.currentTarget.src = "/placeholder.svg")} className="w-full h-full object-cover" alt={c.bookTitle} />
+                            <Card key={c.id} className="border border-slate-200 hover:shadow-lg transition-shadow duration-200 overflow-hidden">
+                              <div className={`h-1 ${urgent ? "bg-red-500" : "bg-blue-500"}`} />
+                              <CardContent className="p-5">
+                                <div className="flex flex-col md:flex-row gap-5">
+                                  {/* Book Image Section */}
+                                  <div className="flex-shrink-0">
+                                    <div className="w-20 h-28 bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg overflow-hidden shadow-md border border-slate-300">
+                                      <img src={c.imageUrl || "/placeholder.svg"} onError={(e: any) => (e.currentTarget.src = "/placeholder.svg")} className="w-full h-full object-cover" alt={c.bookTitle} />
+                                    </div>
                                   </div>
+
+                                  {/* Main Content Section */}
                                   <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-1">
-                                      <h3 className="font-semibold text-slate-800 line-clamp-1">{c.bookTitle}</h3>
-                                      {urgent && <Badge className="bg-red-500 text-white">URGENT</Badge>}
+                                    {/* Header with Title and Status Badge */}
+                                    <div className="flex items-start justify-between gap-3 mb-3">
+                                      <div className="flex-1 min-w-0">
+                                        <h3 className="font-bold text-lg text-slate-900 line-clamp-2 mb-1">{c.bookTitle}</h3>
+                                        {c.author && <p className="text-sm text-slate-600">by {c.author}</p>}
+                                      </div>
+                                      {urgent && (
+                                        <Badge className="flex-shrink-0 bg-red-100 text-red-700 border border-red-300 font-semibold">
+                                          URGENT
+                                        </Badge>
+                                      )}
                                     </div>
-                                    {c.author && <p className="text-sm text-gray-600 mb-2">by {c.author}</p>}
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-slate-600 mb-3">
-                                      <div className="flex items-center gap-2"><User className="h-4 w-4" />Buyer: <span className="font-medium">{c.buyerName}</span></div>
-                                      <div className="flex items-center gap-2"><ShoppingBag className="h-4 w-4 text-emerald-600" />Price: <span className="font-bold text-emerald-700">R{c.price?.toFixed?.(2) || c.price}</span></div>
+
+                                    {/* Info Grid */}
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 pb-4 border-b border-slate-200">
+                                      {/* Buyer Info */}
+                                      <div className="flex flex-col">
+                                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Buyer</span>
+                                        <span className="text-sm font-medium text-slate-900 mt-0.5">{c.buyerName}</span>
+                                      </div>
+
+                                      {/* Price Info */}
+                                      <div className="flex flex-col">
+                                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Sale Price</span>
+                                        <span className="text-sm font-bold text-slate-900 mt-0.5">R{c.price?.toFixed?.(2) || c.price}</span>
+                                      </div>
+
+                                      {/* Order ID */}
+                                      <div className="flex flex-col">
+                                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Order ID</span>
+                                        <span className="text-sm font-mono text-slate-700 mt-0.5">{c.id.slice(0, 8)}...</span>
+                                      </div>
+
+                                      {/* Time Remaining */}
+                                      <div className="flex flex-col">
+                                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Time Left</span>
+                                        <div className="flex items-center gap-1.5 mt-0.5">
+                                          <Clock className={`h-3.5 w-3.5 ${urgent ? "text-red-500" : "text-blue-500"}`} />
+                                          <span className={`text-sm font-semibold ${urgent ? "text-red-600" : "text-blue-600"}`}>
+                                            {mins <= 0 ? "Expired" : (hrs > 0 ? `${hrs}h ${rem}m` : `${rem}m`)}
+                                          </span>
+                                        </div>
+                                      </div>
                                     </div>
-                                    <div className="inline-flex items-center gap-2 px-2 py-1 rounded bg-white/70">
-                                      <Clock className={urgent ? "h-4 w-4 text-red-500" : "h-4 w-4 text-amber-600"} />
-                                      <span className={urgent ? "text-red-600 font-medium" : "text-amber-700 font-medium"}>
-                                        {mins <= 0 ? "Expired" : (hrs > 0 ? `${hrs}h ${rem}m` : `${rem}m`)} remaining
-                                      </span>
+
+                                    {/* Status Note */}
+                                    <div className="flex items-center gap-2 text-xs text-slate-600 mb-4 p-2 bg-slate-50 rounded">
+                                      <CheckCircle className="h-3.5 w-3.5 text-slate-400" />
+                                      <span>Waiting for your confirmation to arrange courier pickup</span>
                                     </div>
                                   </div>
-                                  <div className="flex gap-2 md:flex-col md:ml-4">
+
+                                  {/* Action Buttons */}
+                                  <div className="flex gap-2 md:flex-col md:justify-start flex-shrink-0 md:w-auto">
                                     <EnhancedOrderCommitButton
                                       orderId={c.id}
                                       sellerId={user?.id || ""}
@@ -677,12 +721,13 @@ const Profile = () => {
                                       disabled={isCommitting || isDeclining}
                                     />
                                     <Button
-                                      variant="destructive"
+                                      variant="outline"
                                       disabled={isCommitting || isDeclining}
                                       onClick={async (e) => {
                                         e.preventDefault();
                                         try { await declineBook(c.id); await refreshPendingCommits(); } catch {}
                                       }}
+                                      className="border-slate-300 text-slate-700 hover:bg-slate-50"
                                     >
                                       <X className="h-4 w-4 mr-1" /> Decline
                                     </Button>

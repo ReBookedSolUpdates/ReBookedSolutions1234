@@ -89,6 +89,26 @@ const ModernAddressTab = ({
         if (!error && profile) {
           setPreferredPickupMethod(profile.preferred_pickup_method);
           setHasSavedLocker(!!profile.preferred_delivery_locker_data);
+
+          // Auto-select locker if it's the only option (has locker, no pickup address)
+          if (profile.preferred_delivery_locker_data && !pickupAddress) {
+            if (!profile.preferred_pickup_method) {
+              await (async () => {
+                try {
+                  const { error: updateError } = await supabase
+                    .from("profiles")
+                    .update({ preferred_pickup_method: "locker" })
+                    .eq("id", user.id);
+
+                  if (!updateError) {
+                    setPreferredPickupMethod("locker");
+                  }
+                } catch (e) {
+                  // Silently fail - preference will remain unset
+                }
+              })();
+            }
+          }
         }
       } catch (error) {
       } finally {
@@ -97,7 +117,7 @@ const ModernAddressTab = ({
     };
 
     loadPreferenceAndLockerStatus();
-  }, []);
+  }, [pickupAddress]);
 
   // Small optimization: prefill addresses quickly without awaiting heavy decrypt flows elsewhere
   useEffect(() => {
@@ -335,14 +355,6 @@ const ModernAddressTab = ({
       {/* Saved Lockers Section - Moved to Top */}
       <SavedLockersCard ref={savedLockersCardRef} isLoading={isLoading} />
 
-      {/* Locker Recommendation Alert */}
-      <Alert className="bg-blue-50 border-blue-300">
-        <Info className="h-4 w-4 text-blue-600" />
-        <AlertDescription className="text-blue-800">
-          <span className="font-semibold">Pro Tip: Using the locker system is easier and safer!</span> Avoid unnecessary rescheduling with couriers, and get paid faster since books are delivered quickly. The locker system is the fastest way to complete deliveries.
-        </AlertDescription>
-      </Alert>
-
       {/* BobGo Locations Section - Moved to Top */}
       <BobGoLocationsSection onLockerSaved={() => {
         savedLockersCardRef.current?.loadSavedLockers();
@@ -375,91 +387,69 @@ const ModernAddressTab = ({
         })();
       }} />
 
-      {/* Preferred Pickup Method Selection - Only show if both locker, pickup address, and shipping address exist */}
-      {!isLoadingPreference && hasSavedLocker && pickupAddress && shippingAddress && (
-        <Card className="border-2 border-purple-100 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100">
+      {/* Preferred Pickup Method Selection - Only show if both locker and pickup address exist */}
+      {!isLoadingPreference && hasSavedLocker && pickupAddress && (
+        <Card className="border-2 border-purple-200 shadow-md">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg md:text-xl flex items-center gap-2">
+            <CardTitle className="text-base md:text-lg flex items-center gap-2">
               <Navigation className="h-5 w-5 text-purple-600" />
-              Choose Your Preferred Pickup Method
+              Preferred Pickup Method
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <Alert className="bg-white border-purple-300">
-              <DollarSign className="h-4 w-4 text-purple-600" />
-              <AlertDescription className="text-gray-700">
-                <span className="font-semibold">How this works:</span> We use your preferred method to calculate delivery rates for all your books. This helps buyers get accurate shipping costs upfront.
-              </AlertDescription>
-            </Alert>
-
+          <CardContent className="space-y-3">
             <RadioGroup
               value={preferredPickupMethod || ""}
               onValueChange={(value) => savePreferredPickupMethod(value as "locker" | "pickup")}
               disabled={isSavingPreference}
             >
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {/* Locker Option */}
-                <div className="flex items-start space-x-3 p-4 border-2 border-purple-200 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer"
+                <div className="flex items-center space-x-3 p-3 border border-purple-200 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer"
                   onClick={() => !isSavingPreference && savePreferredPickupMethod("locker")}
                 >
                   <RadioGroupItem
                     value="locker"
                     id="prefer-locker"
                     disabled={isSavingPreference}
-                    className="mt-1 flex-shrink-0"
+                    className="flex-shrink-0"
                   />
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <Label htmlFor="prefer-locker" className="cursor-pointer">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Package className="h-4 w-4 text-purple-600" />
-                        <span className="font-semibold text-purple-900">BobGo Locker</span>
-                        <Badge className="bg-green-100 text-green-800 text-xs">Usually Cheapest</Badge>
+                      <div className="flex items-center gap-2">
+                        <Package className="h-4 w-4 text-purple-600 flex-shrink-0" />
+                        <span className="font-semibold text-sm">BobGo Locker</span>
                       </div>
-                      <p className="text-sm text-gray-600 ml-6">
-                        Drop books at your preferred BobGo locker location. Faster pickups, lower costs, and fewer delays with buyers.
-                      </p>
                     </Label>
                   </div>
                   {isSavingPreference && preferredPickupMethod === "locker" && (
-                    <Loader2 className="h-5 w-5 text-purple-600 animate-spin flex-shrink-0" />
+                    <Loader2 className="h-4 w-4 text-purple-600 animate-spin flex-shrink-0" />
                   )}
                 </div>
 
                 {/* Home Address Option */}
-                <div className={`flex items-start space-x-3 p-4 border-2 border-blue-200 rounded-lg transition-colors ${!pickupAddress ? "opacity-50 cursor-not-allowed bg-gray-50" : "hover:bg-blue-50 cursor-pointer"}`}
-                  onClick={() => pickupAddress && !isSavingPreference && savePreferredPickupMethod("pickup")}
+                <div className="flex items-center space-x-3 p-3 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer"
+                  onClick={() => !isSavingPreference && savePreferredPickupMethod("pickup")}
                 >
                   <RadioGroupItem
                     value="pickup"
                     id="prefer-pickup"
-                    disabled={isSavingPreference || !pickupAddress}
-                    className="mt-1 flex-shrink-0"
+                    disabled={isSavingPreference}
+                    className="flex-shrink-0"
                   />
-                  <div className="flex-1">
-                    <Label htmlFor="prefer-pickup" className={pickupAddress ? "cursor-pointer" : "cursor-not-allowed"}>
-                      <div className="flex items-center gap-2 mb-1">
-                        <Home className={`h-4 w-4 ${pickupAddress ? "text-blue-600" : "text-gray-400"}`} />
-                        <span className={`font-semibold ${pickupAddress ? "text-blue-900" : "text-gray-500"}`}>Home Address</span>
-                        {!pickupAddress && <span className="text-xs text-gray-500">(No address saved)</span>}
+                  <div className="flex-1 min-w-0">
+                    <Label htmlFor="prefer-pickup" className="cursor-pointer">
+                      <div className="flex items-center gap-2">
+                        <Home className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                        <span className="font-semibold text-sm">Home Address</span>
                       </div>
-                      <p className={`text-sm ml-6 ${pickupAddress ? "text-gray-600" : "text-gray-400"}`}>
-                        Use your home pickup address. Courier will collect from your address. We only recommend if it's your only option.
-                      </p>
                     </Label>
                   </div>
                   {isSavingPreference && preferredPickupMethod === "pickup" && (
-                    <Loader2 className="h-5 w-5 text-blue-600 animate-spin flex-shrink-0" />
+                    <Loader2 className="h-4 w-4 text-blue-600 animate-spin flex-shrink-0" />
                   )}
                 </div>
               </div>
             </RadioGroup>
-
-            <Alert className="bg-blue-50 border-blue-200">
-              <Info className="h-4 w-4 text-blue-600" />
-              <AlertDescription className="text-blue-800 text-sm">
-                <strong>Note:</strong> Your rate calculations will be based on your preferred pickup method selection.
-              </AlertDescription>
-            </Alert>
           </CardContent>
         </Card>
       )}
