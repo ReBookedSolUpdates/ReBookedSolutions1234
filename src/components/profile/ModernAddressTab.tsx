@@ -89,6 +89,26 @@ const ModernAddressTab = ({
         if (!error && profile) {
           setPreferredPickupMethod(profile.preferred_pickup_method);
           setHasSavedLocker(!!profile.preferred_delivery_locker_data);
+
+          // Auto-select locker if it's the only option (has locker, no pickup address)
+          if (profile.preferred_delivery_locker_data && !pickupAddress) {
+            if (!profile.preferred_pickup_method) {
+              await (async () => {
+                try {
+                  const { error: updateError } = await supabase
+                    .from("profiles")
+                    .update({ preferred_pickup_method: "locker" })
+                    .eq("id", user.id);
+
+                  if (!updateError) {
+                    setPreferredPickupMethod("locker");
+                  }
+                } catch (e) {
+                  // Silently fail - preference will remain unset
+                }
+              })();
+            }
+          }
         }
       } catch (error) {
       } finally {
@@ -97,7 +117,7 @@ const ModernAddressTab = ({
     };
 
     loadPreferenceAndLockerStatus();
-  }, []);
+  }, [pickupAddress]);
 
   // Small optimization: prefill addresses quickly without awaiting heavy decrypt flows elsewhere
   useEffect(() => {
