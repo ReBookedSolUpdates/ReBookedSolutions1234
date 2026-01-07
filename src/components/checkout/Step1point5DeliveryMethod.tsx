@@ -27,6 +27,7 @@ interface Step1point5DeliveryMethodProps {
   onBack: () => void;
   onCancel?: () => void;
   loading?: boolean;
+  preSelectedMethod?: "home" | "locker" | null;
 }
 
 const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
@@ -35,8 +36,9 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
   onBack,
   onCancel,
   loading = false,
+  preSelectedMethod = null,
 }) => {
-  const [deliveryMethod, setDeliveryMethod] = useState<"home" | "locker">("locker");
+  const [deliveryMethod, setDeliveryMethod] = useState<"home" | "locker">(preSelectedMethod || "locker");
   const [selectedLocker, setSelectedLocker] = useState<BobGoLocation | null>(null);
   const [savedLocker, setSavedLocker] = useState<BobGoLocation | null>(null);
   const [isLoadingSavedLocker, setIsLoadingSavedLocker] = useState(true);
