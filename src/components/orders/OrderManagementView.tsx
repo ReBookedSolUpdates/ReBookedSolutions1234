@@ -359,11 +359,12 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
     const isLockerDelivery = order.delivery_data?.zone_type === "locker-to-locker" ||
                              (order.delivery_data?.delivery_type === "locker" && order.delivery_data?.pickup_type === "locker");
 
-    // Dynamic steps based on delivery type
-    const baseSteps = ["created", "collected", "in_transit"] as const;
+    // Non-Locker Delivery Flow: Created → Collected → Out for Delivery → Delivered
+    // Locker Delivery Flow: Created → Collected → Out for Delivery → Ready for Pickup → Delivered
+    const baseSteps = ["created", "collected", "out_for_delivery"] as const;
     const steps = isLockerDelivery
       ? [...baseSteps, "ready_for_pickup", "delivered"] as const
-      : [...baseSteps, "out_for_delivery", "delivered"] as const;
+      : [...baseSteps, "delivered"] as const;
 
     const statusToIndex: Record<string, number> = {
       created: 0,
@@ -372,53 +373,74 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
       collected: 1,
       picked_up: 1,
       in_transit: 2,
-      out_for_delivery: 3,
+      out_for_delivery: 2,
       ready_for_pickup: 3,
       ready: 3,
-      delivered: isLockerDelivery ? 4 : 4,
+      delivered: isLockerDelivery ? 4 : 3,
     };
 
     const currentIndex = statusToIndex[deliveryStatus] ?? 0;
 
-    return (
-      <div className="space-y-1.5">
-        {/* Keep green status indicator for committed vs not committed */}
-        <div className="flex items-center space-x-2 text-xs">
-          <div
-            className={`w-2 h-2 rounded-full ${
-              order.status === "pending_commit" ? "bg-amber-500" : committed ? "bg-green-500" : "bg-gray-300"
-            }`}
-          />
-          <span className="text-gray-700 font-medium">{order.status === "pending_commit" ? "Not Committed" : "Committed"}</span>
-        </div>
+    // Status labels for timeline steps
+    const stepLabels: Record<string, string> = {
+      created: "Created",
+      collected: "Collected",
+      out_for_delivery: "Out for Delivery",
+      ready_for_pickup: "Ready for Pickup",
+      delivered: "Delivered",
+    };
 
+    return (
+      <div className="space-y-3">
         {/* Delivery method indicator */}
         {isLockerDelivery && (
-          <div className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded inline-block">
-            📦 Locker-to-Locker
+          <div className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-700 bg-blue-50 px-2.5 py-1.5 rounded-md border border-blue-200">
+            <Package className="w-3.5 h-3.5" />
+            Locker Delivery
           </div>
         )}
 
-        {/* Delivery stages */}
-        <div className={`grid gap-1 ${steps.length > 5 ? "grid-cols-3 md:grid-cols-6" : "grid-cols-5"}`}>
-          {steps.map((step, idx) => (
-            <div key={step} className="flex flex-col items-center text-xs">
-              <div
-                className={`w-2.5 h-2.5 rounded-full ${
-                  idx < currentIndex
-                    ? "bg-green-500"
-                    : idx === currentIndex
-                    ? deliveryStatus === "pickup_failed"
-                      ? "bg-red-500"
-                      : "bg-blue-500"
-                    : "bg-gray-300"
-                }`}
-              />
-              <span className="mt-0.5 capitalize text-gray-600 text-center leading-tight text-xs">
-                {step === "ready_for_pickup" ? "Ready" : step === "out_for_delivery" ? "Out" : step.replaceAll("_", " ")}
-              </span>
-            </div>
-          ))}
+        {/* Delivery stages - horizontal timeline */}
+        <div className="space-y-2">
+          <div className={`grid gap-2 ${steps.length <= 4 ? "grid-cols-4" : "grid-cols-3 md:grid-cols-5"}`}>
+            {steps.map((step, idx) => {
+              const isCompleted = idx < currentIndex;
+              const isCurrent = idx === currentIndex;
+              const isPending = idx > currentIndex;
+
+              return (
+                <div key={step} className="flex flex-col items-center gap-1">
+                  <div className="relative flex items-center justify-center">
+                    <div
+                      className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
+                        isCompleted
+                          ? "bg-green-100 text-green-700 border-2 border-green-500"
+                          : isCurrent
+                          ? "bg-blue-100 text-blue-700 border-2 border-blue-500"
+                          : "bg-gray-100 text-gray-500 border-2 border-gray-300"
+                      }`}
+                    >
+                      {isCompleted ? "✓" : idx + 1}
+                    </div>
+                    {/* Connector line between steps */}
+                    {idx < steps.length - 1 && (
+                      <div
+                        className={`absolute left-[50%] top-3 w-[calc(100%+8px)] h-0.5 ${
+                          isCompleted ? "bg-green-500" : "bg-gray-200"
+                        }`}
+                        style={{ transform: "translateX(8px)" }}
+                      />
+                    )}
+                  </div>
+                  <span className={`text-xs font-medium text-center leading-tight w-full ${
+                    isCompleted || isCurrent ? "text-gray-900" : "text-gray-500"
+                  }`}>
+                    {stepLabels[step]}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     );
