@@ -420,13 +420,16 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   };
 
   const goToStep = (step: 1 | 2 | 3 | 4 | 5) => {
+    // Auto-skip Step 2 (delivery method) if delivery method was already auto-selected
+    const targetStep = step === 2 && checkoutState.delivery_method ? 3 : step;
+
     setCheckoutState((prev) => ({
       ...prev,
       step: {
-        current: step,
-        completed: prev.step.completed.includes(step - 1)
+        current: targetStep,
+        completed: prev.step.completed.includes(targetStep - 1)
           ? prev.step.completed
-          : [...prev.step.completed, step - 1].filter((s) => s > 0),
+          : [...prev.step.completed, targetStep - 1].filter((s) => s > 0),
       },
     }));
   };
