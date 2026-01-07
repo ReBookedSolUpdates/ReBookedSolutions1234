@@ -284,8 +284,8 @@ const OrderActionsPanel: React.FC<OrderActionsPanelProps> = ({
           </div>
         </div>
 
-        {/* Unified Cancel for Buyer and Seller when not collected/in transit */}
-        {canCancelShipment && (
+        {/* Cancel Order Button - Only available if delivery_status is "created" */}
+        {canCancelOrder && (
           <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
             <DialogTrigger asChild>
               <Button variant="destructive" className="w-full">
@@ -297,10 +297,16 @@ const OrderActionsPanel: React.FC<OrderActionsPanelProps> = ({
               <DialogHeader>
                 <DialogTitle>Cancel Order</DialogTitle>
                 <DialogDescription>
-                  Are you sure you want to cancel this shipment? {userRole === "buyer" ? "You will receive a full refund." : "The buyer will be refunded."}
+                  Are you sure you want to cancel this order? {userRole === "buyer" ? "You will receive a full refund." : "The buyer will be refunded."}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
+                <Alert className="border-amber-300 bg-amber-50">
+                  <AlertTriangle className="h-4 w-4 text-amber-600" />
+                  <AlertDescription className="text-sm text-amber-800 ml-2">
+                    <strong>Note:</strong> Once the book is collected by the courier, you will no longer be able to cancel this order. Please cancel as soon as possible.
+                  </AlertDescription>
+                </Alert>
                 <div>
                   <label className="text-sm font-medium">Reason (optional)</label>
                   <Textarea
@@ -325,6 +331,16 @@ const OrderActionsPanel: React.FC<OrderActionsPanelProps> = ({
               </div>
             </DialogContent>
           </Dialog>
+        )}
+
+        {/* Message when order cannot be cancelled */}
+        {!canCancelOrder && !showMissedPickupActions && (
+          <Alert className="border-blue-300 bg-blue-50">
+            <Info className="h-4 w-4 text-blue-600 flex-shrink-0" />
+            <AlertDescription className="text-sm text-blue-800 ml-2">
+              This order cannot be cancelled as it has already been submitted to the courier. For assistance, please contact our support team.
+            </AlertDescription>
+          </Alert>
         )}
 
         {/* Missed Pickup Actions */}
