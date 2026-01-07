@@ -241,7 +241,7 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
         <Button
           variant="default"
           disabled={disabled || isCommitting}
-          className={`${className} bg-green-600 hover:bg-green-700 text-white min-h-[44px] px-3 sm:px-4 text-sm sm:text-base`}
+          className={`${className} bg-emerald-600 hover:bg-emerald-700 text-white min-h-[44px] px-3 sm:px-4 text-sm sm:text-base font-semibold`}
         >
           {isCommitting ? (
             <>
@@ -251,7 +251,7 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
           ) : (
             <>
               <CheckCircle className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
-              <span className="truncate">Commit to Sale</span>
+              <span className="truncate">Confirm Sale</span>
             </>
           )}
         </Button>
