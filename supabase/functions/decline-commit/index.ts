@@ -80,7 +80,7 @@ serve(async (req) => {
 
     if (!order) {
       console.log("[decline-order] Order not found or not in pending status, checking why...");
-
+      
       const { data: existingOrder } = await supabase
         .from("orders")
         .select("id, seller_id, status")
@@ -165,16 +165,20 @@ serve(async (req) => {
 
       if (bookId) {
         console.log(`[decline-order] Restoring book availability for book: ${bookId}`);
-
+        
         const { data: bookData } = await supabase
           .from("books")
-          .select("sold, available_quantity, sold_quantity")
+          .select("sold, available_quantity, sold_quantity, initial_quantity")
           .eq("id", bookId)
           .single();
 
         if (bookData) {
-          const newAvailableQuantity = (bookData.available_quantity || 0) + 1;
+          // Constraint: (initial_quantity >= sold_quantity) AND ((initial_quantity - sold_quantity) = available_quantity)
           const newSoldQuantity = Math.max(0, (bookData.sold_quantity || 0) - 1);
+          const initialQty = bookData.initial_quantity || 1;
+          const newAvailableQuantity = initialQty - newSoldQuantity;
+
+          console.log(`[decline-order] Book restore: initial=${initialQty}, newSold=${newSoldQuantity}, newAvailable=${newAvailableQuantity}`);
 
           const { error: bookUpdateError } = await supabase
             .from("books")
