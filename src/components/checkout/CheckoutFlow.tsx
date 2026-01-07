@@ -420,8 +420,9 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   };
 
   const goToStep = (step: 1 | 2 | 3 | 4 | 5) => {
-    // Auto-skip Step 2 (delivery method) if delivery method was already auto-selected
-    const targetStep = step === 2 && checkoutState.delivery_method ? 3 : step;
+    // Auto-skip Step 2 (delivery method) only if home delivery is auto-selected
+    // We need to keep step 2 visible for locker selection when locker is the method
+    const targetStep = step === 2 && checkoutState.delivery_method === "home" ? 3 : step;
 
     setCheckoutState((prev) => ({
       ...prev,
