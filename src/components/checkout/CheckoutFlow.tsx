@@ -360,6 +360,24 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         } catch {}
       }
 
+      // Determine available delivery methods and auto-select if only one exists
+      const hasLockerOption = !!sellerLockerData;
+      const hasHomeDeliveryOption = !!buyerAddress || !!sellerAddress;
+
+      // Auto-select delivery method if only one option is available
+      let autoDeliveryMethod: "locker" | "home" | null = null;
+      let autoSelectedLocker: any = null;
+
+      if (hasLockerOption && !hasHomeDeliveryOption) {
+        // Only locker available - auto-select it
+        autoDeliveryMethod = "locker";
+        autoSelectedLocker = sellerLockerData;
+      } else if (hasHomeDeliveryOption && !hasLockerOption) {
+        // Only home delivery available - auto-select it
+        autoDeliveryMethod = "home";
+      }
+      // If both options are available, let user choose (autoDeliveryMethod stays null)
+
       setCheckoutState((prev) => ({
         ...prev,
         book: updatedBook,
@@ -367,10 +385,12 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         seller_locker_data: sellerLockerData,
         seller_preferred_pickup_method: sellerPreferredPickupMethod,
         buyer_address: buyerAddress,
+        delivery_method: autoDeliveryMethod,
+        selected_locker: autoSelectedLocker,
         loading: false,
       }));
 
-      if (!buyerAddress) {
+      if (!buyerAddress && !autoDeliveryMethod) {
         toast.info("Please add your delivery address to continue with checkout");
       }
     } catch (error) {
