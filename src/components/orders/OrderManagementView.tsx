@@ -235,14 +235,12 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
       ? (order.seller?.full_name || order.seller?.name || "Seller")
       : (order.buyer?.full_name || order.buyer?.name || "Buyer");
 
-    const hasMultipleImages = bookImages.length > 1;
-
     return (
-      <div className="flex gap-3 items-start">
+      <div className="flex gap-4 items-start w-full">
         <button
           onClick={() => setSelectedOrderForGallery(order)}
-          className="w-14 h-20 rounded-md overflow-hidden bg-gray-100 flex-shrink-0 transition-all cursor-pointer hover:shadow-md hover:ring-2 hover:ring-blue-400"
-          title="Click to view book photo"
+          className="w-16 h-24 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0 transition-all cursor-pointer hover:shadow-lg hover:ring-2 hover:ring-blue-500"
+          title="Click to view book photos"
         >
           <img
             src={img}
@@ -251,24 +249,24 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
             onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/placeholder.svg"; }}
           />
         </button>
-        <div className="flex-1 min-w-0 py-0.5">
-          <div className="grid grid-cols-3 gap-3 items-start">
-            <div className="col-span-2">
-              <h3 className="text-base font-semibold text-gray-900 leading-tight">
+        <div className="flex-1 min-w-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+            <div className="min-w-0">
+              <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
                 {order.book?.title || "Unknown Book"}
               </h3>
-              <p className="text-xs text-gray-600 mt-0.5">
+              <p className="text-sm text-gray-600 mt-1">
                 {order.book?.author || "No author"}
               </p>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 mt-2">
                 Order #{order.id.slice(-8)} • {otherPartyName}
               </p>
             </div>
-            <div className="text-right">
+            <div className="md:text-right">
               {typeof order.book?.price === "number" && (
-                <div className="text-base font-semibold text-emerald-600">R{order.book.price}</div>
+                <div className="text-lg font-bold text-emerald-600">R{order.book.price.toFixed(2)}</div>
               )}
-              <div className="text-xs text-gray-500">{new Date(order.created_at).toLocaleDateString()}</div>
+              <div className="text-xs text-gray-500 mt-1">{new Date(order.created_at).toLocaleDateString()}</div>
             </div>
           </div>
         </div>
@@ -359,11 +357,12 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
     const isLockerDelivery = order.delivery_data?.zone_type === "locker-to-locker" ||
                              (order.delivery_data?.delivery_type === "locker" && order.delivery_data?.pickup_type === "locker");
 
-    // Dynamic steps based on delivery type
-    const baseSteps = ["created", "collected", "in_transit"] as const;
+    // Non-Locker Delivery Flow: Created → Collected → Out for Delivery → Delivered
+    // Locker Delivery Flow: Created → Collected → Out for Delivery → Ready for Pickup → Delivered
+    const baseSteps = ["created", "collected", "out_for_delivery"] as const;
     const steps = isLockerDelivery
       ? [...baseSteps, "ready_for_pickup", "delivered"] as const
-      : [...baseSteps, "out_for_delivery", "delivered"] as const;
+      : [...baseSteps, "delivered"] as const;
 
     const statusToIndex: Record<string, number> = {
       created: 0,
@@ -372,53 +371,82 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
       collected: 1,
       picked_up: 1,
       in_transit: 2,
-      out_for_delivery: 3,
+      out_for_delivery: 2,
       ready_for_pickup: 3,
       ready: 3,
-      delivered: isLockerDelivery ? 4 : 4,
+      delivered: isLockerDelivery ? 4 : 3,
     };
 
     const currentIndex = statusToIndex[deliveryStatus] ?? 0;
 
-    return (
-      <div className="space-y-1.5">
-        {/* Keep green status indicator for committed vs not committed */}
-        <div className="flex items-center space-x-2 text-xs">
-          <div
-            className={`w-2 h-2 rounded-full ${
-              order.status === "pending_commit" ? "bg-amber-500" : committed ? "bg-green-500" : "bg-gray-300"
-            }`}
-          />
-          <span className="text-gray-700 font-medium">{order.status === "pending_commit" ? "Not Committed" : "Committed"}</span>
-        </div>
+    // Status labels for timeline steps
+    const stepLabels: Record<string, string> = {
+      created: "Created",
+      collected: "Collected",
+      out_for_delivery: "Out for Delivery",
+      ready_for_pickup: "Ready for Pickup",
+      delivered: "Delivered",
+    };
 
+    return (
+      <div className="space-y-3">
         {/* Delivery method indicator */}
         {isLockerDelivery && (
-          <div className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded inline-block">
-            📦 Locker-to-Locker
+          <div className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-700 bg-blue-50 px-2.5 py-1.5 rounded-md border border-blue-200">
+            <Package className="w-3.5 h-3.5" />
+            Locker Delivery
           </div>
         )}
 
-        {/* Delivery stages */}
-        <div className={`grid gap-1 ${steps.length > 5 ? "grid-cols-3 md:grid-cols-6" : "grid-cols-5"}`}>
-          {steps.map((step, idx) => (
-            <div key={step} className="flex flex-col items-center text-xs">
-              <div
-                className={`w-2.5 h-2.5 rounded-full ${
-                  idx < currentIndex
-                    ? "bg-green-500"
-                    : idx === currentIndex
-                    ? deliveryStatus === "pickup_failed"
-                      ? "bg-red-500"
-                      : "bg-blue-500"
-                    : "bg-gray-300"
-                }`}
-              />
-              <span className="mt-0.5 capitalize text-gray-600 text-center leading-tight text-xs">
-                {step === "ready_for_pickup" ? "Ready" : step === "out_for_delivery" ? "Out" : step.replaceAll("_", " ")}
-              </span>
-            </div>
-          ))}
+        {/* Delivery stages - horizontal timeline */}
+        <div className="space-y-2">
+          <div className="flex items-start justify-between gap-1">
+            {steps.map((step, idx) => {
+              const isCompleted = idx < currentIndex;
+              const isCurrent = idx === currentIndex;
+              const isPending = idx > currentIndex;
+
+              return (
+                <div key={step} className="flex flex-col items-center gap-2 flex-1">
+                  <div className="flex items-center w-full">
+                    {/* Connector line before circle */}
+                    {idx > 0 && (
+                      <div
+                        className={`flex-1 h-1 ${
+                          idx <= currentIndex ? "bg-green-500" : "bg-gray-300"
+                        }`}
+                      />
+                    )}
+                    {/* Step Circle */}
+                    <div
+                      className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold transition-all flex-shrink-0 ${
+                        isCompleted
+                          ? "bg-green-100 text-green-700 border-2 border-green-500"
+                          : isCurrent
+                          ? "bg-blue-100 text-blue-700 border-2 border-blue-500"
+                          : "bg-gray-100 text-gray-500 border-2 border-gray-300"
+                      }`}
+                    >
+                      {isCompleted ? "✓" : idx + 1}
+                    </div>
+                    {/* Connector line after circle */}
+                    {idx < steps.length - 1 && (
+                      <div
+                        className={`flex-1 h-1 ${
+                          idx < currentIndex ? "bg-green-500" : "bg-gray-300"
+                        }`}
+                      />
+                    )}
+                  </div>
+                  <span className={`text-xs font-medium text-center leading-tight w-full ${
+                    isCompleted || isCurrent ? "text-gray-900" : "text-gray-500"
+                  }`}>
+                    {stepLabels[step]}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     );
@@ -436,90 +464,132 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
       }
     };
 
+    const isCompleted = ["delivered", "completed"].includes(order.status);
+    const isCancelled = order.status === "cancelled";
+    const isActive = !isCompleted && !isCancelled;
+
     return (
-      <Card className="mb-3 border border-gray-200 shadow-sm rounded-lg">
-        <CardHeader className="py-2 px-4">
-          <div className="flex items-start justify-between gap-2">
+      <Card className={`border-l-4 transition-all duration-200 ${
+        isCancelled
+          ? "border-l-red-500 bg-red-50/30 border border-red-200"
+          : isCompleted
+          ? "border-l-green-500 bg-green-50/30 border border-green-200"
+          : "border-l-blue-500 bg-blue-50/30 border border-blue-200"
+      }`}>
+        {/* Header Section - Always Visible */}
+        <CardHeader className="pb-3 pt-4 px-4">
+          <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
               <OrderHeaderDetails order={order} />
             </div>
-            {isCollapsible && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleToggle}
-                className="ml-2 flex-shrink-0 h-8"
-              >
-                {isExpanded ? (
-                  <>
-                    <ChevronUp className="h-3 w-3" />
-                  </>
-                ) : (
-                  <>
-                    <ChevronDown className="h-3 w-3" />
-                  </>
-                )}
-              </Button>
-            )}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {/* Status Badge */}
+              <Badge className={`text-xs font-medium whitespace-nowrap ${
+                isCancelled
+                  ? "bg-red-600 text-white"
+                  : isCompleted
+                  ? "bg-green-600 text-white"
+                  : "bg-blue-600 text-white"
+              }`}>
+                {isCancelled ? "Cancelled" : isCompleted ? "Completed" : "Active"}
+              </Badge>
+
+              {/* Expand/Collapse Button */}
+              {isCollapsible && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleToggle}
+                  className="h-8 w-8 p-0"
+                >
+                  {isExpanded ? (
+                    <ChevronUp className="h-4 w-4 text-gray-600" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-gray-600" />
+                  )}
+                </Button>
+              )}
+            </div>
           </div>
         </CardHeader>
-        
+
+        {/* Expandable Content Section */}
         {isExpanded && (
-          <CardContent className="space-y-2 px-4 py-2">
+          <CardContent className="space-y-4 px-4 pb-4">
+            {/* Alert Messages */}
             {order.delivery_status === "pickup_failed" && userRole === "seller" && (
-              <Alert className="border-orange-200 bg-orange-50 py-2 px-3">
-                <AlertTriangle className="h-3 w-3 text-orange-600 mt-0.5" />
-                <AlertDescription className="text-xs text-orange-800 ml-2">
-                  <strong>Action Required:</strong> Courier attempted pickup but unavailable. Reschedule or cancel within 24 hours.
+              <Alert className="border-orange-300 bg-orange-50 py-3 px-3">
+                <AlertTriangle className="h-4 w-4 text-orange-600 flex-shrink-0" />
+                <AlertDescription className="text-sm text-orange-800 ml-2">
+                  <strong>Action Required:</strong> Courier attempted pickup but you were unavailable. Please reschedule or cancel within 24 hours.
                 </AlertDescription>
               </Alert>
             )}
 
             {order.delivery_status === "pickup_failed" && userRole === "buyer" && (
-              <Alert className="border-blue-200 bg-blue-50 py-2 px-3">
-                <Clock className="h-3 w-3 text-blue-600 mt-0.5" />
-                <AlertDescription className="text-xs text-blue-800 ml-2">
-                  <strong>Pickup Delayed:</strong> Seller missed pickup. We'll update you once they take action.
+              <Alert className="border-blue-300 bg-blue-50 py-3 px-3">
+                <Clock className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                <AlertDescription className="text-sm text-blue-800 ml-2">
+                  <strong>Pickup Delayed:</strong> The seller missed pickup. We'll update you once they take action.
                 </AlertDescription>
               </Alert>
             )}
 
             {order.delivery_status === "rescheduled_by_seller" && (
-              <Alert className="border-blue-200 bg-blue-50 py-2 px-3">
-                <Calendar className="h-3 w-3 text-blue-600 mt-0.5" />
-                <AlertDescription className="text-xs text-blue-800 ml-2">
-                  <strong>Pickup Rescheduled</strong>
+              <Alert className="border-blue-300 bg-blue-50 py-3 px-3">
+                <Calendar className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                <AlertDescription className="text-sm text-blue-800 ml-2">
+                  <strong>Pickup Rescheduled:</strong> A new pickup time has been arranged.
                 </AlertDescription>
               </Alert>
             )}
 
-            <div className="pt-1" />
-            <OrderTimeline order={order} />
-            <div className="pt-1" />
-            <OrderShipmentSummary order={order} />
-            <div className="pt-1" />
+            {isCancelled && (
+              <Alert className="border-red-300 bg-red-50 py-3 px-3">
+                <AlertTriangle className="h-4 w-4 text-red-600 flex-shrink-0" />
+                <AlertDescription className="text-sm text-red-800 ml-2">
+                  <strong>Order Cancelled:</strong> {order.cancellation_reason || "This order has been cancelled"} {order.cancelled_at ? `on ${formatDate(order.cancelled_at)}` : ""}
+                </AlertDescription>
+              </Alert>
+            )}
 
-            <OrderActionsPanel order={order} userRole={userRole} onOrderUpdate={fetchOrders} />
+            {/* Delivery Timeline */}
+            <div className="bg-white rounded-lg p-3 border border-gray-200">
+              <h4 className="text-sm font-semibold text-gray-900 mb-3">Delivery Progress</h4>
+              <OrderTimeline order={order} />
+            </div>
 
-            {userRole === "buyer" && (["delivered", "completed"].includes(order.status) || order.delivery_status === "delivered") && (
-              <div className="pt-1">
-                <OrderCompletionCard
-                  orderId={order.id}
-                  bookTitle={order.book?.title || "Book"}
-                  sellerName={order.seller?.name || "Seller"}
-                  deliveredDate={order.updated_at}
-                  onFeedbackSubmitted={handleFeedbackSubmitted}
-                  totalAmount={order.total_amount || 0}
-                  sellerId={order.seller_id || ""}
-                />
+            {/* Shipment Summary */}
+            <div className="bg-white rounded-lg p-3 border border-gray-200">
+              <h4 className="text-sm font-semibold text-gray-900 mb-3">Shipment Details</h4>
+              <OrderShipmentSummary order={order} />
+            </div>
+
+            {/* Action Panel */}
+            {!isCancelled && (
+              <OrderActionsPanel order={order} userRole={userRole} onOrderUpdate={fetchOrders} />
+            )}
+
+            {/* Buyer Completion Card */}
+            {userRole === "buyer" && isCompleted && (
+              <OrderCompletionCard
+                orderId={order.id}
+                bookTitle={order.book?.title || "Book"}
+                sellerName={order.seller?.name || "Seller"}
+                deliveredDate={order.updated_at}
+                onFeedbackSubmitted={handleFeedbackSubmitted}
+                totalAmount={order.total_amount || 0}
+                sellerId={order.seller_id || ""}
+              />
+            )}
+
+            {/* Seller Completion Message */}
+            {isCompleted && userRole === "seller" && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                <p className="text-sm text-green-700">
+                  <strong>Order Completed:</strong> {formatDate(order.updated_at)}
+                </p>
               </div>
-            )}
-
-            {["delivered", "completed"].includes(order.status) && userRole === "seller" && (
-              <div className="text-xs text-gray-500 pt-1">Completed on {formatDate(order.updated_at)}</div>
-            )}
-            {order.status === "cancelled" && (
-              <div className="text-xs text-red-600 pt-1">Cancelled: {order.cancellation_reason || "Cancelled"} {order.cancelled_at ? `• ${formatDate(order.cancelled_at)}` : ""}</div>
             )}
           </CardContent>
         )}
@@ -573,57 +643,60 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
   return (
     <div className="space-y-6">
       {/* Stats Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <Card>
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+        <Card className="border-l-4 border-l-gray-400 bg-gray-50/50">
           <CardContent className="p-4 text-center">
-            <Package className="h-6 w-6 mx-auto mb-2 text-gray-600" />
-            <p className="text-2xl font-bold">{stats.total}</p>
-            <p className="text-sm text-gray-600">Total Orders</p>
+            <Package className="h-5 w-5 mx-auto mb-2 text-gray-600" />
+            <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
+            <p className="text-xs font-medium text-gray-600 mt-1">Total Orders</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-l-4 border-l-amber-500 bg-amber-50/50">
           <CardContent className="p-4 text-center">
-            <Clock className="h-6 w-6 mx-auto mb-2 text-yellow-600" />
-            <p className="text-2xl font-bold">{stats.pending}</p>
-            <p className="text-sm text-gray-600">Pending</p>
+            <Clock className="h-5 w-5 mx-auto mb-2 text-amber-600" />
+            <p className="text-3xl font-bold text-amber-900">{stats.pending}</p>
+            <p className="text-xs font-medium text-amber-700 mt-1">Pending</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-l-4 border-l-blue-500 bg-blue-50/50">
           <CardContent className="p-4 text-center">
-            <TruckIcon className="h-6 w-6 mx-auto mb-2 text-blue-600" />
-            <p className="text-2xl font-bold">{stats.active}</p>
-            <p className="text-sm text-gray-600">Active</p>
+            <TruckIcon className="h-5 w-5 mx-auto mb-2 text-blue-600" />
+            <p className="text-3xl font-bold text-blue-900">{stats.active}</p>
+            <p className="text-xs font-medium text-blue-700 mt-1">Active</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-l-4 border-l-green-500 bg-green-50/50">
           <CardContent className="p-4 text-center">
-            <CheckCircle className="h-6 w-6 mx-auto mb-2 text-green-600" />
-            <p className="text-2xl font-bold">{stats.completed}</p>
-            <p className="text-sm text-gray-600">Completed</p>
+            <CheckCircle className="h-5 w-5 mx-auto mb-2 text-green-600" />
+            <p className="text-3xl font-bold text-green-900">{stats.completed}</p>
+            <p className="text-xs font-medium text-green-700 mt-1">Completed</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-l-4 border-l-red-500 bg-red-50/50">
           <CardContent className="p-4 text-center">
-            <AlertTriangle className="h-6 w-6 mx-auto mb-2 text-red-600" />
-            <p className="text-2xl font-bold">{stats.cancelled}</p>
-            <p className="text-sm text-gray-600">Cancelled</p>
+            <AlertTriangle className="h-5 w-5 mx-auto mb-2 text-red-600" />
+            <p className="text-3xl font-bold text-red-900">{stats.cancelled}</p>
+            <p className="text-xs font-medium text-red-700 mt-1">Cancelled</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Active Orders */}
-      <div className="mt-6">
-        <h3 className="text-lg font-semibold mb-3">Active Orders</h3>
+      {/* Active Orders Section */}
+      <div className="mt-8">
+        <div className="flex items-center gap-2 mb-4">
+          <TruckIcon className="h-5 w-5 text-blue-600" />
+          <h2 className="text-2xl font-bold text-gray-900">Active Orders</h2>
+        </div>
         {activeOrders.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-8">
+          <Card className="border-l-4 border-l-gray-300 bg-gray-50/50">
+            <CardContent className="text-center py-12">
               <Package className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-              <h4 className="text-base font-semibold mb-2">No active orders</h4>
+              <h4 className="text-lg font-semibold text-gray-900 mb-1">No active orders</h4>
               <p className="text-gray-600">New orders will appear here once created or committed.</p>
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {activeOrders.map((order) => (
               <OrderCard key={order.id} order={order} isCollapsible={false} />
             ))}
@@ -631,18 +704,22 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
         )}
       </div>
 
-      {/* Completed Orders */}
-      <div className="mt-6">
-        <h3 className="text-lg font-semibold mb-3">Completed Orders</h3>
+      {/* Completed Orders Section */}
+      <div className="mt-8">
+        <div className="flex items-center gap-2 mb-4">
+          <CheckCircle className="h-5 w-5 text-green-600" />
+          <h2 className="text-2xl font-bold text-gray-900">Completed Orders</h2>
+        </div>
         {completedOrders.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-8">
-              <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-400" />
-              <p className="text-gray-600">No completed orders yet.</p>
+          <Card className="border-l-4 border-l-gray-300 bg-gray-50/50">
+            <CardContent className="text-center py-12">
+              <CheckCircle className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+              <h4 className="text-lg font-semibold text-gray-900 mb-1">No completed orders</h4>
+              <p className="text-gray-600">Your completed orders will appear here.</p>
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {completedOrders.map((order) => (
               <OrderCard key={order.id} order={order} isCollapsible={true} />
             ))}
@@ -650,18 +727,22 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
         )}
       </div>
 
-      {/* Cancelled Orders */}
-      <div className="mt-6">
-        <h3 className="text-lg font-semibold mb-3">Cancelled Orders</h3>
+      {/* Cancelled Orders Section */}
+      <div className="mt-8">
+        <div className="flex items-center gap-2 mb-4">
+          <AlertTriangle className="h-5 w-5 text-red-600" />
+          <h2 className="text-2xl font-bold text-gray-900">Cancelled Orders</h2>
+        </div>
         {cancelledOrders.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-8">
-              <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-red-400" />
-              <p className="text-gray-600">No cancelled orders.</p>
+          <Card className="border-l-4 border-l-gray-300 bg-gray-50/50">
+            <CardContent className="text-center py-12">
+              <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+              <h4 className="text-lg font-semibold text-gray-900 mb-1">No cancelled orders</h4>
+              <p className="text-gray-600">Your cancelled orders will appear here.</p>
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {cancelledOrders.map((order) => (
               <OrderCard key={order.id} order={order} isCollapsible={true} />
             ))}
