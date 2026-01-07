@@ -14,10 +14,14 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  console.log("[decline-order] Function invoked");
+
   try {
     const { order_id, seller_id, reason } = await req.json();
+    console.log(`[decline-order] Processing order: ${order_id}, seller: ${seller_id}`);
 
     if (!order_id || !seller_id) {
+      console.error("[decline-order] Missing required parameters");
       return new Response(
         JSON.stringify({
           success: false,
@@ -32,6 +36,7 @@ serve(async (req) => {
     }
 
     if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+      console.error("[decline-order] Missing Supabase configuration");
       return new Response(
         JSON.stringify({
           success: false,
@@ -45,8 +50,8 @@ serve(async (req) => {
       );
     }
 
+    // Using service role key to bypass RLS for admin operations
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-
 
     // Get order details - must be in pending status
     const { data: order, error: orderError } = await supabase
@@ -58,6 +63,7 @@ serve(async (req) => {
       .maybeSingle();
 
     if (orderError) {
+      console.error("[decline-order] Database error fetching order:", orderError.message);
       return new Response(
         JSON.stringify({
           success: false,
@@ -73,6 +79,7 @@ serve(async (req) => {
     }
 
     if (!order) {
+      console.log("[decline-order] Order not found or not in pending status, checking why...");
 
       const { data: existingOrder } = await supabase
         .from("orders")
@@ -89,6 +96,7 @@ serve(async (req) => {
         }
       }
 
+      console.error(`[decline-order] ${errorMessage}`);
       return new Response(
         JSON.stringify({
           success: false,
@@ -102,6 +110,7 @@ serve(async (req) => {
       );
     }
 
+    console.log(`[decline-order] Order found: ${order.id}, status: ${order.status}`);
 
     const buyer = {
       id: order.buyer_id,
@@ -126,6 +135,7 @@ serve(async (req) => {
       .eq("id", order_id);
 
     if (updateError) {
+      console.error("[decline-order] Failed to update order status:", updateError.message);
       return new Response(
         JSON.stringify({
           success: false,
@@ -140,49 +150,57 @@ serve(async (req) => {
       );
     }
 
+    console.log("[decline-order] Order status updated to declined");
+
     // Restore book availability - mark book as not sold and restore quantity
     try {
-      // Get the book ID from order items or book_id field
       let bookId = order.book_id;
 
       if (!bookId && order.items) {
         const items = Array.isArray(order.items) ? order.items : [];
-        if (items.length > 0) {
+        if (items.length > 0 && items[0].book_id) {
           bookId = items[0].book_id;
         }
       }
 
       if (bookId) {
-        // Get current book state
+        console.log(`[decline-order] Restoring book availability for book: ${bookId}`);
+
         const { data: bookData } = await supabase
           .from("books")
           .select("sold, available_quantity, sold_quantity")
           .eq("id", bookId)
           .single();
 
-        if (bookData && bookData.sold) {
-          // Restore book to available state
+        if (bookData) {
           const newAvailableQuantity = (bookData.available_quantity || 0) + 1;
           const newSoldQuantity = Math.max(0, (bookData.sold_quantity || 0) - 1);
 
-          await supabase
+          const { error: bookUpdateError } = await supabase
             .from("books")
             .update({
-              sold: newSoldQuantity > 0 ? true : false,
+              sold: newSoldQuantity > 0,
               available_quantity: newAvailableQuantity,
               sold_quantity: newSoldQuantity,
               updated_at: new Date().toISOString(),
             })
             .eq("id", bookId);
+
+          if (bookUpdateError) {
+            console.error("[decline-order] Failed to restore book:", bookUpdateError.message);
+          } else {
+            console.log("[decline-order] Book availability restored successfully");
+          }
         }
       }
     } catch (bookRestoreError) {
-      // Log but don't fail the entire operation if book restoration fails
+      console.error("[decline-order] Error restoring book:", bookRestoreError);
     }
 
     // Process BobPay refund if payment reference exists
-    let refundResult: any = null;
+    let refundResult: { success: boolean; error?: string } = { success: false };
     if (order.payment_reference) {
+      console.log("[decline-order] Processing refund for payment reference:", order.payment_reference);
 
       try {
         const refundResponse = await fetch(
@@ -201,13 +219,9 @@ serve(async (req) => {
         );
 
         refundResult = await refundResponse.json();
-
-        if (refundResult.success) {
-          // Refund successful
-        } else {
-          // Refund failed
-        }
+        console.log("[decline-order] Refund result:", refundResult.success ? "Success" : "Failed");
       } catch (refundError) {
+        console.error("[decline-order] Refund error:", refundError);
         refundResult = {
           success: false,
           error: refundError instanceof Error ? refundError.message : String(refundError),
@@ -217,6 +231,7 @@ serve(async (req) => {
 
     // Create database notifications
     try {
+      console.log("[decline-order] Creating notifications");
       const notifications = [];
 
       if (buyer.id) {
@@ -248,15 +263,17 @@ serve(async (req) => {
         );
       }
 
-      await Promise.allSettled(notifications);
+      const notificationResults = await Promise.allSettled(notifications);
+      console.log("[decline-order] Notifications created:", notificationResults.length);
     } catch (notificationError) {
+      console.error("[decline-order] Notification error:", notificationError);
     }
 
     // Send email notifications
     try {
+      console.log("[decline-order] Sending email notifications");
       const emailPromises = [];
 
-      // Email to buyer
       if (buyer.email) {
         const buyerHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Order Declined - Refund Processed</title><style>body{font-family:Arial,sans-serif;background-color:#f3fef7;padding:20px;color:#1f4e3d;margin:0}.container{max-width:500px;margin:auto;background-color:#ffffff;padding:30px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.05)}.header-error{background:#dc2626;color:white;padding:20px;text-align:center;border-radius:10px 10px 0 0;margin:-30px -30px 20px -30px}.btn{display:inline-block;padding:12px 20px;background-color:#3ab26f;color:white;text-decoration:none;border-radius:5px;margin-top:20px;font-weight:bold}.info-box-error{background:#fef2f2;border:1px solid #dc2626;padding:15px;border-radius:5px;margin:15px 0}.info-box-success{background:#f0fdf4;border:1px solid #10b981;padding:15px;border-radius:5px;margin:15px 0}.footer{background:#f3fef7;color:#1f4e3d;padding:20px;text-align:center;font-size:12px;line-height:1.5;margin:30px -30px -30px -30px;border-radius:0 0 10px 10px;border-top:1px solid #e5e7eb}.link{color:#3ab26f}</style></head><body><div class="container"><div class="header-error"><h1>❌ Order Declined</h1></div><p>Hello ${buyer.name},</p><p>We're sorry to inform you that your order has been declined by the seller.</p><div class="info-box-error"><h3>📋 Order Details</h3><p><strong>Order ID:</strong> ${order_id}</p><p><strong>Amount:</strong> R${order.total_amount?.toFixed(2) || "0.00"}</p><p><strong>Reason:</strong> ${reason || "Seller declined to commit"}</p></div>${refundResult?.success ? `<div class="info-box-success"><h3>💰 Refund Information</h3><p><strong>Processing Time:</strong> 3-5 business days</p><p><strong>✅ Your refund has been successfully processed.</strong></p></div>` : `<div class="info-box-error"><h3>⚠️ Refund Processing</h3><p>Your refund is being processed and will appear in your account within 3-5 business days.</p></div>`}<p>We apologize for any inconvenience. Please feel free to browse our marketplace for similar books from other sellers.</p><a href="https://rebookedsolutions.co.za/books" class="btn">Browse Books</a><div class="footer"><p><strong>This is an automated message from ReBooked Solutions.</strong><br>Please do not reply to this email.</p><p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p><p>T&Cs apply. <em>"Pre-Loved Pages, New Adventures"</em></p></div></div></body></html>`;
 
@@ -279,7 +296,6 @@ serve(async (req) => {
         );
       }
 
-      // Email to seller
       if (seller.email) {
         const sellerHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Order Decline Confirmation</title><style>body{font-family:Arial,sans-serif;background-color:#f3fef7;padding:20px;color:#1f4e3d;margin:0}.container{max-width:500px;margin:auto;background-color:#ffffff;padding:30px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.05)}.header-error{background:#dc2626;color:white;padding:20px;text-align:center;border-radius:10px 10px 0 0;margin:-30px -30px 20px -30px}.info-box-success{background:#f0fdf4;border:1px solid #10b981;padding:15px;border-radius:5px;margin:15px 0}.footer{background:#f3fef7;color:#1f4e3d;padding:20px;text-align:center;font-size:12px;line-height:1.5;margin:30px -30px -30px -30px;border-radius:0 0 10px 10px;border-top:1px solid #e5e7eb}.link{color:#3ab26f}</style></head><body><div class="container"><div class="header-error"><h1>✅ Order Decline Confirmed</h1></div><p>Hello ${seller.name},</p><p>You have successfully declined the order commitment.</p><div class="info-box-success"><h3>📋 Order Details</h3><p><strong>Order ID:</strong> ${order_id}</p><p><strong>Reason:</strong> ${reason || "You declined to commit"}</p></div><p>The buyer has been notified and their payment has been refunded. Your book stock has been automatically restored.</p><div class="footer"><p><strong>This is an automated message from ReBooked Solutions.</strong><br>Please do not reply to this email.</p><p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br>Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p><p>T&Cs apply. <em>"Pre-Loved Pages, New Adventures"</em></p></div></div></body></html>`;
 
@@ -303,10 +319,12 @@ serve(async (req) => {
       }
 
       await Promise.allSettled(emailPromises);
+      console.log("[decline-order] Emails sent");
     } catch (emailError) {
+      console.error("[decline-order] Email error:", emailError);
     }
 
-
+    console.log("[decline-order] Order declined successfully");
     return new Response(
       JSON.stringify({
         success: true,
@@ -328,6 +346,7 @@ serve(async (req) => {
       }
     );
   } catch (error) {
+    console.error("[decline-order] Unexpected error:", error);
     return new Response(
       JSON.stringify({
         success: false,
