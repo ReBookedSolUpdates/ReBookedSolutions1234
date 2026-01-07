@@ -140,6 +140,45 @@ serve(async (req) => {
       );
     }
 
+    // Restore book availability - mark book as not sold and restore quantity
+    try {
+      // Get the book ID from order items or book_id field
+      let bookId = order.book_id;
+
+      if (!bookId && order.items) {
+        const items = Array.isArray(order.items) ? order.items : [];
+        if (items.length > 0) {
+          bookId = items[0].book_id;
+        }
+      }
+
+      if (bookId) {
+        // Get current book state
+        const { data: bookData } = await supabase
+          .from("books")
+          .select("sold, available_quantity, sold_quantity")
+          .eq("id", bookId)
+          .single();
+
+        if (bookData && bookData.sold) {
+          // Restore book to available state
+          const newAvailableQuantity = (bookData.available_quantity || 0) + 1;
+          const newSoldQuantity = Math.max(0, (bookData.sold_quantity || 0) - 1);
+
+          await supabase
+            .from("books")
+            .update({
+              sold: newSoldQuantity > 0 ? true : false,
+              available_quantity: newAvailableQuantity,
+              sold_quantity: newSoldQuantity,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", bookId);
+        }
+      }
+    } catch (bookRestoreError) {
+      // Log but don't fail the entire operation if book restoration fails
+    }
 
     // Process BobPay refund if payment reference exists
     let refundResult: any = null;
