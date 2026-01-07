@@ -99,6 +99,29 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
     setIsDialogOpen(false);
 
     try {
+      // Fetch order details for email sending
+      const { data: orderData, error: orderError } = await supabase
+        .from("orders")
+        .select(`
+          id,
+          buyer_id,
+          seller_id,
+          buyer_email,
+          seller_email,
+          buyer_full_name,
+          seller_full_name,
+          items,
+          delivery_type,
+          pickup_type,
+          total_amount
+        `)
+        .eq("id", orderId)
+        .single();
+
+      if (orderError || !orderData) {
+        throw new Error("Failed to fetch order details for email sending");
+      }
+
       // Prepare the commit data
       const commitData = {
         order_id: orderId,
@@ -156,29 +179,173 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
         throw new Error(data?.error || "Failed to commit to sale");
       }
 
+      // Send confirmation emails to buyer and seller
+      let emailsSent = false;
+      try {
+        const deliveryMethodText = orderData.delivery_type === 'locker' ? 'to your selected locker' : 'to your address';
+        const pickupMethodText = orderData.pickup_type === 'locker' ? 'from your selected locker' : 'from your address';
+
+        const items = Array.isArray(orderData.items) ? orderData.items : [];
+        const bookTitles = items.map((item: any) => item.title || "Book").join(", ");
+
+        // Email to buyer
+        const buyerEmailHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Order Confirmed - Pickup Scheduled</title>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f3fef7; padding: 20px; color: #1f4e3d; margin: 0; }
+    .container { max-width: 500px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
+    .header { background: #3ab26f; color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; margin: -30px -30px 20px -30px; }
+    .footer { background: #f3fef7; color: #1f4e3d; padding: 20px; text-align: center; font-size: 12px; line-height: 1.5; margin: 30px -30px -30px -30px; border-radius: 0 0 10px 10px; border-top: 1px solid #e5e7eb; }
+    .info-box { background: #f3fef7; border: 1px solid #3ab26f; padding: 15px; border-radius: 5px; margin: 15px 0; }
+    .link { color: #3ab26f; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎉 Order Confirmed!</h1>
+    </div>
+    <h2>Great news, ${orderData.buyer_full_name || "Buyer"}!</h2>
+    <p><strong>${orderData.seller_full_name || "Seller"}</strong> has confirmed your order and is preparing your book(s) for delivery ${deliveryMethodText}.</p>
+    <div class="info-box">
+      <h3>📚 Order Details</h3>
+      <p><strong>Order ID:</strong> ${orderId}</p>
+      <p><strong>Book(s):</strong> ${bookTitles}</p>
+      <p><strong>Seller:</strong> ${orderData.seller_full_name || "Seller"}</p>
+      <p><strong>Delivery Method:</strong> ${orderData.delivery_type === 'locker' ? 'Locker Delivery' : 'Door-to-Door'}</p>
+      <p><strong>Estimated Delivery:</strong> 2-3 business days</p>
+      ${data?.tracking_number ? `<p><strong>Tracking Number:</strong> ${data.tracking_number}</p>` : ""}
+    </div>
+    <p>Happy reading! 📖</p>
+    <div class="footer">
+      <p><strong>This is an automated message from ReBooked Solutions.</strong><br/>Please do not reply to this email.</p>
+      <p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br/>
+      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>
+      <p>T&Cs apply.</p>
+      <p><em>"Pre-Loved Pages, New Adventures"</em></p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+        // Email to seller
+        const sellerEmailHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Order Commitment Confirmed - Prepare for Pickup</title>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f3fef7; padding: 20px; color: #1f4e3d; margin: 0; }
+    .container { max-width: 500px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
+    .header { background: #3ab26f; color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; margin: -30px -30px 20px -30px; }
+    .footer { background: #f3fef7; color: #1f4e3d; padding: 20px; text-align: center; font-size: 12px; line-height: 1.5; margin: 30px -30px -30px -30px; border-radius: 0 0 10px 10px; border-top: 1px solid #e5e7eb; }
+    .info-box { background: #f3fef7; border: 1px solid #3ab26f; padding: 15px; border-radius: 5px; margin: 15px 0; }
+    .link { color: #3ab26f; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Order Commitment Confirmed!</h1>
+    </div>
+    <h2>Thank you, ${orderData.seller_full_name || "Seller"}!</h2>
+    <p>You've successfully committed to sell your book(s). The buyer has been notified and pickup has been scheduled ${pickupMethodText}.</p>
+    <div class="info-box">
+      <h3>📋 Order Details</h3>
+      <p><strong>Order ID:</strong> ${orderId}</p>
+      <p><strong>Book(s):</strong> ${bookTitles}</p>
+      <p><strong>Buyer:</strong> ${orderData.buyer_full_name || "Buyer"}</p>
+      <p><strong>Pickup Method:</strong> ${orderData.pickup_type === 'locker' ? 'Locker Pickup' : 'Door-to-Door'}</p>
+      ${data?.tracking_number ? `<p><strong>Tracking Number:</strong> ${data.tracking_number}</p>` : ""}
+    </div>
+    <p>${orderData.pickup_type === 'locker' ? 'Please drop off your package at the selected locker location.' : 'A courier will contact you within 24 hours to arrange pickup.'}</p>
+    <p>Thank you for selling with ReBooked Solutions! 📚</p>
+    <div class="footer">
+      <p><strong>This is an automated message from ReBooked Solutions.</strong><br/>Please do not reply to this email.</p>
+      <p>For assistance, contact: <a href="mailto:support@rebookedsolutions.co.za" class="link">support@rebookedsolutions.co.za</a><br/>
+      Visit us at: <a href="https://rebookedsolutions.co.za" class="link">https://rebookedsolutions.co.za</a></p>
+      <p>T&Cs apply.</p>
+      <p><em>"Pre-Loved Pages, New Adventures"</em></p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+        // Send both emails
+        const emailPromises = [];
+
+        if (orderData.buyer_email) {
+          emailPromises.push(
+            supabase.functions.invoke("send-email", {
+              body: {
+                to: orderData.buyer_email,
+                subject: "Order Confirmed - Pickup Scheduled",
+                html: buyerEmailHtml,
+              },
+            })
+          );
+        }
+
+        if (orderData.seller_email) {
+          emailPromises.push(
+            supabase.functions.invoke("send-email", {
+              body: {
+                to: orderData.seller_email,
+                subject: "Order Commitment Confirmed - Prepare for Pickup",
+                html: sellerEmailHtml,
+              },
+            })
+          );
+        }
+
+        const emailResults = await Promise.all(emailPromises);
+        const allEmailsSuccessful = emailResults.every(result => !result.error && result.data?.success);
+        emailsSent = allEmailsSuccessful;
+
+        if (!emailsSent) {
+          toast.warning("Order committed, but email delivery encountered issues. Please check your inbox.", {
+            duration: 7000,
+          });
+        }
+      } catch (emailError) {
+        console.error("Email sending failed:", emailError);
+        toast.warning("Order committed, but we couldn't send confirmation emails. We'll retry shortly.", {
+          duration: 7000,
+        });
+      }
+
       // Show success message based on pickup type
       if (pickupType === "locker") {
         toast.success("Order committed! Book will be dropped at locker.", {
           duration: 5000,
         });
 
-        toast.info(
-          "Locker details and pickup instructions sent to your email.",
-          {
-            duration: 7000,
-          },
-        );
+        if (emailsSent) {
+          toast.info(
+            "✅ Confirmation emails sent to you and the buyer.",
+            {
+              duration: 7000,
+            },
+          );
+        }
       } else {
         toast.success("Order committed! Courier pickup will be scheduled automatically.", {
           duration: 5000,
         });
 
-        toast.info(
-          "Pickup details sent to your email.",
-          {
-            duration: 7000,
-          },
-        );
+        if (emailsSent) {
+          toast.info(
+            "✅ Confirmation emails sent to you and the buyer.",
+            {
+              duration: 7000,
+            },
+          );
+        }
       }
 
       // Call success callback
