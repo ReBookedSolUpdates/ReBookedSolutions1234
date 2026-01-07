@@ -741,6 +741,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         {checkoutState.step.current === 2 && (
           <Step1point5DeliveryMethod
             bookTitle={checkoutState.book?.title || "your book"}
+            preSelectedMethod={checkoutState.delivery_method}
             onSelectDeliveryMethod={(method, locker) => {
               setCheckoutState((prev) => ({
                 ...prev,
