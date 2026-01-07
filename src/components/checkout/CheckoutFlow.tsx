@@ -366,12 +366,11 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
 
       // Auto-select delivery method if only one option is available
       let autoDeliveryMethod: "locker" | "home" | null = null;
-      let autoSelectedLocker: any = null;
 
       if (hasLockerOption && !hasHomeDeliveryOption) {
         // Only locker available - auto-select it
+        // User will still select their specific locker in step 2
         autoDeliveryMethod = "locker";
-        autoSelectedLocker = sellerLockerData;
       } else if (hasHomeDeliveryOption && !hasLockerOption) {
         // Only home delivery available - auto-select it
         autoDeliveryMethod = "home";
@@ -386,7 +385,6 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         seller_preferred_pickup_method: sellerPreferredPickupMethod,
         buyer_address: buyerAddress,
         delivery_method: autoDeliveryMethod,
-        selected_locker: autoSelectedLocker,
         loading: false,
       }));
 
