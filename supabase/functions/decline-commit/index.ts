@@ -173,27 +173,48 @@ serve(async (req) => {
           .single();
 
         if (bookData) {
+          console.log(`[decline-order] Current book state: initial=${bookData.initial_quantity}, sold=${bookData.sold_quantity}, available=${bookData.available_quantity}`);
+          
+          // Only restore if there's actually a sold quantity to restore
           // Constraint: (initial_quantity >= sold_quantity) AND ((initial_quantity - sold_quantity) = available_quantity)
-          const newSoldQuantity = Math.max(0, (bookData.sold_quantity || 0) - 1);
-          const initialQty = bookData.initial_quantity || 1;
-          const newAvailableQuantity = initialQty - newSoldQuantity;
+          if (bookData.sold_quantity > 0) {
+            const newSoldQuantity = bookData.sold_quantity - 1;
+            const initialQty = bookData.initial_quantity || 1;
+            const newAvailableQuantity = initialQty - newSoldQuantity;
 
-          console.log(`[decline-order] Book restore: initial=${initialQty}, newSold=${newSoldQuantity}, newAvailable=${newAvailableQuantity}`);
+            console.log(`[decline-order] Book restore: newSold=${newSoldQuantity}, newAvailable=${newAvailableQuantity}`);
 
-          const { error: bookUpdateError } = await supabase
-            .from("books")
-            .update({
-              sold: newSoldQuantity > 0,
-              available_quantity: newAvailableQuantity,
-              sold_quantity: newSoldQuantity,
-              updated_at: new Date().toISOString(),
-            })
-            .eq("id", bookId);
+            const { error: bookUpdateError } = await supabase
+              .from("books")
+              .update({
+                sold: newSoldQuantity > 0,
+                available_quantity: newAvailableQuantity,
+                sold_quantity: newSoldQuantity,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", bookId);
 
-          if (bookUpdateError) {
-            console.error("[decline-order] Failed to restore book:", bookUpdateError.message);
+            if (bookUpdateError) {
+              console.error("[decline-order] Failed to restore book:", bookUpdateError.message);
+            } else {
+              console.log("[decline-order] Book availability restored successfully");
+            }
           } else {
-            console.log("[decline-order] Book availability restored successfully");
+            // If sold_quantity is 0, just ensure the book is marked as not sold
+            console.log("[decline-order] sold_quantity is 0, just marking book as not sold");
+            const { error: bookUpdateError } = await supabase
+              .from("books")
+              .update({
+                sold: false,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", bookId);
+
+            if (bookUpdateError) {
+              console.error("[decline-order] Failed to update book sold status:", bookUpdateError.message);
+            } else {
+              console.log("[decline-order] Book marked as not sold");
+            }
           }
         }
       }
