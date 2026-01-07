@@ -355,14 +355,6 @@ const ModernAddressTab = ({
       {/* Saved Lockers Section - Moved to Top */}
       <SavedLockersCard ref={savedLockersCardRef} isLoading={isLoading} />
 
-      {/* Locker Recommendation Alert */}
-      <Alert className="bg-blue-50 border-blue-300">
-        <Info className="h-4 w-4 text-blue-600" />
-        <AlertDescription className="text-blue-800">
-          <span className="font-semibold">Pro Tip: Using the locker system is easier and safer!</span> Avoid unnecessary rescheduling with couriers, and get paid faster since books are delivered quickly. The locker system is the fastest way to complete deliveries.
-        </AlertDescription>
-      </Alert>
-
       {/* BobGo Locations Section - Moved to Top */}
       <BobGoLocationsSection onLockerSaved={() => {
         savedLockersCardRef.current?.loadSavedLockers();
