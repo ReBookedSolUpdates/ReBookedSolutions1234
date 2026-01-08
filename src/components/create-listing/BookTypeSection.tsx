@@ -152,6 +152,29 @@ export const BookTypeSection = ({
         )}
       </div>
 
+      {(bookType === "school" || bookType === "university") && (
+        <div>
+          <Label htmlFor="curriculum" className="text-base font-medium">
+            Curriculum <span className="text-gray-400">(Optional)</span>
+          </Label>
+          <Select
+            value={(formData as any).curriculum || ""}
+            onValueChange={(value) => onSelectChange("curriculum", value || undefined)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select curriculum (if applicable)" />
+            </SelectTrigger>
+            <SelectContent>
+              {curricula.map((curriculum) => (
+                <SelectItem key={curriculum} value={curriculum}>
+                  {curriculum}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
       {bookType === "school" ? (
         <div>
           <Label htmlFor="grade" className="text-base font-medium">
