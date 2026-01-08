@@ -165,12 +165,12 @@ export const BookTypeSection = ({
               <SelectValue placeholder="Select curriculum (if applicable)" />
             </SelectTrigger>
             <SelectContent>
-              {curricula.map((curriculum) => (
-                <SelectItem key={curriculum} value={curriculum}>
-                  {curriculum}
-                </SelectItem>
-              ))}
-            </SelectContent>
+            {curricula.map((curriculum, index) => (
+              <SelectItem key={`curriculum-${index}`} value={curriculum}>
+                {curriculum}
+              </SelectItem>
+            ))}
+          </SelectContent>
           </Select>
         </div>
       )}
