@@ -192,80 +192,97 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
 
       // Step 3: Create the order (before payment)
 
+      // Normalize locker data if present
+      const normalizedLockerData = deliveryLockerData ? normalizeLockerData(deliveryLockerData) : null;
+      const normalizedLockerLocationId = normalizedLockerData?.location_id || null;
+
+      const orderData = {
+        buyer_email: buyerProfile.email || userData.user.email,
+        buyer_full_name: buyerFullName,
+        seller_id: orderSummary.book.seller_id,
+        seller_email: sellerProfile.email || "",
+        seller_full_name: sellerFullName,
+        buyer_phone_number: buyerProfile.phone_number || "",
+        seller_phone_number: sellerProfile.phone_number || "",
+        pickup_address_encrypted: sellerProfile.pickup_address_encrypted || "",
+        amount: Math.round(orderSummary.total_price * 100),
+        status: "pending",
+        payment_reference: customPaymentId,
+        buyer_id: userId,
+        book_id: orderSummary.book.id,
+        delivery_option: orderSummary.delivery.service_name,
+        payment_status: "pending",
+
+        items: [
+          {
+            type: "book",
+            book_id: orderSummary.book.id,
+            book_title: orderSummary.book.title,
+            price: Math.round(orderSummary.book_price * 100),
+            quantity: 1,
+            condition: orderSummary.book.condition,
+            seller_id: orderSummary.book.seller_id,
+          },
+        ],
+
+        shipping_address_encrypted,
+
+        // Top-level pickup fields for consistency
+        pickup_type: deliveryType,
+        pickup_locker_location_id: normalizedLockerLocationId,
+        pickup_locker_data: normalizedLockerData,
+        pickup_locker_provider_slug: normalizedLockerData?.provider_slug,
+
+        delivery_data: {
+          delivery_method: orderSummary.delivery.service_name,
+          delivery_price: Math.round(orderSummary.delivery_price * 100),
+          courier: orderSummary.delivery.courier,
+          estimated_days: orderSummary.delivery.estimated_days,
+          pickup_address: orderSummary.seller_address,
+          pickup_locker_data: normalizedLockerData,
+          pickup_locker_location_id: normalizedLockerLocationId,
+          delivery_quote: orderSummary.delivery,
+          delivery_type: deliveryType,
+        },
+
+        metadata: {
+          buyer_id: userId,
+          platform_fee: 2000,
+          seller_amount: Math.round(orderSummary.book_price * 100) - 2000,
+          original_total: orderSummary.total_price,
+          original_book_price: orderSummary.book_price,
+          original_delivery_price: orderSummary.delivery_price,
+          coupon_code: orderSummary.coupon_code || null,
+          coupon_discount: orderSummary.coupon_discount ? Math.round(orderSummary.coupon_discount * 100) : null,
+          original_book_price_before_discount: orderSummary.subtotal_before_discount ? Math.round(orderSummary.subtotal_before_discount * 100) : null,
+        },
+
+        total_amount: orderSummary.total_price,
+        selected_courier_name: orderSummary.delivery.provider_name || orderSummary.delivery.courier,
+        selected_courier_slug: orderSummary.delivery.provider_slug || orderSummary.delivery.courier,
+        selected_service_code: orderSummary.delivery.service_level_code || "",
+        selected_service_name: orderSummary.delivery.service_name,
+        selected_shipping_cost: orderSummary.delivery_price,
+        delivery_type: deliveryType,
+        delivery_locker_data: normalizedLockerData,
+        delivery_locker_location_id: normalizedLockerLocationId,
+      };
+
+      // Normalize pickup data to ensure consistency across all fields
+      const normalizedOrderData = normalizePickupData(orderData, deliveryType, normalizedLockerData);
+
       const { data: createdOrder, error: orderError } = await supabase
         .from("orders")
-        .insert([
-          {
-            buyer_email: buyerProfile.email || userData.user.email,
-            buyer_full_name: buyerFullName,
-            seller_id: orderSummary.book.seller_id,
-            seller_email: sellerProfile.email || "",
-            seller_full_name: sellerFullName,
-            buyer_phone_number: buyerProfile.phone_number || "",
-            seller_phone_number: sellerProfile.phone_number || "",
-            pickup_address_encrypted: sellerProfile.pickup_address_encrypted || "",
-            amount: Math.round(orderSummary.total_price * 100),
-            status: "pending",
-            payment_reference: customPaymentId,
-            buyer_id: userId,
-            book_id: orderSummary.book.id,
-            delivery_option: orderSummary.delivery.service_name,
-            payment_status: "pending",
-
-            items: [
-              {
-                type: "book",
-                book_id: orderSummary.book.id,
-                book_title: orderSummary.book.title,
-                price: Math.round(orderSummary.book_price * 100),
-                quantity: 1,
-                condition: orderSummary.book.condition,
-                seller_id: orderSummary.book.seller_id,
-              },
-            ],
-
-            shipping_address_encrypted,
-
-            delivery_data: {
-              delivery_method: orderSummary.delivery.service_name,
-              delivery_price: Math.round(orderSummary.delivery_price * 100),
-              courier: orderSummary.delivery.courier,
-              estimated_days: orderSummary.delivery.estimated_days,
-              pickup_address: orderSummary.seller_address,
-              pickup_locker_data: orderSummary.seller_locker_data || null,
-              delivery_quote: orderSummary.delivery,
-              delivery_type: deliveryType,
-            },
-
-            metadata: {
-              buyer_id: userId,
-              platform_fee: 2000,
-              seller_amount: Math.round(orderSummary.book_price * 100) - 2000,
-              original_total: orderSummary.total_price,
-              original_book_price: orderSummary.book_price,
-              original_delivery_price: orderSummary.delivery_price,
-              coupon_code: orderSummary.coupon_code || null,
-              coupon_discount: orderSummary.coupon_discount ? Math.round(orderSummary.coupon_discount * 100) : null,
-              original_book_price_before_discount: orderSummary.subtotal_before_discount ? Math.round(orderSummary.subtotal_before_discount * 100) : null,
-            },
-
-            total_amount: orderSummary.total_price,
-            selected_courier_name: orderSummary.delivery.provider_name || orderSummary.delivery.courier,
-            selected_courier_slug: orderSummary.delivery.provider_slug || orderSummary.delivery.courier,
-            selected_service_code: orderSummary.delivery.service_level_code || "",
-            selected_service_name: orderSummary.delivery.service_name,
-            selected_shipping_cost: orderSummary.delivery_price,
-            delivery_type: deliveryType,
-            delivery_locker_data: deliveryLockerData,
-            delivery_locker_location_id: deliveryLockerLocationId,
-          },
-        ])
+        .insert([normalizedOrderData])
         .select()
         .single();
 
       if (orderError) {
         throw new Error(`Failed to create order: ${orderError.message}`);
       }
+
+      // Register order creation for idempotency tracking
+      registerOrderCreation(customPaymentId, createdOrder.id);
 
       // Step 3.5: Process affiliate earning if seller was referred
       supabase.functions.invoke('process-affiliate-earning', {
