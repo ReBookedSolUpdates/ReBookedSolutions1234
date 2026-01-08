@@ -142,25 +142,19 @@ const AddressInput: React.FC<AddressInputProps> = ({
   }, [showDropdown]);
 
   const validateAddress = (): boolean => {
+    // Use centralized validation utility
+    const validationErrors = validateAddressStructure(address);
+
+    // Convert validation errors to field-specific error map
     const newErrors: Record<string, string> = {};
-
-    if (!address.street.trim()) {
-      newErrors.street = "Street address is required";
-    }
-
-    if (!address.city.trim()) {
-      newErrors.city = "City is required";
-    }
-
-    if (!address.province.trim()) {
-      newErrors.province = "Province is required";
-    }
-
-    if (!address.postal_code.trim()) {
-      newErrors.postal_code = "Postal code is required";
-    } else if (!/^\d{4}$/.test(address.postal_code.trim())) {
-      newErrors.postal_code = "Postal code must be 4 digits";
-    }
+    validationErrors.forEach((error) => {
+      // Map error messages to field names
+      if (error.includes("Street")) newErrors.street = error;
+      else if (error.includes("City")) newErrors.city = error;
+      else if (error.includes("province")) newErrors.province = error;
+      else if (error.includes("Postal")) newErrors.postal_code = error;
+      else newErrors.general = error;
+    });
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
