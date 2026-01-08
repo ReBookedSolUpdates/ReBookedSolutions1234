@@ -140,8 +140,8 @@ export const BookTypeSection = ({
             <SelectValue placeholder="Select condition" />
           </SelectTrigger>
           <SelectContent>
-            {conditions.map((condition) => (
-              <SelectItem key={condition} value={condition}>
+            {conditions.map((condition, index) => (
+              <SelectItem key={`condition-${index}`} value={condition}>
                 {condition}
               </SelectItem>
             ))}
