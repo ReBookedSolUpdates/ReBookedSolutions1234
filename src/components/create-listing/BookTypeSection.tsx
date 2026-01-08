@@ -188,8 +188,8 @@ export const BookTypeSection = ({
               <SelectValue placeholder="Select a grade" />
             </SelectTrigger>
             <SelectContent>
-              {grades.map((grade) => (
-                <SelectItem key={grade} value={grade}>
+              {grades.map((grade, index) => (
+                <SelectItem key={`grade-${index}`} value={grade}>
                   {grade}
                 </SelectItem>
               ))}
