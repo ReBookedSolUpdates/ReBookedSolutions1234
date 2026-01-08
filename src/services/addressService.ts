@@ -3,6 +3,14 @@ import { updateAddressValidation } from "./addressValidationService";
 import { safeLogError } from "@/utils/errorHandling";
 import { safeLogError as safelog, formatSupabaseError } from "@/utils/safeErrorLogger";
 import { getSafeErrorMessage } from "@/utils/errorMessageUtils";
+import {
+  normalizeAddressFields,
+  validateAddressStructure,
+  normalizeProvinceName,
+  normalizeProvinceCode,
+  CanonicalAddress,
+  prepareForStorage,
+} from "@/utils/addressNormalizationUtils";
 
 interface Address {
   complex?: string;
