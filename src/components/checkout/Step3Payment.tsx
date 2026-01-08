@@ -119,6 +119,23 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
       }
 
       const customPaymentId = `ORDER-${Date.now()}-${userId}`;
+
+      // Check for duplicate order submission (idempotency)
+      const cachedOrderId = getCachedOrderId(customPaymentId);
+      if (cachedOrderId) {
+        throw new Error(`Order already being processed. Order ID: ${cachedOrderId}. Please wait and check your account.`);
+      }
+
+      // Validate pickup setup based on delivery method
+      const pickupType = orderSummary.delivery_method === "locker" ? "locker" : "door";
+      const pickupErrors = validatePickupSetup(
+        pickupType,
+        orderSummary.delivery_method === "locker" ? orderSummary.selected_locker : null,
+        orderSummary.delivery_method === "door" ? orderSummary.seller_address : null
+      );
+      if (pickupErrors.length > 0) {
+        throw new Error(`Pickup validation failed: ${pickupErrors.join("; ")}`);
+      }
       const baseUrl = window.location.origin;
 
       // Step 1: Fetch buyer and seller profiles for denormalized data
