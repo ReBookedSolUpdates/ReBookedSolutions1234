@@ -304,23 +304,28 @@ export const updateBooksPickupAddress = async (
   newPickupAddress: any,
 ): Promise<{ success: boolean; updatedCount: number; error?: string }> => {
   try {
-    // Extract province from the new pickup address
-    let province = null;
-    if (newPickupAddress?.province) {
-      province = newPickupAddress.province;
-    } else if (typeof newPickupAddress === "string") {
-      // Fallback for string-based addresses
-      const addressStr = newPickupAddress.toLowerCase();
-      if (addressStr.includes("western cape")) province = "Western Cape";
-      else if (addressStr.includes("gauteng")) province = "Gauteng";
-      else if (addressStr.includes("kwazulu")) province = "KwaZulu-Natal";
-      else if (addressStr.includes("eastern cape")) province = "Eastern Cape";
-      else if (addressStr.includes("free state")) province = "Free State";
-      else if (addressStr.includes("limpopo")) province = "Limpopo";
-      else if (addressStr.includes("mpumalanga")) province = "Mpumalanga";
-      else if (addressStr.includes("northern cape")) province = "Northern Cape";
-      else if (addressStr.includes("north west")) province = "North West";
+    // Validate and normalize address before encryption
+    const validationErrors = validateAddressStructure(newPickupAddress);
+    if (validationErrors.length > 0) {
+      return {
+        success: false,
+        updatedCount: 0,
+        error: validationErrors.join("; "),
+      };
     }
+
+    // Normalize address to ensure consistency
+    const normalizedAddress = normalizeAddressFields(newPickupAddress);
+    if (!normalizedAddress) {
+      return {
+        success: false,
+        updatedCount: 0,
+        error: "Invalid address structure",
+      };
+    }
+
+    // Extract province (now guaranteed to be valid)
+    const province = normalizedAddress.province;
 
     // Get all user's books
     const { data: books, error: fetchError } = await supabase
