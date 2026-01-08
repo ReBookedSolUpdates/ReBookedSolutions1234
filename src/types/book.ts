@@ -50,6 +50,7 @@ export interface BookFormData {
   universityYear?: string;
   university?: string;
   curriculum?: 'CAPS' | 'Cambridge' | 'IEB';
+  isbn?: string;
   universityBookType?: 'Study Guide' | 'Course Book';
   genre?: string;
   province?: string;
