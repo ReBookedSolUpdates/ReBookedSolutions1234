@@ -56,6 +56,8 @@ const CreateListing = () => {
     backCover: "",
     insidePages: "",
     quantity: 1,
+    curriculum: undefined,
+    isbn: undefined,
   });
 
   const [bookImages, setBookImages] = useState({
