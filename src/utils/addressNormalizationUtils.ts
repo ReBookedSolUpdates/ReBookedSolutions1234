@@ -387,7 +387,7 @@ export function canonicalToCamelCase(
   address: CanonicalAddress
 ): Record<string, any> {
   return {
-    street,
+    street: address.street,
     streetAddress: address.street,
     city: address.city,
     province: address.province,
