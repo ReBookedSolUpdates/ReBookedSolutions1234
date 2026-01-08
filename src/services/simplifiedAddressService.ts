@@ -341,7 +341,22 @@ export const saveOrderShippingAddress = async (
   shippingAddress: SimpleAddress
 ) => {
   try {
-    const result = await encryptAddress(shippingAddress, {
+    // Validate address structure
+    const errors = validateAddressStructure(shippingAddress);
+    if (errors.length > 0) {
+      throw new Error(`Invalid shipping address: ${errors.join("; ")}`);
+    }
+
+    // Normalize address
+    const normalized = normalizeAddressFields(shippingAddress);
+    if (!normalized) {
+      throw new Error("Failed to normalize shipping address");
+    }
+
+    // Prepare for storage and encryption
+    const addressForEncryption = prepareForStorage(normalized);
+
+    const result = await encryptAddress(addressForEncryption as SimpleAddress, {
       save: { table: 'orders', target_id: orderId, address_type: 'shipping' }
     });
 
