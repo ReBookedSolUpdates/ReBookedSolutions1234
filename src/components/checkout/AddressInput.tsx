@@ -108,11 +108,14 @@ const AddressInput: React.FC<AddressInputProps> = ({
       const details = await fetchAddressDetails(placeId);
 
       if (details) {
+        // Normalize province from API response
+        const normalizedProvince = normalizeProvinceName(details.province || '') || details.province || '';
+
         // Use the parsed components directly from the API response
         setAddress({
           street: details.street_address || '',
           city: details.city || '',
-          province: details.province || '',
+          province: normalizedProvince,
           postal_code: details.postal_code || '',
           country: details.country || 'South Africa',
           additional_info: address.additional_info,
