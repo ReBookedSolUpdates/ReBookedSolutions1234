@@ -348,9 +348,10 @@ export const updateBooksPickupAddress = async (
       };
     }
 
-    // Encrypt address for each book
-    const encryptPromises = books.map(book => 
-      encryptAddress(newPickupAddress, {
+    // Encrypt address for each book (use normalized address to ensure consistency)
+    const addressForEncryption = prepareForStorage(normalizedAddress);
+    const encryptPromises = books.map(book =>
+      encryptAddress(addressForEncryption, {
         save: {
           table: 'books',
           target_id: book.id,
