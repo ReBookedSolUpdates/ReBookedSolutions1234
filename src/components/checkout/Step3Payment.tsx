@@ -24,6 +24,20 @@ import PaymentErrorHandler, {
 import { logError, getUserFriendlyErrorMessage } from "@/utils/errorLogging";
 import { sendPurchaseWebhook } from "@/utils/webhookUtils";
 import CouponInput from "./CouponInput";
+import {
+  getCachedOrderId,
+  registerOrderCreation,
+  isPaymentReferenceClaimed,
+} from "@/utils/idempotencyUtils";
+import {
+  validatePickupSetup,
+  normalizeLockerData,
+  normalizePickupData,
+} from "@/utils/pickupTypeValidationUtils";
+import {
+  normalizeAddressFields,
+  prepareForStorage,
+} from "@/utils/addressNormalizationUtils";
 
 interface Step3PaymentProps {
   orderSummary: OrderSummary;
