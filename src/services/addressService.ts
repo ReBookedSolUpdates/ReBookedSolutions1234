@@ -80,11 +80,38 @@ export const saveUserAddresses = async (
   addressesSame: boolean,
 ) => {
   try {
+    // Validate address structure before encryption
+    const pickupErrors = validateAddressStructure(pickupAddress);
+    if (pickupErrors.length > 0) {
+      throw new Error(`Pickup address invalid: ${pickupErrors.join("; ")}`);
+    }
+
+    if (!addressesSame) {
+      const shippingErrors = validateAddressStructure(shippingAddress);
+      if (shippingErrors.length > 0) {
+        throw new Error(`Shipping address invalid: ${shippingErrors.join("; ")}`);
+      }
+    }
+
+    // Normalize addresses to ensure consistency
+    const normalizedPickup = normalizeAddressFields(pickupAddress);
+    if (!normalizedPickup) {
+      throw new Error("Failed to normalize pickup address");
+    }
+
+    let normalizedShipping = normalizedPickup;
+    if (!addressesSame) {
+      normalizedShipping = normalizeAddressFields(shippingAddress);
+      if (!normalizedShipping) {
+        throw new Error("Failed to normalize shipping address");
+      }
+    }
+
     // First validate addresses (keep existing validation)
     const result = await updateAddressValidation(
       userId,
-      pickupAddress,
-      shippingAddress,
+      normalizedPickup,
+      normalizedShipping,
       addressesSame,
     );
 
@@ -93,9 +120,10 @@ export const saveUserAddresses = async (
       shipping: false
     };
 
-    // Try to encrypt and save pickup address
+    // Try to encrypt and save pickup address (use normalized address)
     try {
-      const pickupResult = await encryptAddress(pickupAddress, {
+      const pickupForEncryption = prepareForStorage(normalizedPickup);
+      const pickupResult = await encryptAddress(pickupForEncryption, {
         save: {
           table: 'profiles',
           target_id: userId,
