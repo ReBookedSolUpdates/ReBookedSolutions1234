@@ -112,22 +112,37 @@ class FallbackAddressService {
     userId: string
   ): Promise<{ success: boolean; address?: StoredAddress; error?: string }> {
     try {
+      // Validate address structure
+      const validationResult = this.validateAddressData(addressData);
+      if (!validationResult.isValid) {
+        return { success: false, error: validationResult.errors.join('; ') };
+      }
+
+      // Normalize province to ensure consistency
+      const normalizedData = { ...addressData };
+      if (normalizedData.province) {
+        const normalizedProvince = normalizeProvinceName(normalizedData.province);
+        if (normalizedProvince) {
+          normalizedData.province = normalizedProvince;
+        }
+      }
+
       const updateData: any = {
-        selected_method: addressData.source,
+        selected_method: normalizedData.source,
         updated_at: new Date().toISOString(),
         metadata: {
-          confidence_level: this.calculateConfidenceLevel(addressData),
+          confidence_level: this.calculateConfidenceLevel(normalizedData),
           last_validated: new Date().toISOString(),
-          fallback_reason: addressData.source === 'manual_entry' ? 'google_maps_unavailable' : undefined,
+          fallback_reason: normalizedData.source === 'manual_entry' ? 'google_maps_unavailable' : undefined,
         },
       };
 
       // Update the appropriate data field
-      if (addressData.source === 'google_maps') {
-        updateData.google_maps_data = addressData;
-        updateData.manual_entry_data = this.convertToManualFormat(addressData);
+      if (normalizedData.source === 'google_maps') {
+        updateData.google_maps_data = normalizedData;
+        updateData.manual_entry_data = this.convertToManualFormat(normalizedData);
       } else {
-        updateData.manual_entry_data = addressData;
+        updateData.manual_entry_data = normalizedData;
       }
 
       const { data, error } = await supabase
