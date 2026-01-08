@@ -138,10 +138,11 @@ export const saveUserAddresses = async (
       // Encryption error
     }
 
-    // Try to encrypt and save shipping address (if different)
+    // Try to encrypt and save shipping address (if different, use normalized address)
     if (!addressesSame) {
       try {
-        const shippingResult = await encryptAddress(shippingAddress, {
+        const shippingForEncryption = prepareForStorage(normalizedShipping);
+        const shippingResult = await encryptAddress(shippingForEncryption, {
           save: {
             table: 'profiles',
             target_id: userId,
