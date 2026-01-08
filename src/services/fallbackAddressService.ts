@@ -36,29 +36,44 @@ class FallbackAddressService {
     isPrimary: boolean = false
   ): Promise<{ success: boolean; address?: StoredAddress; error?: string }> {
     try {
+      // Validate address structure
+      const validationResult = this.validateAddressData(addressData);
+      if (!validationResult.isValid) {
+        return { success: false, error: validationResult.errors.join('; ') };
+      }
+
+      // Normalize province to ensure consistency
+      const normalizedData = { ...addressData };
+      if (normalizedData.province) {
+        const normalizedProvince = normalizeProvinceName(normalizedData.province);
+        if (normalizedProvince) {
+          normalizedData.province = normalizedProvince;
+        }
+      }
+
       // Prepare the data structure for dual storage
-      const addressRecord = {
+      const addressRecord: any = {
         user_id: userId,
         type,
         is_primary: isPrimary,
-        selected_method: addressData.source,
+        selected_method: normalizedData.source,
         metadata: {
-          confidence_level: this.calculateConfidenceLevel(addressData),
+          confidence_level: this.calculateConfidenceLevel(normalizedData),
           validation_attempts: 1,
           last_validated: new Date().toISOString(),
-          fallback_reason: addressData.source === 'manual_entry' ? 'google_maps_unavailable' : undefined,
+          fallback_reason: normalizedData.source === 'manual_entry' ? 'google_maps_unavailable' : undefined,
         },
       };
 
       // Store based on source
-      if (addressData.source === 'google_maps') {
+      if (normalizedData.source === 'google_maps') {
         Object.assign(addressRecord, {
-          google_maps_data: addressData,
-          manual_entry_data: this.convertToManualFormat(addressData), // Also store as manual for fallback
+          google_maps_data: normalizedData,
+          manual_entry_data: this.convertToManualFormat(normalizedData), // Also store as manual for fallback
         });
       } else {
         Object.assign(addressRecord, {
-          manual_entry_data: addressData,
+          manual_entry_data: normalizedData,
           google_maps_data: null, // No Google Maps data available
         });
       }
