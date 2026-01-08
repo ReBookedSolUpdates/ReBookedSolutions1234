@@ -1,6 +1,13 @@
 import { supabase } from "@/integrations/supabase/client";
 import { CheckoutAddress } from "@/types/checkout";
 import { getProvinceFromLocker } from "@/utils/provinceExtractorUtils";
+import {
+  normalizeAddressFields,
+  validateAddressStructure,
+  prepareForStorage,
+  canonicalToCamelCase,
+  CanonicalAddress,
+} from "@/utils/addressNormalizationUtils";
 
 interface SimpleAddress {
   streetAddress: string;
@@ -179,29 +186,34 @@ export const getSellerDeliveryAddress = async (
     });
 
     if (decryptedAddress) {
-      const address = {
-        street: decryptedAddress.streetAddress || decryptedAddress.street || "",
-        city: decryptedAddress.city || "",
-        province: decryptedAddress.province || "",
-        postal_code: decryptedAddress.postalCode || decryptedAddress.postal_code || "",
-        country: "South Africa",
-      };
-      return address;
+      // Normalize the decrypted address to ensure consistency
+      const normalized = normalizeAddressFields(decryptedAddress);
+      if (normalized) {
+        const address: CheckoutAddress = {
+          street: normalized.street,
+          city: normalized.city,
+          province: normalized.province,
+          postal_code: normalized.postalCode,
+          country: normalized.country || "South Africa",
+        };
+        return address;
+      }
     }
-
 
     try {
       const { getSellerPickupAddress } = await import("@/services/addressService");
       const fallbackAddress = await getSellerPickupAddress(sellerId);
       if (fallbackAddress) {
-        const mappedAddress = {
-          street: fallbackAddress.streetAddress || fallbackAddress.street || fallbackAddress.line1 || "",
-          city: fallbackAddress.city || "",
-          province: fallbackAddress.province || fallbackAddress.state || "",
-          postal_code: fallbackAddress.postalCode || fallbackAddress.postal_code || fallbackAddress.zip || "",
-          country: "South Africa",
-        };
-        if (mappedAddress.street && mappedAddress.city && mappedAddress.province && mappedAddress.postal_code) {
+        // Normalize fallback address
+        const normalized = normalizeAddressFields(fallbackAddress);
+        if (normalized) {
+          const mappedAddress: CheckoutAddress = {
+            street: normalized.street,
+            city: normalized.city,
+            province: normalized.province,
+            postal_code: normalized.postalCode,
+            country: normalized.country || "South Africa",
+          };
           return mappedAddress;
         }
       }
@@ -241,12 +253,40 @@ export const saveSimpleUserAddresses = async (
   addressesAreSame: boolean = false,
 ) => {
   try {
+    // Validate pickup address
+    const pickupErrors = validateAddressStructure(pickupAddress);
+    if (pickupErrors.length > 0) {
+      throw new Error(`Pickup address invalid: ${pickupErrors.join("; ")}`);
+    }
+
+    // Normalize pickup address
+    const normalizedPickup = normalizeAddressFields(pickupAddress);
+    if (!normalizedPickup) {
+      throw new Error("Failed to normalize pickup address");
+    }
+
+    // Validate and normalize shipping address (if different)
+    let normalizedShipping = normalizedPickup;
+    if (shippingAddress && !addressesAreSame) {
+      const shippingErrors = validateAddressStructure(shippingAddress);
+      if (shippingErrors.length > 0) {
+        throw new Error(`Shipping address invalid: ${shippingErrors.join("; ")}`);
+      }
+
+      const normalized = normalizeAddressFields(shippingAddress);
+      if (!normalized) {
+        throw new Error("Failed to normalize shipping address");
+      }
+      normalizedShipping = normalized;
+    }
+
     let pickupEncrypted = false;
     let shippingEncrypted = false;
 
-    if (pickupAddress) {
+    if (normalizedPickup) {
       try {
-        const result = await encryptAddress(pickupAddress, {
+        const pickupForEncryption = prepareForStorage(normalizedPickup);
+        const result = await encryptAddress(pickupForEncryption as SimpleAddress, {
           save: { table: 'profiles', target_id: userId, address_type: 'pickup' }
         });
         if (result && (result as any).success) {
@@ -256,9 +296,10 @@ export const saveSimpleUserAddresses = async (
       }
     }
 
-    if (shippingAddress && !addressesAreSame) {
+    if (normalizedShipping && !addressesAreSame) {
       try {
-        const result = await encryptAddress(shippingAddress, {
+        const shippingForEncryption = prepareForStorage(normalizedShipping);
+        const result = await encryptAddress(shippingForEncryption as SimpleAddress, {
           save: { table: 'profiles', target_id: userId, address_type: 'shipping' }
         });
         if (result && (result as any).success) {
@@ -300,7 +341,22 @@ export const saveOrderShippingAddress = async (
   shippingAddress: SimpleAddress
 ) => {
   try {
-    const result = await encryptAddress(shippingAddress, {
+    // Validate address structure
+    const errors = validateAddressStructure(shippingAddress);
+    if (errors.length > 0) {
+      throw new Error(`Invalid shipping address: ${errors.join("; ")}`);
+    }
+
+    // Normalize address
+    const normalized = normalizeAddressFields(shippingAddress);
+    if (!normalized) {
+      throw new Error("Failed to normalize shipping address");
+    }
+
+    // Prepare for storage and encryption
+    const addressForEncryption = prepareForStorage(normalized);
+
+    const result = await encryptAddress(addressForEncryption as SimpleAddress, {
       save: { table: 'orders', target_id: orderId, address_type: 'shipping' }
     });
 

@@ -3,6 +3,14 @@ import { updateAddressValidation } from "./addressValidationService";
 import { safeLogError } from "@/utils/errorHandling";
 import { safeLogError as safelog, formatSupabaseError } from "@/utils/safeErrorLogger";
 import { getSafeErrorMessage } from "@/utils/errorMessageUtils";
+import {
+  normalizeAddressFields,
+  validateAddressStructure,
+  normalizeProvinceName,
+  normalizeProvinceCode,
+  CanonicalAddress,
+  prepareForStorage,
+} from "@/utils/addressNormalizationUtils";
 
 interface Address {
   complex?: string;
@@ -72,11 +80,38 @@ export const saveUserAddresses = async (
   addressesSame: boolean,
 ) => {
   try {
+    // Validate address structure before encryption
+    const pickupErrors = validateAddressStructure(pickupAddress);
+    if (pickupErrors.length > 0) {
+      throw new Error(`Pickup address invalid: ${pickupErrors.join("; ")}`);
+    }
+
+    if (!addressesSame) {
+      const shippingErrors = validateAddressStructure(shippingAddress);
+      if (shippingErrors.length > 0) {
+        throw new Error(`Shipping address invalid: ${shippingErrors.join("; ")}`);
+      }
+    }
+
+    // Normalize addresses to ensure consistency
+    const normalizedPickup = normalizeAddressFields(pickupAddress);
+    if (!normalizedPickup) {
+      throw new Error("Failed to normalize pickup address");
+    }
+
+    let normalizedShipping = normalizedPickup;
+    if (!addressesSame) {
+      normalizedShipping = normalizeAddressFields(shippingAddress);
+      if (!normalizedShipping) {
+        throw new Error("Failed to normalize shipping address");
+      }
+    }
+
     // First validate addresses (keep existing validation)
     const result = await updateAddressValidation(
       userId,
-      pickupAddress,
-      shippingAddress,
+      normalizedPickup,
+      normalizedShipping,
       addressesSame,
     );
 
@@ -85,9 +120,10 @@ export const saveUserAddresses = async (
       shipping: false
     };
 
-    // Try to encrypt and save pickup address
+    // Try to encrypt and save pickup address (use normalized address)
     try {
-      const pickupResult = await encryptAddress(pickupAddress, {
+      const pickupForEncryption = prepareForStorage(normalizedPickup);
+      const pickupResult = await encryptAddress(pickupForEncryption, {
         save: {
           table: 'profiles',
           target_id: userId,
@@ -102,10 +138,11 @@ export const saveUserAddresses = async (
       // Encryption error
     }
 
-    // Try to encrypt and save shipping address (if different)
+    // Try to encrypt and save shipping address (if different, use normalized address)
     if (!addressesSame) {
       try {
-        const shippingResult = await encryptAddress(shippingAddress, {
+        const shippingForEncryption = prepareForStorage(normalizedShipping);
+        const shippingResult = await encryptAddress(shippingForEncryption, {
           save: {
             table: 'profiles',
             target_id: userId,
@@ -219,24 +256,9 @@ export const getSellerPickupAddress = async (sellerId: string) => {
 
 export const getUserAddresses = async (userId: string) => {
   try {
-    const mapToAddress = (raw: any) => {
-      if (!raw) return null;
-      return {
-        // normalize common variants
-        street: raw.street ?? raw.streetAddress ?? raw.line1 ?? "",
-        city: raw.city ?? "",
-        province: raw.province ?? raw.state ?? "",
-        postalCode: raw.postalCode ?? raw.postal_code ?? raw.zip ?? "",
-        country: raw.country ?? "South Africa",
-        streetAddress: raw.streetAddress ?? raw.street ?? undefined,
-        instructions: raw.instructions ?? raw.additional_info ?? undefined,
-        additional_info: raw.additional_info ?? undefined,
-      } as any;
-    };
-
     // Decrypt pickup address directly via edge function
-    let pickupAddress: any = null;
-    let shippingAddress: any = null;
+    let pickupAddress: CanonicalAddress | null = null;
+    let shippingAddress: CanonicalAddress | null = null;
 
     try {
       const pickup = await decryptAddress({
@@ -244,7 +266,7 @@ export const getUserAddresses = async (userId: string) => {
         target_id: userId,
         address_type: 'pickup'
       });
-      pickupAddress = mapToAddress(pickup);
+      pickupAddress = normalizeAddressFields(pickup);
     } catch (error) {
       // Failed to get pickup address
     }
@@ -256,7 +278,7 @@ export const getUserAddresses = async (userId: string) => {
         target_id: userId,
         address_type: 'shipping'
       });
-      shippingAddress = mapToAddress(shipping);
+      shippingAddress = normalizeAddressFields(shipping);
     } catch (error) {
       // Failed to get shipping address
     }
@@ -311,23 +333,28 @@ export const updateBooksPickupAddress = async (
   newPickupAddress: any,
 ): Promise<{ success: boolean; updatedCount: number; error?: string }> => {
   try {
-    // Extract province from the new pickup address
-    let province = null;
-    if (newPickupAddress?.province) {
-      province = newPickupAddress.province;
-    } else if (typeof newPickupAddress === "string") {
-      // Fallback for string-based addresses
-      const addressStr = newPickupAddress.toLowerCase();
-      if (addressStr.includes("western cape")) province = "Western Cape";
-      else if (addressStr.includes("gauteng")) province = "Gauteng";
-      else if (addressStr.includes("kwazulu")) province = "KwaZulu-Natal";
-      else if (addressStr.includes("eastern cape")) province = "Eastern Cape";
-      else if (addressStr.includes("free state")) province = "Free State";
-      else if (addressStr.includes("limpopo")) province = "Limpopo";
-      else if (addressStr.includes("mpumalanga")) province = "Mpumalanga";
-      else if (addressStr.includes("northern cape")) province = "Northern Cape";
-      else if (addressStr.includes("north west")) province = "North West";
+    // Validate and normalize address before encryption
+    const validationErrors = validateAddressStructure(newPickupAddress);
+    if (validationErrors.length > 0) {
+      return {
+        success: false,
+        updatedCount: 0,
+        error: validationErrors.join("; "),
+      };
     }
+
+    // Normalize address to ensure consistency
+    const normalizedAddress = normalizeAddressFields(newPickupAddress);
+    if (!normalizedAddress) {
+      return {
+        success: false,
+        updatedCount: 0,
+        error: "Invalid address structure",
+      };
+    }
+
+    // Extract province (now guaranteed to be valid)
+    const province = normalizedAddress.province;
 
     // Get all user's books
     const { data: books, error: fetchError } = await supabase
@@ -350,9 +377,10 @@ export const updateBooksPickupAddress = async (
       };
     }
 
-    // Encrypt address for each book
-    const encryptPromises = books.map(book => 
-      encryptAddress(newPickupAddress, {
+    // Encrypt address for each book (use normalized address to ensure consistency)
+    const addressForEncryption = prepareForStorage(normalizedAddress);
+    const encryptPromises = books.map(book =>
+      encryptAddress(addressForEncryption, {
         save: {
           table: 'books',
           target_id: book.id,
