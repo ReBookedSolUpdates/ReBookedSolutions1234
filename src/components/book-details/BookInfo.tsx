@@ -80,6 +80,12 @@ const BookInfo = ({ book }: BookInfoProps) => {
                 <dd className="mt-1 text-sm font-medium text-foreground">{book.genre}</dd>
               </div>
             )}
+            {(book as any).isbn && (
+              <div className="rounded-lg border bg-muted/30 p-3">
+                <dt className="text-[12px] uppercase tracking-wide text-muted-foreground">ISBN</dt>
+                <dd className="mt-1 text-sm font-medium text-foreground">{(book as any).isbn}</dd>
+              </div>
+            )}
           </dl>
         </CardContent>
       </Card>
