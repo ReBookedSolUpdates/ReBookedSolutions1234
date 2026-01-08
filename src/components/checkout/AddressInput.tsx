@@ -15,6 +15,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MapPin, Save } from "lucide-react";
 import { CheckoutAddress } from "@/types/checkout";
 import { fetchSuggestions, fetchAddressDetails, type Suggestion } from "@/services/addressAutocompleteService";
+import {
+  validateAddressStructure,
+  normalizeAddressFields,
+  normalizeProvinceName,
+} from "@/utils/addressNormalizationUtils";
 
 interface AddressInputProps {
   initialAddress?: Partial<CheckoutAddress>;
