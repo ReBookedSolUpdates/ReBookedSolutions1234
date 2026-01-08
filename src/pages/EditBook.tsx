@@ -352,8 +352,8 @@ const EditBook = () => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {['CAPS', 'Cambridge', 'IEB'].map((c) => (
-                        <SelectItem key={c} value={c}>
+                      {['CAPS', 'Cambridge', 'IEB'].map((c, index) => (
+                        <SelectItem key={`curriculum-${index}`} value={c}>
                           {c}
                         </SelectItem>
                       ))}
