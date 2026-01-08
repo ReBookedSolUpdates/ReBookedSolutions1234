@@ -1,10 +1,15 @@
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import {
+  validatePickupSetup,
+  normalizePickupData,
+  PickupLockerData,
+} from "@/utils/pickupTypeValidationUtils";
 
 interface CommitData {
   order_id: string;
   seller_id: string;
-  delivery_method?: "home" | "locker";
+  delivery_method?: "home" | "locker" | "door";
   locker_id?: string;
 }
 
