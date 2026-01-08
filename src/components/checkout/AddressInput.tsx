@@ -167,13 +167,21 @@ const AddressInput: React.FC<AddressInputProps> = ({
       return;
     }
 
-    const cleanAddress = {
-      street: address.street.trim(),
-      city: address.city.trim(),
-      province: address.province.trim(),
-      postal_code: address.postal_code.trim(),
-      country: "South Africa",
-      additional_info: address.additional_info?.trim() || "",
+    // Normalize address to ensure consistency
+    const normalized = normalizeAddressFields(address);
+    if (!normalized) {
+      setErrors({ general: "Failed to normalize address. Please check all fields." });
+      return;
+    }
+
+    // Convert normalized address to CheckoutAddress format
+    const cleanAddress: CheckoutAddress = {
+      street: normalized.street,
+      city: normalized.city,
+      province: normalized.province,
+      postal_code: normalized.postalCode,
+      country: normalized.country || "South Africa",
+      additional_info: normalized.additionalInfo || "",
     };
 
     onAddressSubmit(cleanAddress);
