@@ -27,8 +27,8 @@ export class FallbackCommitService {
   
   static async commitToSale(commitData: CommitData): Promise<CommitResult> {
     try {
-      
-      const { order_id, seller_id, delivery_method = "home", locker_id } = commitData;
+
+      const { order_id, seller_id, delivery_method = "door", locker_id } = commitData;
 
       // Validate inputs
       if (!order_id || !seller_id) {
@@ -61,20 +61,56 @@ export class FallbackCommitService {
         };
       }
 
-      // Prepare update data
+      // Normalize delivery method to pickup type
+      const normalizedPickupType = delivery_method === "locker" ? "locker" : "door";
+
+      // Prepare locker data if needed
+      let lockerData: PickupLockerData | null = null;
+      if (normalizedPickupType === "locker" && locker_id) {
+        lockerData = { location_id: locker_id };
+      }
+
+      // Validate pickup setup
+      const pickupErrors = validatePickupSetup(normalizedPickupType, lockerData, order.pickup_address_encrypted);
+      if (pickupErrors.length > 0) {
+        return {
+          success: false,
+          error: `Pickup validation failed: ${pickupErrors.join("; ")}`
+        };
+      }
+
+      // Prepare update data with consistent pickup fields
       const updateData: any = {
         status: "committed",
         delivery_method: delivery_method,
+        pickup_type: normalizedPickupType,
         committed_at: new Date().toISOString(),
       };
 
-      // Add locker-specific data
-      if (delivery_method === "locker" && locker_id) {
+      // Add locker-specific data in both locations for consistency
+      if (normalizedPickupType === "locker" && locker_id) {
         updateData.locker_id = locker_id;
+        updateData.pickup_locker_location_id = locker_id;
+        // Update delivery_data with locker info
+        if (order.delivery_data) {
+          updateData.delivery_data = {
+            ...order.delivery_data,
+            delivery_type: "locker",
+            pickup_locker_location_id: locker_id,
+          };
+        }
         // Set earlier payment date (3 days earlier)
         const paymentDate = new Date();
         paymentDate.setDate(paymentDate.getDate() + 4); // 7 days standard - 3 days = 4 days
         updateData.estimated_payment_date = paymentDate.toISOString();
+      } else if (normalizedPickupType === "door") {
+        // Ensure delivery_data reflects door delivery
+        if (order.delivery_data) {
+          updateData.delivery_data = {
+            ...order.delivery_data,
+            delivery_type: "door",
+          };
+        }
       }
 
       // Update order status
