@@ -260,18 +260,8 @@ class FallbackAddressService {
    * Validate and clean address data
    */
   validateAddressData(address: Partial<AddressData>): { isValid: boolean; errors: string[] } {
-    const errors: string[] = [];
-    
-    if (!address.street?.trim()) errors.push('Street address is required');
-    if (!address.city?.trim()) errors.push('City is required');
-    if (!address.province?.trim()) errors.push('Province is required');
-    if (!address.postalCode?.trim()) errors.push('Postal code is required');
-    
-    // Validate postal code format (basic South African postal code validation)
-    if (address.postalCode && !/^\d{4}$/.test(address.postalCode.trim())) {
-      errors.push('Postal code must be 4 digits');
-    }
-
+    // Use the centralized validation utility
+    const errors = validateAddressStructure(address);
     return {
       isValid: errors.length === 0,
       errors
