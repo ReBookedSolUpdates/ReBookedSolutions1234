@@ -97,6 +97,7 @@ const EditBook = () => {
             price: bookData.price,
             category: bookData.category,
             curriculum: bookData.curriculum,
+            isbn: (bookData as any).isbn || "",
             quantity: bookData.availableQuantity || 1,
             frontCover: bookData.frontCover || "",
             backCover: bookData.backCover || "",
@@ -344,20 +345,34 @@ const EditBook = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Curriculum (Optional)</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || ""}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select curriculum (optional)" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {['CAPS', 'Cambridge', 'IEB'].map((c) => (
-                        <SelectItem key={c} value={c}>
+                      {['CAPS', 'Cambridge', 'IEB'].map((c, index) => (
+                        <SelectItem key={`curriculum-${index}`} value={c}>
                           {c}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="isbn"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>ISBN (Optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., 978-0-123456-78-9" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

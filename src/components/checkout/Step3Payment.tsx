@@ -266,6 +266,7 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
         delivery_type: deliveryType,
         delivery_locker_data: normalizedLockerData,
         delivery_locker_location_id: normalizedLockerLocationId,
+        delivery_locker_provider_slug: normalizedLockerData?.provider_slug,
       };
 
       // Normalize pickup data to ensure consistency across all fields
