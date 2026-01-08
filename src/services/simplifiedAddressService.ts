@@ -186,29 +186,34 @@ export const getSellerDeliveryAddress = async (
     });
 
     if (decryptedAddress) {
-      const address = {
-        street: decryptedAddress.streetAddress || decryptedAddress.street || "",
-        city: decryptedAddress.city || "",
-        province: decryptedAddress.province || "",
-        postal_code: decryptedAddress.postalCode || decryptedAddress.postal_code || "",
-        country: "South Africa",
-      };
-      return address;
+      // Normalize the decrypted address to ensure consistency
+      const normalized = normalizeAddressFields(decryptedAddress);
+      if (normalized) {
+        const address: CheckoutAddress = {
+          street: normalized.street,
+          city: normalized.city,
+          province: normalized.province,
+          postal_code: normalized.postalCode,
+          country: normalized.country || "South Africa",
+        };
+        return address;
+      }
     }
-
 
     try {
       const { getSellerPickupAddress } = await import("@/services/addressService");
       const fallbackAddress = await getSellerPickupAddress(sellerId);
       if (fallbackAddress) {
-        const mappedAddress = {
-          street: fallbackAddress.streetAddress || fallbackAddress.street || fallbackAddress.line1 || "",
-          city: fallbackAddress.city || "",
-          province: fallbackAddress.province || fallbackAddress.state || "",
-          postal_code: fallbackAddress.postalCode || fallbackAddress.postal_code || fallbackAddress.zip || "",
-          country: "South Africa",
-        };
-        if (mappedAddress.street && mappedAddress.city && mappedAddress.province && mappedAddress.postal_code) {
+        // Normalize fallback address
+        const normalized = normalizeAddressFields(fallbackAddress);
+        if (normalized) {
+          const mappedAddress: CheckoutAddress = {
+            street: normalized.street,
+            city: normalized.city,
+            province: normalized.province,
+            postal_code: normalized.postalCode,
+            country: normalized.country || "South Africa",
+          };
           return mappedAddress;
         }
       }
