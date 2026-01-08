@@ -61,49 +61,64 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
         throw new Error("User authentication error");
       }
 
-      // Encrypt shipping address
-      const shippingObject = {
-        name: userData.user.user_metadata?.name || "Customer",
-        email: userData.user.email,
-      };
+      // First, try to retrieve the order that was created in Step3Payment by payment reference
+      const { data: existingOrder, error: orderQueryError } = await supabase
+        .from("orders")
+        .select("*")
+        .eq("payment_reference", paymentData.payment_reference)
+        .maybeSingle();
 
-      const { data: encResult, error: encError } = await supabase.functions.invoke(
-        "encrypt-address",
-        { body: { object: shippingObject } }
-      );
+      if (existingOrder) {
+        // Order already exists, just use it
+        setOrderDetails(existingOrder);
+      } else if (!orderQueryError) {
+        // Order doesn't exist yet, create it (fallback for cases where Step3Payment didn't create it)
+        // Encrypt shipping address
+        const shippingObject = {
+          name: userData.user.user_metadata?.name || "Customer",
+          email: userData.user.email,
+        };
 
-      if (encError || !encResult?.success || !encResult?.data) {
-        throw new Error(encError?.message || "Failed to encrypt shipping address");
-      }
+        const { data: encResult, error: encError } = await supabase.functions.invoke(
+          "encrypt-address",
+          { body: { object: shippingObject } }
+        );
 
-      const shipping_address_encrypted = JSON.stringify(encResult.data);
-
-      // Create order via Supabase Edge Function
-      const { data: invokeData, error: invokeError } = await supabase.functions.invoke(
-        "create-order",
-        {
-          body: {
-            buyer_id: paymentData.buyer_id,
-            seller_id: paymentData.seller_id,
-            book_id: paymentData.book_id,
-            delivery_option: paymentData.delivery_method,
-            shipping_address_encrypted,
-            payment_reference: paymentData.payment_reference,
-          },
+        if (encError || !encResult?.success || !encResult?.data) {
+          throw new Error(encError?.message || "Failed to encrypt shipping address");
         }
-      );
 
-      if (invokeError) {
-        throw new Error(invokeError.message || "Failed to invoke create-order function");
+        const shipping_address_encrypted = JSON.stringify(encResult.data);
+
+        // Create order via Supabase Edge Function
+        const { data: invokeData, error: invokeError } = await supabase.functions.invoke(
+          "create-order",
+          {
+            body: {
+              buyer_id: paymentData.buyer_id,
+              seller_id: paymentData.seller_id,
+              book_id: paymentData.book_id,
+              delivery_option: paymentData.delivery_method,
+              shipping_address_encrypted,
+              payment_reference: paymentData.payment_reference,
+            },
+          }
+        );
+
+        if (invokeError) {
+          throw new Error(invokeError.message || "Failed to invoke create-order function");
+        }
+
+        const result = invokeData;
+
+        if (!result?.success) {
+          throw new Error(result?.error || "Failed to create order");
+        }
+
+        setOrderDetails(result.order);
+      } else {
+        throw new Error(orderQueryError.message || "Failed to retrieve order status");
       }
-
-      const result = invokeData;
-
-      if (!result?.success) {
-        throw new Error(result?.error || "Failed to create order");
-      }
-
-      setOrderDetails(result.order);
 
       // Send webhook notification for purchase (non-blocking)
       sendPurchaseWebhook(result.order).catch(err => console.error("Webhook send failed:", err));
