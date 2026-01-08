@@ -239,8 +239,8 @@ export const BookTypeSection = ({
                 <SelectValue placeholder="Select university (optional)" />
               </SelectTrigger>
               <SelectContent>
-                {SOUTH_AFRICAN_UNIVERSITIES_SIMPLE.map((university) => (
-                  <SelectItem key={university.id} value={university.id}>
+                {SOUTH_AFRICAN_UNIVERSITIES_SIMPLE.map((university, index) => (
+                  <SelectItem key={`university-${index}`} value={university.id}>
                     {university.abbreviation} - {university.name}
                   </SelectItem>
                 ))}
