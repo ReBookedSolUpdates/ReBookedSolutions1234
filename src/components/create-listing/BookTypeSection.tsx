@@ -214,8 +214,8 @@ export const BookTypeSection = ({
                 <SelectValue placeholder="Select university year" />
               </SelectTrigger>
               <SelectContent>
-                {UNIVERSITY_YEARS.map((year) => (
-                  <SelectItem key={year} value={year}>
+                {UNIVERSITY_YEARS.map((year, index) => (
+                  <SelectItem key={`year-${index}`} value={year}>
                     {year}
                   </SelectItem>
                 ))}
