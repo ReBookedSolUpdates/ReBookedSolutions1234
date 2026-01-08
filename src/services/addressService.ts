@@ -227,24 +227,9 @@ export const getSellerPickupAddress = async (sellerId: string) => {
 
 export const getUserAddresses = async (userId: string) => {
   try {
-    const mapToAddress = (raw: any) => {
-      if (!raw) return null;
-      return {
-        // normalize common variants
-        street: raw.street ?? raw.streetAddress ?? raw.line1 ?? "",
-        city: raw.city ?? "",
-        province: raw.province ?? raw.state ?? "",
-        postalCode: raw.postalCode ?? raw.postal_code ?? raw.zip ?? "",
-        country: raw.country ?? "South Africa",
-        streetAddress: raw.streetAddress ?? raw.street ?? undefined,
-        instructions: raw.instructions ?? raw.additional_info ?? undefined,
-        additional_info: raw.additional_info ?? undefined,
-      } as any;
-    };
-
     // Decrypt pickup address directly via edge function
-    let pickupAddress: any = null;
-    let shippingAddress: any = null;
+    let pickupAddress: CanonicalAddress | null = null;
+    let shippingAddress: CanonicalAddress | null = null;
 
     try {
       const pickup = await decryptAddress({
@@ -252,7 +237,7 @@ export const getUserAddresses = async (userId: string) => {
         target_id: userId,
         address_type: 'pickup'
       });
-      pickupAddress = mapToAddress(pickup);
+      pickupAddress = normalizeAddressFields(pickup);
     } catch (error) {
       // Failed to get pickup address
     }
@@ -264,7 +249,7 @@ export const getUserAddresses = async (userId: string) => {
         target_id: userId,
         address_type: 'shipping'
       });
-      shippingAddress = mapToAddress(shipping);
+      shippingAddress = normalizeAddressFields(shipping);
     } catch (error) {
       // Failed to get shipping address
     }
