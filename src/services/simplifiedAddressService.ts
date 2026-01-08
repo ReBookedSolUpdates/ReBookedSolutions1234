@@ -253,12 +253,40 @@ export const saveSimpleUserAddresses = async (
   addressesAreSame: boolean = false,
 ) => {
   try {
+    // Validate pickup address
+    const pickupErrors = validateAddressStructure(pickupAddress);
+    if (pickupErrors.length > 0) {
+      throw new Error(`Pickup address invalid: ${pickupErrors.join("; ")}`);
+    }
+
+    // Normalize pickup address
+    const normalizedPickup = normalizeAddressFields(pickupAddress);
+    if (!normalizedPickup) {
+      throw new Error("Failed to normalize pickup address");
+    }
+
+    // Validate and normalize shipping address (if different)
+    let normalizedShipping = normalizedPickup;
+    if (shippingAddress && !addressesAreSame) {
+      const shippingErrors = validateAddressStructure(shippingAddress);
+      if (shippingErrors.length > 0) {
+        throw new Error(`Shipping address invalid: ${shippingErrors.join("; ")}`);
+      }
+
+      const normalized = normalizeAddressFields(shippingAddress);
+      if (!normalized) {
+        throw new Error("Failed to normalize shipping address");
+      }
+      normalizedShipping = normalized;
+    }
+
     let pickupEncrypted = false;
     let shippingEncrypted = false;
 
-    if (pickupAddress) {
+    if (normalizedPickup) {
       try {
-        const result = await encryptAddress(pickupAddress, {
+        const pickupForEncryption = prepareForStorage(normalizedPickup);
+        const result = await encryptAddress(pickupForEncryption as SimpleAddress, {
           save: { table: 'profiles', target_id: userId, address_type: 'pickup' }
         });
         if (result && (result as any).success) {
@@ -268,9 +296,10 @@ export const saveSimpleUserAddresses = async (
       }
     }
 
-    if (shippingAddress && !addressesAreSame) {
+    if (normalizedShipping && !addressesAreSame) {
       try {
-        const result = await encryptAddress(shippingAddress, {
+        const shippingForEncryption = prepareForStorage(normalizedShipping);
+        const result = await encryptAddress(shippingForEncryption as SimpleAddress, {
           save: { table: 'profiles', target_id: userId, address_type: 'shipping' }
         });
         if (result && (result as any).success) {
