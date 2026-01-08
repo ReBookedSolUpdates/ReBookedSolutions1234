@@ -97,6 +97,7 @@ const EditBook = () => {
             price: bookData.price,
             category: bookData.category,
             curriculum: bookData.curriculum,
+            isbn: (bookData as any).isbn || "",
             quantity: bookData.availableQuantity || 1,
             frontCover: bookData.frontCover || "",
             backCover: bookData.backCover || "",
