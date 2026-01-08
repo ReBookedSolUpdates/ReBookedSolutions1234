@@ -167,18 +167,16 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
       const deliveryLockerData = orderSummary.delivery_method === "locker" ? orderSummary.selected_locker : null;
       const deliveryLockerLocationId = orderSummary.delivery_method === "locker" ? orderSummary.selected_locker?.id : null;
 
-      // Step 2: Encrypt the shipping address (only for door deliveries)
+      // Step 2: Normalize and encrypt the shipping address (only for door deliveries)
       let shipping_address_encrypted = "";
       if (deliveryType === "door") {
-        const shippingObject = {
-          streetAddress: orderSummary.buyer_address.street,
-          city: orderSummary.buyer_address.city,
-          province: orderSummary.buyer_address.province,
-          postalCode: orderSummary.buyer_address.postal_code,
-          country: orderSummary.buyer_address.country,
-          phone: orderSummary.buyer_address.phone,
-          additional_info: orderSummary.buyer_address.additional_info,
-        };
+        // Normalize address to ensure consistency
+        const normalized = normalizeAddressFields(orderSummary.buyer_address);
+        if (!normalized) {
+          throw new Error('Invalid shipping address. Please check all required fields.');
+        }
+
+        const shippingObject = prepareForStorage(normalized);
 
         const { data: encResult, error: encError } = await supabase.functions.invoke(
           'encrypt-address',
