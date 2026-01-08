@@ -302,11 +302,9 @@ class FallbackAddressService {
     manualData?: AddressData
   ): AddressData | null {
     if (!googleData && !manualData) return null;
-    
+
     // Prefer Google Maps data for accuracy, fall back to manual
-    const baseData = googleData || manualData!;
-    
-    return {
+    const mergedData = {
       formattedAddress: googleData?.formattedAddress || manualData?.formattedAddress || '',
       street: googleData?.street || manualData?.street || '',
       city: googleData?.city || manualData?.city || '',
@@ -318,6 +316,16 @@ class FallbackAddressService {
       source: googleData ? 'google_maps' : 'manual_entry',
       timestamp: new Date().toISOString(),
     };
+
+    // Normalize province to ensure consistency
+    if (mergedData.province) {
+      const normalizedProvince = normalizeProvinceName(mergedData.province);
+      if (normalizedProvince) {
+        mergedData.province = normalizedProvince;
+      }
+    }
+
+    return mergedData;
   }
 }
 
