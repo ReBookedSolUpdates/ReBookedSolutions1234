@@ -10,6 +10,7 @@ export const BookSchema = z.object({
   university: z.string().optional(),
   grade: z.string().optional(),
   curriculum: z.enum(['CAPS', 'Cambridge', 'IEB']).optional(),
+  isbn: z.string().optional(),
   quantity: z.number().int().min(1, 'Quantity must be at least 1').optional(),
   frontCover: z.string().optional(),
   backCover: z.string().optional(),
