@@ -261,11 +261,11 @@ export const BookTypeSection = ({
               <SelectValue placeholder="Select a genre" />
             </SelectTrigger>
             <SelectContent>
-              {Object.entries(GENRE_CATEGORIES).map(([category, genres]) => (
-                <SelectGroup key={category}>
+              {Object.entries(GENRE_CATEGORIES).map(([category, genres], catIndex) => (
+                <SelectGroup key={`genre-group-${catIndex}`}>
                   <SelectLabel>{category}</SelectLabel>
-                  {genres.map((genre) => (
-                    <SelectItem key={genre} value={genre}>
+                  {genres.map((genre, genreIndex) => (
+                    <SelectItem key={`genre-${catIndex}-${genreIndex}`} value={genre}>
                       {genre}
                     </SelectItem>
                   ))}
