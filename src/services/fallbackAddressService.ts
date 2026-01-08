@@ -1,5 +1,11 @@
 import { supabase } from '@/lib/supabase';
 import { AddressData } from '@/hooks/useAddressFallback';
+import {
+  validateAddressStructure,
+  normalizeAddressFields,
+  normalizeProvinceName,
+  normalizeProvinceCode,
+} from '@/utils/addressNormalizationUtils';
 
 export interface StoredAddress {
   id: string;
