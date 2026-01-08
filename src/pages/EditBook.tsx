@@ -344,7 +344,7 @@ const EditBook = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Curriculum (Optional)</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || ""}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select curriculum (optional)" />
@@ -358,6 +358,20 @@ const EditBook = () => {
                       ))}
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="isbn"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>ISBN (Optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., 978-0-123456-78-9" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
