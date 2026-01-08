@@ -18,6 +18,7 @@ export interface Book {
   universityYear?: string;
   university?: string;
   curriculum?: 'CAPS' | 'Cambridge' | 'IEB';
+  isbn?: string;
   universityBookType?: 'Study Guide' | 'Course Book';
   genre?: string;
   province?: string;
