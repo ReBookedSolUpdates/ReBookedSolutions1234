@@ -374,6 +374,8 @@ const CreateListing = () => {
         insidePages: "",
         additionalImages: [],
         quantity: 1,
+        curriculum: undefined,
+        isbn: undefined,
       });
 
       setBookImages({
