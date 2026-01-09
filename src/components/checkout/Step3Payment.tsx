@@ -269,17 +269,40 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
         delivery_locker_provider_slug: normalizedLockerData?.provider_slug,
       };
 
-      // Normalize pickup data to ensure consistency across all fields
-      const normalizedOrderData = normalizePickupData(orderData, deliveryType, normalizedLockerData);
+      // Step 3.1: Call create-order edge function for atomic order creation with idempotency
+      // This is the ONLY place orders should be created - the edge function handles idempotency checks
+      const createOrderPayload = {
+        buyer_id: userId,
+        seller_id: orderSummary.book.seller_id,
+        book_id: orderSummary.book.id,
+        delivery_option: orderSummary.delivery.service_name,
+        shipping_address_encrypted: shipping_address_encrypted || "",
+        payment_reference: customPaymentId,
+        selected_courier_slug: orderSummary.delivery.provider_slug || orderSummary.delivery.courier,
+        selected_service_code: orderSummary.delivery.service_level_code || "",
+        selected_courier_name: orderSummary.delivery.provider_name || orderSummary.delivery.courier,
+        selected_service_name: orderSummary.delivery.service_name,
+        selected_shipping_cost: orderSummary.delivery_price,
+        delivery_type: deliveryType,
+        delivery_locker_data: normalizedLockerData,
+        delivery_locker_location_id: normalizedLockerLocationId,
+        delivery_locker_provider_slug: normalizedLockerData?.provider_slug,
+      };
 
-      const { data: createdOrder, error: orderError } = await supabase
-        .from("orders")
-        .insert([normalizedOrderData])
-        .select()
-        .single();
+      const { data: createOrderResult, error: createOrderError } = await supabase.functions.invoke(
+        'create-order',
+        { body: createOrderPayload }
+      );
 
-      if (orderError) {
-        throw new Error(`Failed to create order: ${orderError.message}`);
+      if (createOrderError || !createOrderResult?.success) {
+        throw new Error(
+          createOrderError?.message || createOrderResult?.error || 'Failed to create order'
+        );
+      }
+
+      const createdOrder = createOrderResult.order;
+      if (!createdOrder?.id) {
+        throw new Error('No order ID returned from create-order function');
       }
 
       // Register order creation for idempotency tracking
