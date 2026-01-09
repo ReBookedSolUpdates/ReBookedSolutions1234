@@ -731,7 +731,17 @@ const Profile = () => {
                                       }}
                                       className="border-slate-300 text-slate-700 hover:bg-slate-50"
                                     >
-                                      <X className="h-4 w-4 mr-1" /> Decline
+                                      {isDeclining ? (
+                                        <>
+                                          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                          Declining...
+                                        </>
+                                      ) : (
+                                        <>
+                                          <X className="h-4 w-4 mr-1" />
+                                          Decline
+                                        </>
+                                      )}
                                     </Button>
                                   </div>
                                 </div>
