@@ -218,6 +218,7 @@ const BookListing = () => {
 
   const clearFilters = useCallback(() => {
     setSearchQuery("");
+    setIsbn("");
     setSelectedCategory("");
     setSelectedCondition("");
     setSelectedGrade("");
