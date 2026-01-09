@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Package, User, MapPin, ArrowRight, X } from "lucide-react";
+import { Package, User, MapPin, ArrowRight, X, CheckCircle } from "lucide-react";
 import { CheckoutBook, CheckoutAddress } from "@/types/checkout";
 import { supabase } from "@/integrations/supabase/client";
 
