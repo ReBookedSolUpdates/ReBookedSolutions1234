@@ -31,6 +31,7 @@ import {
   ShoppingBag,
   X,
   CheckCircle,
+  Loader2,
 } from "lucide-react";
 import { getUserBooks } from "@/services/book/bookQueries";
 import { deleteBook } from "@/services/book/bookMutations";
@@ -291,10 +292,12 @@ const Profile = () => {
                       <div className="flex items-center gap-1">
                         <Calendar className="w-4 h-4" />
                         Joined{" "}
-                        {new Date().toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "long",
-                        })}
+                        {profile?.created_at
+                          ? new Date(profile.created_at).toLocaleDateString("en-US", {
+                              year: "numeric",
+                              month: "long",
+                            })
+                          : "Unknown"}
                       </div>
                     </div>
                   </div>
@@ -729,7 +732,17 @@ const Profile = () => {
                                       }}
                                       className="border-slate-300 text-slate-700 hover:bg-slate-50"
                                     >
-                                      <X className="h-4 w-4 mr-1" /> Decline
+                                      {isDeclining ? (
+                                        <>
+                                          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                          Declining...
+                                        </>
+                                      ) : (
+                                        <>
+                                          <X className="h-4 w-4 mr-1" />
+                                          Decline
+                                        </>
+                                      )}
                                     </Button>
                                   </div>
                                 </div>

@@ -366,18 +366,16 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       const hasLockerOption = !!sellerLockerData;
       const hasHomeDeliveryOption = !!buyerAddress || !!sellerAddress;
 
-      // Auto-select delivery method if only one option is available
+      // Auto-select delivery method - default to locker when available
       let autoDeliveryMethod: "locker" | "home" | null = null;
 
-      if (hasLockerOption && !hasHomeDeliveryOption) {
-        // Only locker available - auto-select it
-        // User will still select their specific locker in step 2
+      if (hasLockerOption) {
+        // Prefer locker if available
         autoDeliveryMethod = "locker";
-      } else if (hasHomeDeliveryOption && !hasLockerOption) {
-        // Only home delivery available - auto-select it
+      } else if (hasHomeDeliveryOption) {
+        // Fall back to home delivery if locker is not available
         autoDeliveryMethod = "home";
       }
-      // If both options are available, let user choose (autoDeliveryMethod stays null)
 
       setCheckoutState((prev) => ({
         ...prev,
@@ -420,17 +418,15 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   };
 
   const goToStep = (step: 1 | 2 | 3 | 4 | 5) => {
-    // Auto-skip Step 2 (delivery method) only if home delivery is auto-selected
-    // We need to keep step 2 visible for locker selection when locker is the method
-    const targetStep = step === 2 && checkoutState.delivery_method === "home" ? 3 : step;
-
+    // Always show all steps - no auto-skipping
+    // Users should see the delivery method selection step
     setCheckoutState((prev) => ({
       ...prev,
       step: {
-        current: targetStep,
-        completed: prev.step.completed.includes(targetStep - 1)
+        current: step,
+        completed: prev.step.completed.includes(step - 1)
           ? prev.step.completed
-          : [...prev.step.completed, targetStep - 1].filter((s) => s > 0),
+          : [...prev.step.completed, step - 1].filter((s) => s > 0),
       },
     }));
   };

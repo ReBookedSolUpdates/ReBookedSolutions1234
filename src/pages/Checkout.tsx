@@ -222,6 +222,8 @@ const Checkout: React.FC = () => {
         price: typeof bookData.price === "number" ? bookData.price : 0,
         condition: bookData.condition || "Unknown",
         isbn: bookData.isbn || undefined,
+        description: bookData.description || undefined,
+        category: bookData.category || undefined,
         image_url:
           bookData.frontCover ||
           bookData.image_url ||

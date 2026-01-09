@@ -18,6 +18,8 @@ export interface CheckoutBook {
   condition: string;
   isbn?: string;
   image_url?: string;
+  description?: string;
+  category?: string;
   seller_id: string;
   seller_name?: string;
   seller_subaccount_code?: string;

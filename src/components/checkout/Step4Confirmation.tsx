@@ -143,14 +143,25 @@ const Step4Confirmation: React.FC<Step4ConfirmationProps> = ({
 
           <Separator />
 
-          {/* 📄 Receipt Data as Specified */}
+          {/* 📚 Book Details - Enhanced */}
           <div>
-            <h3 className="font-medium mb-2">📚 Book Details</h3>
-            <div className="bg-gray-50 rounded-lg p-3">
-              <p className="font-medium">{orderData.book_title}</p>
-              <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mt-2">
-                <span>Book ID: {orderData.book_id}</span>
-                <span>R{orderData.book_price.toFixed(2)}</span>
+            <h3 className="font-medium mb-2 flex items-center gap-2">
+              <Package className="w-4 h-4" />
+              📚 Book Details
+            </h3>
+            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200 space-y-3">
+              <div>
+                <p className="font-bold text-base text-gray-900">{orderData.book_title}</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div className="bg-white rounded p-2">
+                  <p className="text-xs text-gray-600 font-semibold uppercase">Book ID</p>
+                  <p className="font-mono text-sm text-gray-800 mt-1">{orderData.book_id}</p>
+                </div>
+                <div className="bg-white rounded p-2">
+                  <p className="text-xs text-gray-600 font-semibold uppercase">Price</p>
+                  <p className="text-base font-bold text-green-600 mt-1">R{orderData.book_price.toFixed(2)}</p>
+                </div>
               </div>
             </div>
           </div>

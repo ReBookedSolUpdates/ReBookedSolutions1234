@@ -152,7 +152,7 @@ export const BookTypeSection = ({
         )}
       </div>
 
-      {(bookType === "school" || bookType === "university") && (
+      {bookType === "school" && (
         <div>
           <Label htmlFor="curriculum" className="text-base font-medium">
             Curriculum <span className="text-gray-400">(Optional)</span>

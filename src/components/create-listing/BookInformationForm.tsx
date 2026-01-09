@@ -105,16 +105,17 @@ export const BookInformationForm = ({
           htmlFor="isbn"
           className={`${isMobile ? "text-sm" : "text-base"} font-medium`}
         >
-          ISBN <span className="text-gray-400">(Optional)</span>
+          ISBN <span className="text-red-500">*</span>
         </Label>
         <Input
           id="isbn"
           name="isbn"
           value={(formData as any).isbn || ""}
           onChange={onInputChange}
-          placeholder="Enter ISBN (e.g., 978-0-123456-78-9)"
+          placeholder="Enter ISBN (e.g., 9780123456789)"
           className={`${errors.isbn ? "border-red-500" : ""} ${isMobile ? "h-12 text-base" : ""}`}
           style={{ fontSize: isMobile ? "16px" : undefined }}
+          required
         />
         {errors.isbn && (
           <p

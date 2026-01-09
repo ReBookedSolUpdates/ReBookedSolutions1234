@@ -55,7 +55,7 @@ function isValidISBN13(isbn: string): boolean {
  * @returns true if valid ISBN
  */
 function isValidISBN(isbn: string): boolean {
-  if (!isbn) return true; // Optional field
+  if (!isbn) return false; // Required field
 
   const normalized = normalizeISBN(isbn);
   return isValidISBN10(normalized) || isValidISBN13(normalized);
@@ -72,14 +72,14 @@ export const BookSchema = z.object({
   grade: z.string().optional(),
   curriculum: z.enum(['CAPS', 'Cambridge', 'IEB']).optional(),
   isbn: z.string()
-    .optional()
+    .min(1, 'ISBN is required')
     .refine(
-      (isbn) => !isbn || isValidISBN(isbn),
+      (isbn) => isValidISBN(isbn),
       {
         message: 'ISBN must be a valid ISBN-10 or ISBN-13 (with or without hyphens)'
       }
     )
-    .transform((isbn) => isbn ? normalizeISBN(isbn) : undefined),
+    .transform((isbn) => normalizeISBN(isbn)),
   quantity: z.number().int().min(1, 'Quantity must be at least 1').optional(),
   frontCover: z.string().optional(),
   backCover: z.string().optional(),
