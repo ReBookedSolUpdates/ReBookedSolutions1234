@@ -366,18 +366,16 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       const hasLockerOption = !!sellerLockerData;
       const hasHomeDeliveryOption = !!buyerAddress || !!sellerAddress;
 
-      // Auto-select delivery method if only one option is available
+      // Auto-select delivery method - default to locker when available
       let autoDeliveryMethod: "locker" | "home" | null = null;
 
-      if (hasLockerOption && !hasHomeDeliveryOption) {
-        // Only locker available - auto-select it
-        // User will still select their specific locker in step 2
+      if (hasLockerOption) {
+        // Prefer locker if available
         autoDeliveryMethod = "locker";
-      } else if (hasHomeDeliveryOption && !hasLockerOption) {
-        // Only home delivery available - auto-select it
+      } else if (hasHomeDeliveryOption) {
+        // Fall back to home delivery if locker is not available
         autoDeliveryMethod = "home";
       }
-      // If both options are available, let user choose (autoDeliveryMethod stays null)
 
       setCheckoutState((prev) => ({
         ...prev,
