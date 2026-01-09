@@ -531,27 +531,37 @@ const Step2DeliveryOptions: React.FC<Step2DeliveryOptionsProps> = ({
       )}
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between items-center pt-6">
+      <div className="flex justify-between items-center gap-3 pt-6 border-t">
+        <Button
+          variant="outline"
+          onClick={onBack}
+          className="py-2 px-4"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          <span className="hidden sm:inline">Back</span>
+          <span className="sm:hidden">←</span>
+        </Button>
+
         <div className="flex gap-3">
           {onCancel && (
-            <Button variant="ghost" onClick={onCancel}>
+            <Button
+              variant="ghost"
+              onClick={onCancel}
+              className="py-2 px-4"
+            >
               <X className="w-4 h-4 mr-2" />
-              Cancel
+              <span className="hidden sm:inline">Cancel</span>
             </Button>
           )}
-          <Button variant="outline" onClick={onBack}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
+          <Button
+            onClick={() => localSelectedDelivery && onSelectDelivery(localSelectedDelivery)}
+            disabled={!localSelectedDelivery}
+            className="py-2 px-4 bg-blue-600 hover:bg-blue-700"
+          >
+            Next: Payment
+            <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </div>
-
-        <Button
-          onClick={() => localSelectedDelivery && onSelectDelivery(localSelectedDelivery)}
-          disabled={!localSelectedDelivery}
-        >
-          Next: Payment
-          <ArrowRight className="w-4 h-4 ml-2" />
-        </Button>
       </div>
     </div>
   );
