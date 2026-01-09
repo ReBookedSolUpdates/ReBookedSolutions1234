@@ -103,47 +103,6 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         throw new Error("Invalid book data - missing required fields");
       }
 
-      // Get seller profile separately
-      const { data: sellerProfile, error: sellerError } = await supabase
-        .from("profiles")
-        .select("id, first_name, last_name, email")
-        .eq("id", bookData.seller_id)
-        .maybeSingle();
-
-      if (sellerError) {
-      }
-
-      // Get seller subaccount code if available (but don't require it)
-      // Sellers can proceed even if they haven't completed banking setup
-      let sellerSubaccountCode = bookData.seller_subaccount_code;
-
-      if (!sellerSubaccountCode) {
-        // Try to fetch subaccount if available, but continue without it if not
-        try {
-          const { data: subaccount, error: subError } = await supabase
-            .from("banking_subaccounts")
-            .select("subaccount_code")
-            .eq("user_id", bookData.seller_id)
-            .maybeSingle();
-
-          if (!subError && subaccount?.subaccount_code) {
-            sellerSubaccountCode = subaccount.subaccount_code;
-
-            // Update the book with the subaccount code for future purchases (non-blocking)
-            try {
-              await supabase
-                .from("books")
-                .update({ seller_subaccount_code: sellerSubaccountCode })
-                .eq("id", bookData.id);
-            } catch (updateError) {
-            }
-          } else {
-          }
-        } catch (error) {
-          // Continue without subaccount code
-        }
-      }
-
       // Validate seller_id first
       if (!bookData.seller_id) {
         throw new Error("Book has no seller_id - this book listing is corrupted");
@@ -153,50 +112,93 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         throw new Error(`Invalid seller_id format: ${bookData.seller_id} (type: ${typeof bookData.seller_id})`);
       }
 
-      // Get seller address using the proper service that handles encryption
-      const sellerAddress = await getSellerDeliveryAddress(bookData.seller_id);
-
-      // Fetch seller's preferred pickup method and locker data
+      // Initialize variables for seller data
+      let sellerProfile = null;
+      let sellerSubaccountCode = bookData.seller_subaccount_code;
+      let sellerAddress = null;
       let sellerLockerData = null;
       let sellerPreferredPickupMethod: "locker" | "pickup" | null = null;
 
-      try {
-        const { data: profile, error: profileError } = await supabase
+      // OPTIMIZATION: Parallelize independent seller data fetches using Promise.allSettled
+      // These calls don't depend on each other, so we fetch them concurrently
+      const [
+        sellerProfileResult,
+        subaccountResult,
+        sellerAddressResult,
+        sellerProfileForLockerResult,
+      ] = await Promise.allSettled([
+        // 1. Fetch seller profile (basic info)
+        supabase
+          .from("profiles")
+          .select("id, first_name, last_name, email")
+          .eq("id", bookData.seller_id)
+          .maybeSingle(),
+        // 2. Fetch subaccount (for payment, non-critical)
+        supabase
+          .from("banking_subaccounts")
+          .select("subaccount_code")
+          .eq("user_id", bookData.seller_id)
+          .maybeSingle(),
+        // 3. Fetch seller address (encrypted, may be slow)
+        getSellerDeliveryAddress(bookData.seller_id),
+        // 4. Fetch seller locker preference (in parallel with address)
+        supabase
           .from("profiles")
           .select("preferred_delivery_locker_data, preferred_pickup_method")
           .eq("id", bookData.seller_id)
-          .maybeSingle();
+          .maybeSingle(),
+      ]);
 
-        if (!profileError && profile) {
-          // Load preferred pickup method
-          if (profile.preferred_pickup_method) {
-            sellerPreferredPickupMethod = profile.preferred_pickup_method;
-          }
+      // Process seller profile result
+      if (sellerProfileResult.status === 'fulfilled' && sellerProfileResult.value.data) {
+        sellerProfile = sellerProfileResult.value.data;
+      }
 
-          // Only load locker if preferred method is locker
-          if (profile.preferred_pickup_method === "locker" && profile.preferred_delivery_locker_data) {
-            const lockerData = profile.preferred_delivery_locker_data as any;
-            if (lockerData.id && lockerData.name && lockerData.provider_slug) {
-              sellerLockerData = lockerData;
-            }
-          }
+      // Process subaccount result (non-critical)
+      if (subaccountResult.status === 'fulfilled' && subaccountResult.value.data?.subaccount_code) {
+        sellerSubaccountCode = subaccountResult.value.data.subaccount_code;
+        // Update the book with the subaccount code for future purchases (fire-and-forget, non-blocking)
+        supabase
+          .from("books")
+          .update({ seller_subaccount_code: sellerSubaccountCode })
+          .eq("id", bookData.id)
+          .catch(() => {}); // Silently ignore update errors
+      }
 
-          // Fallback: if no preferred method set but has locker, use locker as preference
-          if (!sellerPreferredPickupMethod && profile.preferred_delivery_locker_data) {
-            const lockerData = profile.preferred_delivery_locker_data as any;
-            if (lockerData.id && lockerData.name && lockerData.provider_slug) {
-              sellerLockerData = lockerData;
-              sellerPreferredPickupMethod = "locker";
-            }
+      // Process seller address result
+      if (sellerAddressResult.status === 'fulfilled') {
+        sellerAddress = sellerAddressResult.value;
+      }
+
+      // Process seller locker preference result
+      if (sellerProfileForLockerResult.status === 'fulfilled' && sellerProfileForLockerResult.value.data) {
+        const profile = sellerProfileForLockerResult.value.data;
+        // Load preferred pickup method
+        if (profile.preferred_pickup_method) {
+          sellerPreferredPickupMethod = profile.preferred_pickup_method;
+        }
+
+        // Only load locker if preferred method is locker
+        if (profile.preferred_pickup_method === "locker" && profile.preferred_delivery_locker_data) {
+          const lockerData = profile.preferred_delivery_locker_data as any;
+          if (lockerData.id && lockerData.name && lockerData.provider_slug) {
+            sellerLockerData = lockerData;
           }
         }
-      } catch (error) {
-        // Default to pickup method if we have an address, otherwise locker
-        if (sellerAddress) {
-          sellerPreferredPickupMethod = "pickup";
-        } else {
-          sellerPreferredPickupMethod = "locker";
+
+        // Fallback: if no preferred method set but has locker, use locker as preference
+        if (!sellerPreferredPickupMethod && profile.preferred_delivery_locker_data) {
+          const lockerData = profile.preferred_delivery_locker_data as any;
+          if (lockerData.id && lockerData.name && lockerData.provider_slug) {
+            sellerLockerData = lockerData;
+            sellerPreferredPickupMethod = "locker";
+          }
         }
+      }
+
+      // Default to pickup method if we have an address, otherwise locker
+      if (!sellerPreferredPickupMethod) {
+        sellerPreferredPickupMethod = sellerAddress ? "pickup" : "locker";
       }
 
       if (!sellerAddress && !sellerLockerData) {
