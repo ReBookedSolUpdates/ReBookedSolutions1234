@@ -434,6 +434,67 @@ const OrderActionsPanel: React.FC<OrderActionsPanelProps> = ({
               </AlertDescription>
             </Alert>
           </div>
+
+          {/* Cancel Order Button - positioned below track shipment section */}
+          <div className="mt-4 space-y-3">
+            {canCancelOrder && (
+              <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+                <DialogTrigger asChild>
+                  <Button variant="destructive" className="w-full">
+                    <X className="w-4 h-4 mr-2" />
+                    Cancel Order
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Cancel Order</DialogTitle>
+                    <DialogDescription>
+                      Are you sure you want to cancel this order? {userRole === "buyer" ? "You will receive a full refund." : "The buyer will be refunded."}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <Alert className="border-amber-300 bg-amber-50">
+                      <AlertTriangle className="h-4 w-4 text-amber-600" />
+                      <AlertDescription className="text-sm text-amber-800 ml-2">
+                        <strong>Important:</strong> Once the courier collects this order, you will <strong>no longer be able to cancel it</strong>. Please cancel immediately if you've changed your mind.
+                      </AlertDescription>
+                    </Alert>
+                    <div>
+                      <label className="text-sm font-medium">Reason (optional)</label>
+                      <Textarea
+                        placeholder={userRole === "buyer" ? "Please let us know why you're cancelling..." : "Please explain the cancellation..."}
+                        value={cancelReason}
+                        onChange={(e) => setCancelReason(e.target.value)}
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" onClick={() => setShowCancelDialog(false)} className="flex-1">
+                        Keep Order
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={userRole === "buyer" ? handleBuyerCancel : handleSellerCancel}
+                        disabled={isLoading}
+                        className="flex-1"
+                      >
+                        {isLoading ? "Cancelling..." : "Confirm Cancel"}
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+
+            {/* Message when order cannot be cancelled */}
+            {!canCancelOrder && !showMissedPickupActions && (
+              <Alert className="border-orange-300 bg-orange-50">
+                <AlertTriangle className="h-4 w-4 text-orange-600 flex-shrink-0" />
+                <AlertDescription className="text-sm text-orange-800 ml-2">
+                  <strong>Cannot Cancel:</strong> This order has already been collected by the courier and is in transit. If you need to make changes, please contact our support team.
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>
