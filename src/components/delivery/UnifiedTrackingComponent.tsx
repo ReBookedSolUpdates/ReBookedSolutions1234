@@ -18,10 +18,8 @@ import {
   User,
   Phone,
   Building2,
-  Info,
-  ChevronDown,
-  ChevronUp,
   Copy,
+  Info,
 } from "lucide-react";
 import {
   trackUnifiedShipment,
