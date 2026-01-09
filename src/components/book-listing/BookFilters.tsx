@@ -238,6 +238,23 @@ const BookFilters = ({
             </div>
           </form>
 
+          {/* ISBN Filter */}
+          <div className="mb-6">
+            <Label
+              htmlFor="isbn"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              ISBN
+            </Label>
+            <Input
+              id="isbn"
+              placeholder="Search by ISBN..."
+              value={isbn}
+              onChange={(e) => setIsbn(e.target.value)}
+              className="w-full"
+            />
+          </div>
+
           {/* Book Type Filter */}
           <div className="mb-6">
             <h3 className="text-sm font-medium text-gray-700 mb-2">
