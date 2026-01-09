@@ -68,15 +68,16 @@ const OrderActionsPanel: React.FC<OrderActionsPanelProps> = ({
   const [selectedRescheduleTime, setSelectedRescheduleTime] = useState("");
   const [paymentProcessing, setPaymentProcessing] = useState(false);
 
-  // Orders can ONLY be cancelled if status is "created"
-  // Blocked statuses: ['collected', 'in transit', 'out for delivery', 'delivered', 'committed']
+  // Orders can be cancelled UNLESS delivery_status is "collected" or beyond
+  // Non-cancellable statuses: ['collected', 'picked_up', 'in_transit', 'out_for_delivery', 'delivered', 'ready_for_pickup', 'ready']
   const orderStatusLower = (order.status || "").toLowerCase();
   const deliveryStatusLower = (order.delivery_status || "").toLowerCase();
 
-  // Can cancel only if delivery_status is "created"
-  const canCancelOrder = deliveryStatusLower === "created" ||
-                         (deliveryStatusLower === "" && orderStatusLower === "pending_commit") ||
-                         (deliveryStatusLower === "" && orderStatusLower === "pending");
+  // Cannot cancel if delivery_status is collected or any status after it
+  const nonCancellableStatuses = ["collected", "picked_up", "in_transit", "out_for_delivery", "delivered", "ready_for_pickup", "ready"];
+  const isCancelledOrCompleted = ["cancelled", "completed"].includes(orderStatusLower);
+
+  const canCancelOrder = !nonCancellableStatuses.includes(deliveryStatusLower) && !isCancelledOrCompleted;
 
   const showMissedPickupActions = userRole === "seller" && order.delivery_status === "pickup_failed";
 
@@ -284,65 +285,6 @@ const OrderActionsPanel: React.FC<OrderActionsPanelProps> = ({
           </div>
         </div>
 
-        {/* Cancel Order Button - Only available if delivery_status is "created" */}
-        {canCancelOrder && (
-          <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-            <DialogTrigger asChild>
-              <Button variant="destructive" className="w-full">
-                <X className="w-4 h-4 mr-2" />
-                Cancel Order
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Cancel Order</DialogTitle>
-                <DialogDescription>
-                  Are you sure you want to cancel this order? {userRole === "buyer" ? "You will receive a full refund." : "The buyer will be refunded."}
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <Alert className="border-amber-300 bg-amber-50">
-                  <AlertTriangle className="h-4 w-4 text-amber-600" />
-                  <AlertDescription className="text-sm text-amber-800 ml-2">
-                    <strong>Note:</strong> Once the book is collected by the courier, you will no longer be able to cancel this order. Please cancel as soon as possible.
-                  </AlertDescription>
-                </Alert>
-                <div>
-                  <label className="text-sm font-medium">Reason (optional)</label>
-                  <Textarea
-                    placeholder={userRole === "buyer" ? "Please let us know why you're cancelling..." : "Please explain the cancellation..."}
-                    value={cancelReason}
-                    onChange={(e) => setCancelReason(e.target.value)}
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => setShowCancelDialog(false)} className="flex-1">
-                    Keep Order
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={userRole === "buyer" ? handleBuyerCancel : handleSellerCancel}
-                    disabled={isLoading}
-                    className="flex-1"
-                  >
-                    {isLoading ? "Cancelling..." : "Confirm Cancel"}
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        )}
-
-        {/* Message when order cannot be cancelled */}
-        {!canCancelOrder && !showMissedPickupActions && (
-          <Alert className="border-blue-300 bg-blue-50">
-            <Info className="h-4 w-4 text-blue-600 flex-shrink-0" />
-            <AlertDescription className="text-sm text-blue-800 ml-2">
-              This order cannot be cancelled as it has already been submitted to the courier. For assistance, please contact our support team.
-            </AlertDescription>
-          </Alert>
-        )}
-
         {/* Missed Pickup Actions */}
         {showMissedPickupActions && (
           <div className="space-y-3">
@@ -491,6 +433,67 @@ const OrderActionsPanel: React.FC<OrderActionsPanelProps> = ({
                 )}
               </AlertDescription>
             </Alert>
+          </div>
+
+          {/* Cancel Order Button - positioned below track shipment section */}
+          <div className="mt-4 space-y-3">
+            {canCancelOrder && (
+              <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+                <DialogTrigger asChild>
+                  <Button variant="destructive" className="w-full">
+                    <X className="w-4 h-4 mr-2" />
+                    Cancel Order
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Cancel Order</DialogTitle>
+                    <DialogDescription>
+                      Are you sure you want to cancel this order? {userRole === "buyer" ? "You will receive a full refund." : "The buyer will be refunded."}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <Alert className="border-amber-300 bg-amber-50">
+                      <AlertTriangle className="h-4 w-4 text-amber-600" />
+                      <AlertDescription className="text-sm text-amber-800 ml-2">
+                        <strong>Important:</strong> Once the courier collects this order, you will <strong>no longer be able to cancel it</strong>. Please cancel immediately if you've changed your mind.
+                      </AlertDescription>
+                    </Alert>
+                    <div>
+                      <label className="text-sm font-medium">Reason (optional)</label>
+                      <Textarea
+                        placeholder={userRole === "buyer" ? "Please let us know why you're cancelling..." : "Please explain the cancellation..."}
+                        value={cancelReason}
+                        onChange={(e) => setCancelReason(e.target.value)}
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" onClick={() => setShowCancelDialog(false)} className="flex-1">
+                        Keep Order
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={userRole === "buyer" ? handleBuyerCancel : handleSellerCancel}
+                        disabled={isLoading}
+                        className="flex-1"
+                      >
+                        {isLoading ? "Cancelling..." : "Confirm Cancel"}
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+
+            {/* Message when order cannot be cancelled */}
+            {!canCancelOrder && !showMissedPickupActions && (
+              <Alert className="border-orange-300 bg-orange-50">
+                <AlertTriangle className="h-4 w-4 text-orange-600 flex-shrink-0" />
+                <AlertDescription className="text-sm text-orange-800 ml-2">
+                  <strong>Cannot Cancel:</strong> This order has already been collected by the courier and is in transit. If you need to make changes, please contact our support team.
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
         </div>
       </CardContent>
