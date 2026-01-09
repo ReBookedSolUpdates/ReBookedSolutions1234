@@ -116,9 +116,12 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
   const isCartCheckout = cartData && cartData.items && cartData.items.length >= 1;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6 px-4 sm:px-0">
-      <div className="text-center mb-4 sm:mb-8">
-        <h1 className="text-xl sm:text-3xl font-bold text-gray-900 mb-2">Order Summary</h1>
+    <div className="max-w-3xl mx-auto space-y-6 px-3 sm:px-0">
+      <div className="text-center mb-6 sm:mb-10">
+        <div className="inline-block px-3 py-1 bg-blue-100 rounded-full mb-3">
+          <span className="text-sm font-medium text-blue-700">Step 1 of 4</span>
+        </div>
+        <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-2">Order Summary</h1>
         <p className="text-sm sm:text-base text-gray-600">
           {isCartCheckout
             ? `Review your ${cartData.items.length} books from ${cartData.sellerName}`
@@ -128,10 +131,10 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
       </div>
 
       {/* Book Details Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Package className="w-5 h-5" />
+      <Card className="border-l-4 border-l-blue-500 shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <Package className="w-5 h-5 text-blue-600" />
             {isCartCheckout ? `Books in Your Order (${cartData.items.length})` : 'Book Details'}
           </CardTitle>
         </CardHeader>
