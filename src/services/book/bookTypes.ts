@@ -1,5 +1,6 @@
 export interface BookFilters {
   search?: string;
+  isbn?: string;
   category?: string;
   condition?: string;
   grade?: string;
