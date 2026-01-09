@@ -338,13 +338,12 @@ Time: ${new Date().toISOString()}
     window.open(mailtoLink, "_blank");
   };
 
-  // Get user email for payment
+  // Get user email for payment (use cached authUser from AuthContext)
   const getUserEmail = async () => {
-    const { data: userData, error } = await supabase.auth.getUser();
-    if (error || !userData.user?.email) {
+    if (!authUser || !authUser.email) {
       throw new Error("User authentication error");
     }
-    return userData.user.email;
+    return authUser.email;
   };
 
 
