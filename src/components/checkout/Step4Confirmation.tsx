@@ -114,30 +114,30 @@ const Step4Confirmation: React.FC<Step4ConfirmationProps> = ({
       </div>
 
       {/* Order Details Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Package className="w-5 h-5" />
+      <Card className="border-l-4 border-l-green-500 shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-xl">
+            <Package className="w-5 h-5 text-green-600" />
             Order Confirmation
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <p className="font-medium text-gray-600">Order ID</p>
-              <p className="font-mono">{orderData.order_id}</p>
+        <CardContent className="space-y-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="bg-gray-50 rounded-lg p-3">
+              <p className="text-xs font-semibold text-gray-600 uppercase">Order ID</p>
+              <p className="font-mono font-bold text-sm mt-1">{orderData.order_id}</p>
             </div>
-            <div>
-              <p className="font-medium text-gray-600">Payment Reference</p>
-              <p className="font-mono">{orderData.payment_reference}</p>
+            <div className="bg-gray-50 rounded-lg p-3">
+              <p className="text-xs font-semibold text-gray-600 uppercase">Payment Reference</p>
+              <p className="font-mono text-sm mt-1">{orderData.payment_reference}</p>
             </div>
-            <div>
-              <p className="font-medium text-gray-600">Order Date</p>
-              <p>{new Date(orderData.created_at).toLocaleDateString()}</p>
+            <div className="bg-gray-50 rounded-lg p-3">
+              <p className="text-xs font-semibold text-gray-600 uppercase">Order Date</p>
+              <p className="text-sm font-medium mt-1">{new Date(orderData.created_at).toLocaleDateString()}</p>
             </div>
-            <div>
-              <p className="font-medium text-gray-600">Status</p>
-              {getStatusBadge(orderData.status)}
+            <div className="bg-gray-50 rounded-lg p-3">
+              <p className="text-xs font-semibold text-gray-600 uppercase">Status</p>
+              <div className="mt-1">{getStatusBadge(orderData.status)}</div>
             </div>
           </div>
 
