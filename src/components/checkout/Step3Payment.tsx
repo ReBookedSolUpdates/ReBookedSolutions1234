@@ -116,8 +116,8 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
     setProcessing(true);
     setError(null);
     try {
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError || !userData.user?.email) {
+      // Use cached user from AuthContext instead of calling supabase.auth.getUser() again
+      if (!authUser || !authUser.email) {
         throw new Error("User authentication error");
       }
 
