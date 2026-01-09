@@ -126,8 +126,9 @@ export const saveUserAddresses = async (
     }
 
     // First validate addresses (keep existing validation) - skip validation if pickup is deleted
+    let result: any = { canListBooks: false };
     if (!isPickupDeleted) {
-      const result = await updateAddressValidation(
+      result = await updateAddressValidation(
         userId,
         normalizedPickup,
         normalizedShipping,
