@@ -58,6 +58,7 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
   userId,
   onCouponChange,
 }) => {
+  const { user: authUser } = useAuth();
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<PaymentError | null>(null);
   const [userEmail, setUserEmail] = useState<string>("");
