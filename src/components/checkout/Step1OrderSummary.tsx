@@ -207,43 +207,32 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
       </Card>
 
       {/* Seller Information Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="w-5 h-5" />
+      <Card className="border-l-4 border-l-green-500 shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <User className="w-5 h-5 text-green-600" />
             Seller Information
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            <div>
-              <p className="font-medium">
+          <div className="space-y-4">
+            <div className="bg-gray-50 rounded-lg p-4">
+              <p className="font-semibold text-gray-900 text-lg">
                 {isCartCheckout
                   ? (sellerCartFullNames[cartData.sellerId] || cartData.sellerName)
                   : (sellerFullName || book.seller_name)
                 }
               </p>
-              <p className="text-sm text-gray-600">
-                Seller ID: {isCartCheckout ? cartData.sellerId : book.seller_id}
+              <p className="text-sm text-gray-600 mt-1">
+                ID: <span className="font-mono text-gray-700">{isCartCheckout ? cartData.sellerId : book.seller_id}</span>
               </p>
               {isCartCheckout && (
-                <p className="text-sm text-blue-600 mt-1">
-                  ✅ All {cartData.items.length} books are from this seller
-                </p>
+                <div className="flex items-center gap-1 text-sm text-green-700 font-medium mt-2">
+                  <CheckCircle className="w-4 h-4" />
+                  All {cartData.items.length} books from this seller
+                </div>
               )}
             </div>
-
-            {sellerAddress && (
-              <div className="flex items-start gap-2">
-                <MapPin className="w-4 h-4 mt-1 text-gray-500" />
-                <div>
-                  <p className="text-sm font-medium">Location</p>
-                  <p className="text-sm text-gray-600">
-                    {sellerAddress.province}
-                  </p>
-                </div>
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>
