@@ -336,10 +336,10 @@ const OrderActionsPanel: React.FC<OrderActionsPanelProps> = ({
 
         {/* Message when order cannot be cancelled */}
         {!canCancelOrder && !showMissedPickupActions && (
-          <Alert className="border-blue-300 bg-blue-50">
-            <Info className="h-4 w-4 text-blue-600 flex-shrink-0" />
-            <AlertDescription className="text-sm text-blue-800 ml-2">
-              This order cannot be cancelled as it has already been submitted to the courier. For assistance, please contact our support team.
+          <Alert className="border-orange-300 bg-orange-50">
+            <AlertTriangle className="h-4 w-4 text-orange-600 flex-shrink-0" />
+            <AlertDescription className="text-sm text-orange-800 ml-2">
+              <strong>Cannot Cancel:</strong> This order has already been collected by the courier and is in transit. If you need to make changes, please contact our support team.
             </AlertDescription>
           </Alert>
         )}
