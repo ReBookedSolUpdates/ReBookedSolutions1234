@@ -378,8 +378,8 @@ export const updateBooksPickupAddress = async (
       };
     }
 
-    // Encrypt address for each book (use normalized address to ensure consistency)
-    const addressForEncryption = prepareForStorage(normalizedAddress);
+    // Encrypt address for each book (use comprehensive encryption preparation)
+    const addressForEncryption = prepareAddressForEncryption(normalizedAddress);
     const encryptPromises = books.map(book =>
       encryptAddress(addressForEncryption, {
         save: {
