@@ -402,7 +402,7 @@ export function canonicalToCamelCase(
 /**
  * Convert canonical address to a format suitable for database storage
  * Includes both full names and codes for province
- * 
+ *
  * @param address - Canonical address
  * @returns Normalized address ready for storage
  */
@@ -410,4 +410,75 @@ export function prepareForStorage(
   address: CanonicalAddress
 ): CanonicalAddress {
   return ensureCompleteProvince(address);
+}
+
+/**
+ * Prepare address for encryption - comprehensive helper that:
+ * - Accepts any address object with any field naming convention
+ * - Normalizes all field names to camelCase
+ * - Preserves optional fields (complex, unitNumber, suburb)
+ * - Ensures complete province data
+ * - Validates required fields are present
+ * - Returns standardized payload ready for encryption
+ *
+ * This is the RECOMMENDED function to use before calling encrypt-address
+ *
+ * @param rawAddress - Address object with any field naming conventions
+ * @returns Standardized address object with all fields in camelCase, ready for encryption
+ * @throws Error if required fields are missing or invalid
+ */
+export function prepareAddressForEncryption(
+  rawAddress: RawAddress | CanonicalAddress | null | undefined
+): Record<string, any> {
+  if (!rawAddress || typeof rawAddress !== "object") {
+    throw new Error("Address is required");
+  }
+
+  // First normalize the required fields using existing logic
+  const normalized = normalizeAddressFields(rawAddress);
+  if (!normalized) {
+    throw new Error("Failed to normalize address - check all required fields");
+  }
+
+  // Ensure complete province data
+  const withProvince = ensureCompleteProvince(normalized);
+
+  // Build the encryption payload in camelCase format
+  const encryptionPayload: Record<string, any> = {
+    street: withProvince.street,
+    city: withProvince.city,
+    province: withProvince.province,
+    provinceCode: withProvince.provinceCode,
+    postalCode: withProvince.postalCode,
+    country: withProvince.country || "South Africa",
+  };
+
+  // Add optional fields if present in the original address
+  const phone = (rawAddress as any).phone || (rawAddress as any).phone_number;
+  if (phone && typeof phone === "string" && phone.trim()) {
+    encryptionPayload.phone = phone.trim();
+  }
+
+  const additionalInfo = (rawAddress as any).additionalInfo || (rawAddress as any).additional_info;
+  if (additionalInfo && typeof additionalInfo === "string" && additionalInfo.trim()) {
+    encryptionPayload.additionalInfo = additionalInfo.trim();
+  }
+
+  // Preserve optional address components if present (complex, unitNumber, suburb)
+  const complex = (rawAddress as any).complex;
+  if (complex && typeof complex === "string" && complex.trim()) {
+    encryptionPayload.complex = complex.trim();
+  }
+
+  const unitNumber = (rawAddress as any).unitNumber || (rawAddress as any).unit_number;
+  if (unitNumber && typeof unitNumber === "string" && unitNumber.trim()) {
+    encryptionPayload.unitNumber = unitNumber.trim();
+  }
+
+  const suburb = (rawAddress as any).suburb;
+  if (suburb && typeof suburb === "string" && suburb.trim()) {
+    encryptionPayload.suburb = suburb.trim();
+  }
+
+  return encryptionPayload;
 }

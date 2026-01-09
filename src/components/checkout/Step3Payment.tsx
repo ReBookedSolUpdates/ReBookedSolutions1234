@@ -17,6 +17,7 @@ import { AppliedCoupon } from "@/types/coupon";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/contexts/AuthContext";
 import PaymentErrorHandler, {
   classifyPaymentError,
   PaymentError,
@@ -37,6 +38,7 @@ import {
 import {
   normalizeAddressFields,
   prepareForStorage,
+  prepareAddressForEncryption,
 } from "@/utils/addressNormalizationUtils";
 
 interface Step3PaymentProps {
@@ -56,6 +58,7 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
   userId,
   onCouponChange,
 }) => {
+  const { user: authUser } = useAuth();
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<PaymentError | null>(null);
   const [userEmail, setUserEmail] = useState<string>("");
@@ -113,8 +116,8 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
     setProcessing(true);
     setError(null);
     try {
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError || !userData.user?.email) {
+      // Use cached user from AuthContext instead of calling supabase.auth.getUser() again
+      if (!authUser || !authUser.email) {
         throw new Error("User authentication error");
       }
 
@@ -138,24 +141,28 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
       }
       const baseUrl = window.location.origin;
 
-      // Step 1: Fetch buyer and seller profiles for denormalized data
-      const { data: buyerProfile, error: buyerError } = await supabase
-        .from("profiles")
-        .select("id, full_name, name, first_name, last_name, email, phone_number")
-        .eq("id", userId)
-        .single();
+      // Step 1: Fetch buyer and seller profiles for denormalized data (in parallel)
+      const [buyerProfileResult, sellerProfileResult] = await Promise.allSettled([
+        supabase
+          .from("profiles")
+          .select("id, full_name, name, first_name, last_name, email, phone_number")
+          .eq("id", userId)
+          .single(),
+        supabase
+          .from("profiles")
+          .select("id, full_name, name, first_name, last_name, email, phone_number, pickup_address_encrypted")
+          .eq("id", orderSummary.book.seller_id)
+          .single(),
+      ]);
 
-      if (buyerError || !buyerProfile) {
+      const buyerProfile = buyerProfileResult.status === 'fulfilled' ? buyerProfileResult.value.data : null;
+      const sellerProfile = sellerProfileResult.status === 'fulfilled' ? sellerProfileResult.value.data : null;
+
+      if (!buyerProfile) {
         throw new Error("Failed to fetch buyer profile");
       }
 
-      const { data: sellerProfile, error: sellerError } = await supabase
-        .from("profiles")
-        .select("id, full_name, name, first_name, last_name, email, phone_number, pickup_address_encrypted")
-        .eq("id", orderSummary.book.seller_id)
-        .single();
-
-      if (sellerError || !sellerProfile) {
+      if (!sellerProfile) {
         throw new Error("Failed to fetch seller profile");
       }
 
@@ -167,27 +174,30 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
       const deliveryLockerData = orderSummary.delivery_method === "locker" ? orderSummary.selected_locker : null;
       const deliveryLockerLocationId = orderSummary.delivery_method === "locker" ? orderSummary.selected_locker?.id : null;
 
-      // Step 2: Normalize and encrypt the shipping address (only for door deliveries)
+      // Step 2: Prepare and encrypt the shipping address (only for door deliveries)
       let shipping_address_encrypted = "";
       if (deliveryType === "door") {
-        // Normalize address to ensure consistency
-        const normalized = normalizeAddressFields(orderSummary.buyer_address);
-        if (!normalized) {
-          throw new Error('Invalid shipping address. Please check all required fields.');
+        try {
+          // Use comprehensive address preparation that preserves all fields
+          const shippingObject = prepareAddressForEncryption(orderSummary.buyer_address);
+
+          const { data: encResult, error: encError } = await supabase.functions.invoke(
+            'encrypt-address',
+            { body: { object: shippingObject } }
+          );
+
+          if (encError || !encResult?.success || !encResult?.data) {
+            throw new Error(encError?.message || 'Failed to encrypt shipping address');
+          }
+
+          shipping_address_encrypted = JSON.stringify(encResult.data);
+        } catch (addrError) {
+          throw new Error(
+            addrError instanceof Error
+              ? addrError.message
+              : 'Invalid shipping address. Please check all required fields.'
+          );
         }
-
-        const shippingObject = prepareForStorage(normalized);
-
-        const { data: encResult, error: encError } = await supabase.functions.invoke(
-          'encrypt-address',
-          { body: { object: shippingObject } }
-        );
-
-        if (encError || !encResult?.success || !encResult?.data) {
-          throw new Error(encError?.message || 'Failed to encrypt shipping address');
-        }
-
-        shipping_address_encrypted = JSON.stringify(encResult.data);
       }
 
       // Step 3: Create the order (before payment)
@@ -196,71 +206,18 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
       const normalizedLockerData = deliveryLockerData ? normalizeLockerData(deliveryLockerData) : null;
       const normalizedLockerLocationId = normalizedLockerData?.location_id || null;
 
-      const orderData = {
-        buyer_email: buyerProfile.email || userData.user.email,
-        buyer_full_name: buyerFullName,
-        seller_id: orderSummary.book.seller_id,
-        seller_email: sellerProfile.email || "",
-        seller_full_name: sellerFullName,
-        buyer_phone_number: buyerProfile.phone_number || "",
-        seller_phone_number: sellerProfile.phone_number || "",
-        pickup_address_encrypted: sellerProfile.pickup_address_encrypted || "",
-        amount: Math.round(orderSummary.total_price * 100),
-        status: "pending",
-        payment_reference: customPaymentId,
+      // Step 3.1: Call create-order edge function for atomic order creation with idempotency
+      // This is the ONLY place orders should be created - the edge function handles idempotency checks
+      const createOrderPayload = {
         buyer_id: userId,
+        seller_id: orderSummary.book.seller_id,
         book_id: orderSummary.book.id,
         delivery_option: orderSummary.delivery.service_name,
-        payment_status: "pending",
-
-        items: [
-          {
-            type: "book",
-            book_id: orderSummary.book.id,
-            book_title: orderSummary.book.title,
-            price: Math.round(orderSummary.book_price * 100),
-            quantity: 1,
-            condition: orderSummary.book.condition,
-            seller_id: orderSummary.book.seller_id,
-          },
-        ],
-
-        shipping_address_encrypted,
-
-        // Top-level pickup fields for consistency
-        pickup_type: deliveryType,
-        pickup_locker_location_id: normalizedLockerLocationId,
-        pickup_locker_data: normalizedLockerData,
-        pickup_locker_provider_slug: normalizedLockerData?.provider_slug,
-
-        delivery_data: {
-          delivery_method: orderSummary.delivery.service_name,
-          delivery_price: Math.round(orderSummary.delivery_price * 100),
-          courier: orderSummary.delivery.courier,
-          estimated_days: orderSummary.delivery.estimated_days,
-          pickup_address: orderSummary.seller_address,
-          pickup_locker_data: normalizedLockerData,
-          pickup_locker_location_id: normalizedLockerLocationId,
-          delivery_quote: orderSummary.delivery,
-          delivery_type: deliveryType,
-        },
-
-        metadata: {
-          buyer_id: userId,
-          platform_fee: 2000,
-          seller_amount: Math.round(orderSummary.book_price * 100) - 2000,
-          original_total: orderSummary.total_price,
-          original_book_price: orderSummary.book_price,
-          original_delivery_price: orderSummary.delivery_price,
-          coupon_code: orderSummary.coupon_code || null,
-          coupon_discount: orderSummary.coupon_discount ? Math.round(orderSummary.coupon_discount * 100) : null,
-          original_book_price_before_discount: orderSummary.subtotal_before_discount ? Math.round(orderSummary.subtotal_before_discount * 100) : null,
-        },
-
-        total_amount: orderSummary.total_price,
-        selected_courier_name: orderSummary.delivery.provider_name || orderSummary.delivery.courier,
+        shipping_address_encrypted: shipping_address_encrypted || "",
+        payment_reference: customPaymentId,
         selected_courier_slug: orderSummary.delivery.provider_slug || orderSummary.delivery.courier,
         selected_service_code: orderSummary.delivery.service_level_code || "",
+        selected_courier_name: orderSummary.delivery.provider_name || orderSummary.delivery.courier,
         selected_service_name: orderSummary.delivery.service_name,
         selected_shipping_cost: orderSummary.delivery_price,
         delivery_type: deliveryType,
@@ -269,17 +226,20 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
         delivery_locker_provider_slug: normalizedLockerData?.provider_slug,
       };
 
-      // Normalize pickup data to ensure consistency across all fields
-      const normalizedOrderData = normalizePickupData(orderData, deliveryType, normalizedLockerData);
+      const { data: createOrderResult, error: createOrderError } = await supabase.functions.invoke(
+        'create-order',
+        { body: createOrderPayload }
+      );
 
-      const { data: createdOrder, error: orderError } = await supabase
-        .from("orders")
-        .insert([normalizedOrderData])
-        .select()
-        .single();
+      if (createOrderError || !createOrderResult?.success) {
+        throw new Error(
+          createOrderError?.message || createOrderResult?.error || 'Failed to create order'
+        );
+      }
 
-      if (orderError) {
-        throw new Error(`Failed to create order: ${orderError.message}`);
+      const createdOrder = createOrderResult.order;
+      if (!createdOrder?.id) {
+        throw new Error('No order ID returned from create-order function');
       }
 
       // Register order creation for idempotency tracking
@@ -300,7 +260,7 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
       const paymentRequest = {
         order_id: createdOrder.id,
         amount: orderSummary.total_price,
-        email: buyerProfile.email || userData.user.email,
+        email: buyerProfile.email || authUser.email,
         mobile_number: buyerProfile.phone_number || "",
         item_name: orderSummary.book.title,
         item_description: `Book purchase - ${orderSummary.book.author || "Unknown Author"}`,
@@ -378,13 +338,12 @@ Time: ${new Date().toISOString()}
     window.open(mailtoLink, "_blank");
   };
 
-  // Get user email for payment
+  // Get user email for payment (use cached authUser from AuthContext)
   const getUserEmail = async () => {
-    const { data: userData, error } = await supabase.auth.getUser();
-    if (error || !userData.user?.email) {
+    if (!authUser || !authUser.email) {
       throw new Error("User authentication error");
     }
-    return userData.user.email;
+    return authUser.email;
   };
 
 

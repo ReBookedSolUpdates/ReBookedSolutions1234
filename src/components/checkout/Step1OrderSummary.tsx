@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Package, User, MapPin, ArrowRight, X } from "lucide-react";
+import { Package, User, MapPin, ArrowRight, X, CheckCircle } from "lucide-react";
 import { CheckoutBook, CheckoutAddress } from "@/types/checkout";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -48,21 +48,18 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
   useEffect(() => {
     loadCartData();
 
-    // Listen for storage events to detect cart changes
+    // Listen for storage events to detect cart changes (cross-tab or same-tab updates)
     const handleStorageChange = (e) => {
-      if (e.key === 'checkoutCart') {
+      if (e.key === 'checkoutCart' || !e.key) {
+        // Reload cart data when checkoutCart specifically changes or on any storage change
         loadCartData();
       }
     };
 
     window.addEventListener('storage', handleStorageChange);
 
-    // Also check for changes every 100ms for same-tab updates
-    const interval = setInterval(loadCartData, 100);
-
     return () => {
       window.removeEventListener('storage', handleStorageChange);
-      clearInterval(interval);
     };
   }, []);
 
@@ -119,9 +116,12 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
   const isCartCheckout = cartData && cartData.items && cartData.items.length >= 1;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6 px-4 sm:px-0">
-      <div className="text-center mb-4 sm:mb-8">
-        <h1 className="text-xl sm:text-3xl font-bold text-gray-900 mb-2">Order Summary</h1>
+    <div className="max-w-3xl mx-auto space-y-6 px-3 sm:px-0">
+      <div className="text-center mb-6 sm:mb-10">
+        <div className="inline-block px-3 py-1 bg-blue-100 rounded-full mb-3">
+          <span className="text-sm font-medium text-blue-700">Step 1 of 4</span>
+        </div>
+        <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-2">Order Summary</h1>
         <p className="text-sm sm:text-base text-gray-600">
           {isCartCheckout
             ? `Review your ${cartData.items.length} books from ${cartData.sellerName}`
@@ -131,75 +131,76 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
       </div>
 
       {/* Book Details Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Package className="w-5 h-5" />
+      <Card className="border-l-4 border-l-blue-500 shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <Package className="w-5 h-5 text-blue-600" />
             {isCartCheckout ? `Books in Your Order (${cartData.items.length})` : 'Book Details'}
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           {isCartCheckout && cartData ? (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {cartData.items.map((item: any, index: number) => (
-                <div key={item.id || index} className={`flex flex-col sm:flex-row gap-3 sm:gap-4 ${index > 0 ? 'pt-4 border-t' : ''}`}>
-                  <div className="w-16 h-20 sm:w-20 sm:h-26 flex-shrink-0 mx-auto sm:mx-0">
+                <div key={item.id || index} className={`flex gap-4 p-3 rounded-lg bg-gray-50 ${index > 0 ? '' : ''}`}>
+                  <div className="w-16 h-22 flex-shrink-0">
                     <img
                       src={item.imageUrl || item.image_url || "/placeholder.svg"}
                       alt={item.title || "Book cover"}
-                      className="w-full h-full object-cover rounded-lg border"
+                      className="w-full h-full object-cover rounded border"
                       onError={(e) => {
                         e.currentTarget.src = "/placeholder.svg";
                       }}
                     />
                   </div>
-                  <div className="flex-1 text-center sm:text-left">
-                    <h3 className="text-sm sm:text-base font-semibold mb-1">{item.title}</h3>
-                    <p className="text-xs sm:text-sm text-gray-600 mb-2">by {item.author}</p>
-                    <div className="text-lg sm:text-xl font-bold text-green-600">
-                      R{item.price.toFixed(2)}
+                  <div className="flex-1 flex flex-col justify-between">
+                    <div>
+                      <h3 className="font-semibold text-sm sm:text-base text-gray-900">{item.title}</h3>
+                      <p className="text-xs sm:text-sm text-gray-600">by {item.author}</p>
                     </div>
+                    <p className="text-base sm:text-lg font-bold text-green-600">
+                      R{item.price.toFixed(2)}
+                    </p>
                   </div>
                 </div>
               ))}
-              <div className="border-t pt-4 mt-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-lg font-semibold">Total Amount:</span>
-                  <span className="text-xl sm:text-2xl font-bold text-green-600">
+              <div className="border-t pt-4 mt-2">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-semibold text-gray-900">Total ({cartData.items.length} items):</span>
+                  <span className="text-xl font-bold text-green-600">
                     R{cartData.totalPrice.toFixed(2)}
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                  {cartData.items.length} books from {cartData.sellerName}
-                </p>
               </div>
             </div>
           ) : (
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-              <div className="w-20 h-24 sm:w-24 sm:h-32 flex-shrink-0 mx-auto sm:mx-0">
+            <div className="flex gap-4 p-4 bg-gray-50 rounded-lg">
+              <div className="w-20 h-28 flex-shrink-0">
                 <img
                   src={book.image_url || book.imageUrl || "/placeholder.svg"}
                   alt={book.title || "Book cover"}
-                  className="w-full h-full object-cover rounded-lg border bg-gray-100"
+                  className="w-full h-full object-cover rounded border bg-gray-100"
                   onError={(e) => {
                     e.currentTarget.src = "/placeholder.svg";
                   }}
                 />
               </div>
-              <div className="flex-1 text-center sm:text-left">
-                <h3 className="text-base sm:text-lg font-semibold mb-2">{book.title}</h3>
-                <p className="text-sm sm:text-base text-gray-600 mb-2">by {book.author}</p>
-                <div className="flex items-center justify-center sm:justify-start gap-2 mb-3 flex-wrap">
-                  <Badge variant="outline" className="text-xs sm:text-sm">{book.condition}</Badge>
-                  {book.isbn && (
-                    <span className="text-xs sm:text-sm text-gray-500">
-                      ISBN: {book.isbn}
-                    </span>
-                  )}
+              <div className="flex-1 flex flex-col justify-between">
+                <div>
+                  <h3 className="font-semibold text-base sm:text-lg text-gray-900">{book.title}</h3>
+                  <p className="text-sm text-gray-600 mb-2">by {book.author}</p>
+                  <div className="flex gap-2 flex-wrap">
+                    <Badge variant="outline" className="text-xs">{book.condition}</Badge>
+                    {book.isbn && (
+                      <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded">
+                        ISBN: {book.isbn}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div className="text-xl sm:text-2xl font-bold text-green-600">
+                <p className="text-lg sm:text-2xl font-bold text-green-600">
                   R{book.price.toFixed(2)}
-                </div>
+                </p>
               </div>
             </div>
           )}
@@ -207,54 +208,43 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
       </Card>
 
       {/* Seller Information Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="w-5 h-5" />
+      <Card className="border-l-4 border-l-green-500 shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <User className="w-5 h-5 text-green-600" />
             Seller Information
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            <div>
-              <p className="font-medium">
+          <div className="space-y-4">
+            <div className="bg-gray-50 rounded-lg p-4">
+              <p className="font-semibold text-gray-900 text-lg">
                 {isCartCheckout
                   ? (sellerCartFullNames[cartData.sellerId] || cartData.sellerName)
                   : (sellerFullName || book.seller_name)
                 }
               </p>
-              <p className="text-sm text-gray-600">
-                Seller ID: {isCartCheckout ? cartData.sellerId : book.seller_id}
+              <p className="text-sm text-gray-600 mt-1">
+                ID: <span className="font-mono text-gray-700">{isCartCheckout ? cartData.sellerId : book.seller_id}</span>
               </p>
               {isCartCheckout && (
-                <p className="text-sm text-blue-600 mt-1">
-                  ✅ All {cartData.items.length} books are from this seller
-                </p>
+                <div className="flex items-center gap-1 text-sm text-green-700 font-medium mt-2">
+                  <CheckCircle className="w-4 h-4" />
+                  All {cartData.items.length} books from this seller
+                </div>
               )}
             </div>
-
-            {sellerAddress && (
-              <div className="flex items-start gap-2">
-                <MapPin className="w-4 h-4 mt-1 text-gray-500" />
-                <div>
-                  <p className="text-sm font-medium">Location</p>
-                  <p className="text-sm text-gray-600">
-                    {sellerAddress.province}
-                  </p>
-                </div>
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>
 
       {/* Action Buttons */}
-      <div className="flex justify-between items-center pt-6">
+      <div className="flex gap-3 pt-8 border-t">
         <Button
           onClick={onCancel}
           variant="outline"
           disabled={loading}
-          className="px-6 py-3"
+          className="flex-1 px-6 py-3 text-base"
         >
           <X className="w-4 h-4 mr-2" />
           Cancel
@@ -263,14 +253,14 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
         <Button
           onClick={onNext}
           disabled={loading}
-          className="px-8 py-3 text-lg"
+          className="flex-1 px-8 py-3 text-base font-semibold bg-blue-600 hover:bg-blue-700"
           size="lg"
         >
           {loading ? (
             "Loading..."
           ) : (
             <>
-              Next: Delivery Options
+              Proceed
               <ArrowRight className="w-5 h-5 ml-2" />
             </>
           )}
