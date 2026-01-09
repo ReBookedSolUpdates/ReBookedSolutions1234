@@ -260,7 +260,7 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
       const paymentRequest = {
         order_id: createdOrder.id,
         amount: orderSummary.total_price,
-        email: buyerProfile.email || userData.user.email,
+        email: buyerProfile.email || authUser.email,
         mobile_number: buyerProfile.phone_number || "",
         item_name: orderSummary.book.title,
         item_description: `Book purchase - ${orderSummary.book.author || "Unknown Author"}`,
