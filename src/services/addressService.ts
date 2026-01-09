@@ -81,10 +81,23 @@ export const saveUserAddresses = async (
   addressesSame: boolean,
 ) => {
   try {
-    // Validate address structure before encryption
-    const pickupErrors = validateAddressStructure(pickupAddress);
-    if (pickupErrors.length > 0) {
-      throw new Error(`Pickup address invalid: ${pickupErrors.join("; ")}`);
+    // Check if pickup address is intentionally being deleted (all fields empty)
+    const isPickupDeleted =
+      pickupAddress &&
+      !pickupAddress.street &&
+      !pickupAddress.streetAddress &&
+      !pickupAddress.street_address &&
+      !pickupAddress.city &&
+      !pickupAddress.province &&
+      !pickupAddress.postalCode &&
+      !pickupAddress.postal_code;
+
+    // Validate address structure before encryption (skip if being deleted)
+    if (!isPickupDeleted) {
+      const pickupErrors = validateAddressStructure(pickupAddress);
+      if (pickupErrors.length > 0) {
+        throw new Error(`Pickup address invalid: ${pickupErrors.join("; ")}`);
+      }
     }
 
     if (!addressesSame) {
