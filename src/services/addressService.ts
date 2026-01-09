@@ -10,6 +10,7 @@ import {
   normalizeProvinceCode,
   CanonicalAddress,
   prepareForStorage,
+  prepareAddressForEncryption,
 } from "@/utils/addressNormalizationUtils";
 
 interface Address {
