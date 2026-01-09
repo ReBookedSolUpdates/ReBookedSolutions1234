@@ -68,15 +68,16 @@ const OrderActionsPanel: React.FC<OrderActionsPanelProps> = ({
   const [selectedRescheduleTime, setSelectedRescheduleTime] = useState("");
   const [paymentProcessing, setPaymentProcessing] = useState(false);
 
-  // Orders can ONLY be cancelled if status is "created"
-  // Blocked statuses: ['collected', 'in transit', 'out for delivery', 'delivered', 'committed']
+  // Orders can be cancelled UNLESS delivery_status is "collected" or beyond
+  // Non-cancellable statuses: ['collected', 'picked_up', 'in_transit', 'out_for_delivery', 'delivered', 'ready_for_pickup', 'ready']
   const orderStatusLower = (order.status || "").toLowerCase();
   const deliveryStatusLower = (order.delivery_status || "").toLowerCase();
 
-  // Can cancel only if delivery_status is "created"
-  const canCancelOrder = deliveryStatusLower === "created" ||
-                         (deliveryStatusLower === "" && orderStatusLower === "pending_commit") ||
-                         (deliveryStatusLower === "" && orderStatusLower === "pending");
+  // Cannot cancel if delivery_status is collected or any status after it
+  const nonCancellableStatuses = ["collected", "picked_up", "in_transit", "out_for_delivery", "delivered", "ready_for_pickup", "ready"];
+  const isCancelledOrCompleted = ["cancelled", "completed"].includes(orderStatusLower);
+
+  const canCancelOrder = !nonCancellableStatuses.includes(deliveryStatusLower) && !isCancelledOrCompleted;
 
   const showMissedPickupActions = userRole === "seller" && order.delivery_status === "pickup_failed";
 
