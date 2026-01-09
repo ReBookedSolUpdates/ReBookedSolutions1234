@@ -5,6 +5,7 @@ import {
   normalizeAddressFields,
   validateAddressStructure,
   prepareForStorage,
+  prepareAddressForEncryption,
   canonicalToCamelCase,
   CanonicalAddress,
 } from "@/utils/addressNormalizationUtils";
