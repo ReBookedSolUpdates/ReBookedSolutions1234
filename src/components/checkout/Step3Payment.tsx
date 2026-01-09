@@ -141,24 +141,28 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
       }
       const baseUrl = window.location.origin;
 
-      // Step 1: Fetch buyer and seller profiles for denormalized data
-      const { data: buyerProfile, error: buyerError } = await supabase
-        .from("profiles")
-        .select("id, full_name, name, first_name, last_name, email, phone_number")
-        .eq("id", userId)
-        .single();
+      // Step 1: Fetch buyer and seller profiles for denormalized data (in parallel)
+      const [buyerProfileResult, sellerProfileResult] = await Promise.allSettled([
+        supabase
+          .from("profiles")
+          .select("id, full_name, name, first_name, last_name, email, phone_number")
+          .eq("id", userId)
+          .single(),
+        supabase
+          .from("profiles")
+          .select("id, full_name, name, first_name, last_name, email, phone_number, pickup_address_encrypted")
+          .eq("id", orderSummary.book.seller_id)
+          .single(),
+      ]);
 
-      if (buyerError || !buyerProfile) {
+      const buyerProfile = buyerProfileResult.status === 'fulfilled' ? buyerProfileResult.value.data : null;
+      const sellerProfile = sellerProfileResult.status === 'fulfilled' ? sellerProfileResult.value.data : null;
+
+      if (!buyerProfile) {
         throw new Error("Failed to fetch buyer profile");
       }
 
-      const { data: sellerProfile, error: sellerError } = await supabase
-        .from("profiles")
-        .select("id, full_name, name, first_name, last_name, email, phone_number, pickup_address_encrypted")
-        .eq("id", orderSummary.book.seller_id)
-        .single();
-
-      if (sellerError || !sellerProfile) {
+      if (!sellerProfile) {
         throw new Error("Failed to fetch seller profile");
       }
 
