@@ -238,12 +238,12 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
       </Card>
 
       {/* Action Buttons */}
-      <div className="flex justify-between items-center pt-6">
+      <div className="flex gap-3 pt-8 border-t">
         <Button
           onClick={onCancel}
           variant="outline"
           disabled={loading}
-          className="px-6 py-3"
+          className="flex-1 px-6 py-3 text-base"
         >
           <X className="w-4 h-4 mr-2" />
           Cancel
@@ -252,14 +252,14 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
         <Button
           onClick={onNext}
           disabled={loading}
-          className="px-8 py-3 text-lg"
+          className="flex-1 px-8 py-3 text-base font-semibold bg-blue-600 hover:bg-blue-700"
           size="lg"
         >
           {loading ? (
             "Loading..."
           ) : (
             <>
-              Next: Delivery Options
+              Proceed
               <ArrowRight className="w-5 h-5 ml-2" />
             </>
           )}
