@@ -99,17 +99,17 @@ const Step4Confirmation: React.FC<Step4ConfirmationProps> = ({
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-3xl mx-auto space-y-6 px-3 sm:px-0">
       {/* Success Header */}
-      <div className="text-center mb-8">
-        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <CheckCircle className="w-8 h-8 text-green-600" />
+      <div className="text-center mb-10">
+        <div className="w-20 h-20 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+          <CheckCircle className="w-10 h-10 text-green-600" />
         </div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Payment Successful!
+        <h1 className="text-4xl font-bold text-gray-900 mb-3">
+          Payment Successful! 🎉
         </h1>
-        <p className="text-gray-600">
-          Thank you for your purchase. Your order has been confirmed.
+        <p className="text-lg text-gray-600">
+          Thank you for your purchase. Your order has been confirmed and the seller has been notified.
         </p>
       </div>
 
