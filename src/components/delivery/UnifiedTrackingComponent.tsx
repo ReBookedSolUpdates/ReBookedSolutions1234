@@ -16,6 +16,12 @@ import {
   ExternalLink,
   Calendar,
   User,
+  Phone,
+  Building2,
+  Info,
+  ChevronDown,
+  ChevronUp,
+  Copy,
 } from "lucide-react";
 import {
   trackUnifiedShipment,
@@ -40,6 +46,7 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
     useState<UnifiedTrackingResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showRawData, setShowRawData] = useState(false);
 
   useEffect(() => {
     if (initialTrackingNumber) {
@@ -72,7 +79,6 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
       setLoading(false);
     }
   };
-
 
   const getStatusIcon = (status: string) => {
     const normalizedStatus = (status || "").toLowerCase().replace(/_/g, "-");
@@ -151,15 +157,6 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
     }
   };
 
-  const getProviderIcon = (provider: string) => {
-    switch (provider) {
-      case "bobgo":
-        return <Truck className="h-8 w-8 text-blue-600" />;
-      default:
-        return <Package className="h-8 w-8 text-gray-600" />;
-    }
-  };
-
   const formatDateTime = (dateString: string) => {
     try {
       const date = new Date(dateString);
@@ -173,6 +170,11 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
     } catch {
       return dateString;
     }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Copied to clipboard");
   };
 
   return (
@@ -258,40 +260,158 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
       {/* Tracking Results */}
       {trackingData && (
         <div className="space-y-6">
-          {/* Status Overview */}
+          {/* Simulated Data Warning */}
+          {trackingData.simulated && (
+            <div className="bg-amber-50 border-2 border-amber-200 rounded-lg p-3 sm:p-4 flex items-start gap-2 sm:gap-3">
+              <Info className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="min-w-0">
+                <p className="font-semibold text-amber-900 text-xs sm:text-sm">Simulated Data</p>
+                <p className="text-amber-700 text-xs mt-1">
+                  This is demonstration data. Real tracking will be available once BobGo API key is configured.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Courier Header with Logo */}
           <Card className="border-0 shadow-lg overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100">
+            <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 border-b border-blue-100">
               <CardHeader className="p-4 sm:p-6">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-                  <div className="flex items-start sm:items-center space-x-3 flex-1 min-w-0">
-                    <div className="bg-white rounded-full p-2 sm:p-3 shadow-md flex-shrink-0">
-                      {getProviderIcon(trackingData.provider)}
-                    </div>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                  {/* Courier Logo and Info */}
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                    {trackingData.courier_logo ? (
+                      <img
+                        src={trackingData.courier_logo}
+                        alt={trackingData.courier_name || "Courier"}
+                        className="h-16 w-16 sm:h-20 sm:w-20 object-contain rounded-lg border border-gray-200 bg-white p-1 flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-lg border border-gray-300 bg-white flex items-center justify-center flex-shrink-0">
+                        <Truck className="h-8 w-8 sm:h-10 sm:w-10 text-gray-400" />
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
-                      <CardTitle className="text-lg sm:text-2xl font-bold text-gray-900 truncate">
-                        {trackingData.courier_name ? trackingData.courier_name : trackingData.provider === "bobgo" ? "Bob Go" : "Shipment"}
-                      </CardTitle>
-                      <p className="text-gray-600 text-xs sm:text-sm mt-1 break-all">
-                        Tracking: <span className="font-mono font-semibold text-gray-900">{trackingData.tracking_number}</span>
-                      </p>
-                      {trackingData.merchant_name && (
-                        <p className="text-gray-500 text-xs mt-1 truncate">
-                          {trackingData.merchant_name}
+                      <h2 className="text-lg sm:text-2xl font-bold text-gray-900 break-words">
+                        {trackingData.courier_name || "BobGo Shipment"}
+                      </h2>
+                      {trackingData.courier_phone && (
+                        <div className="flex items-center gap-1 mt-1 text-xs sm:text-sm text-gray-600">
+                          <Phone className="h-3 sm:h-4 w-3 sm:w-4 flex-shrink-0" />
+                          <span className="font-medium">{trackingData.courier_phone}</span>
+                        </div>
+                      )}
+                      {trackingData.service_level && (
+                        <p className="text-xs sm:text-sm text-gray-600 mt-1 break-words">
+                          {trackingData.service_level}
                         </p>
                       )}
                     </div>
                   </div>
+
+                  {/* Status Badge */}
                   <Badge
                     variant="outline"
-                    className={`${getStatusColor(trackingData.status)} text-xs sm:text-base py-1 sm:py-2 px-2 sm:px-4 font-semibold border-2 flex-shrink-0`}
+                    className={`${getStatusColor(trackingData.status)} text-xs sm:text-base py-2 sm:py-3 px-3 sm:px-5 font-bold border-2 flex-shrink-0 whitespace-nowrap`}
                   >
                     {getStatusText(trackingData.status)}
                   </Badge>
                 </div>
               </CardHeader>
             </div>
-            <CardContent className="space-y-4 sm:space-y-5 p-4 sm:p-6">
-              {/* Current Status */}
+
+            <CardContent className="space-y-5 p-4 sm:p-6">
+              {/* Merchant/Seller Info */}
+              {trackingData.merchant_name && (
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-3 sm:p-4 border border-purple-200">
+                  {trackingData.merchant_logo && (
+                    <img
+                      src={trackingData.merchant_logo}
+                      alt={trackingData.merchant_name}
+                      className="h-12 w-12 sm:h-14 sm:w-14 object-contain rounded border border-gray-200 bg-white p-0.5 flex-shrink-0"
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-purple-700 uppercase tracking-wide">Merchant / Seller</p>
+                    <p className="text-sm sm:text-base font-bold text-gray-900 break-words">
+                      {trackingData.merchant_name}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Tracking Numbers Section */}
+              <div className="space-y-3">
+                <p className="text-xs font-bold text-gray-700 uppercase tracking-wide">Tracking Details</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Primary Tracking Number */}
+                  <div className="bg-white rounded-lg border border-gray-300 p-3 sm:p-4 hover:border-blue-400 transition">
+                    <p className="text-xs font-semibold text-gray-600 uppercase mb-1">Tracking Number</p>
+                    <div className="flex items-center justify-between gap-2 min-w-0">
+                      <p className="font-mono font-bold text-xs sm:text-sm text-gray-900 break-all">
+                        {trackingData.tracking_number}
+                      </p>
+                      <button
+                        onClick={() => copyToClipboard(trackingData.tracking_number)}
+                        className="text-gray-400 hover:text-gray-600 transition flex-shrink-0"
+                        title="Copy to clipboard"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Shipment ID */}
+                  {trackingData.shipment_id && (
+                    <div className="bg-white rounded-lg border border-gray-300 p-3 sm:p-4 hover:border-blue-400 transition">
+                      <p className="text-xs font-semibold text-gray-600 uppercase mb-1">Shipment ID</p>
+                      <div className="flex items-center justify-between gap-2 min-w-0">
+                        <p className="font-mono font-bold text-xs sm:text-sm text-gray-900 break-all">
+                          {trackingData.shipment_id}
+                        </p>
+                        <button
+                          onClick={() => copyToClipboard(trackingData.shipment_id || "")}
+                          className="text-gray-400 hover:text-gray-600 transition flex-shrink-0"
+                          title="Copy to clipboard"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Custom Tracking Reference */}
+                  {trackingData.custom_tracking_reference && (
+                    <div className="bg-white rounded-lg border border-gray-300 p-3 sm:p-4 hover:border-blue-400 transition">
+                      <p className="text-xs font-semibold text-gray-600 uppercase mb-1">Custom Reference</p>
+                      <div className="flex items-center justify-between gap-2 min-w-0">
+                        <p className="font-mono font-bold text-xs sm:text-sm text-gray-900 break-all">
+                          {trackingData.custom_tracking_reference}
+                        </p>
+                        <button
+                          onClick={() => copyToClipboard(trackingData.custom_tracking_reference || "")}
+                          className="text-gray-400 hover:text-gray-600 transition flex-shrink-0"
+                          title="Copy to clipboard"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Courier Slug */}
+                  {trackingData.courier_slug && (
+                    <div className="bg-white rounded-lg border border-gray-300 p-3 sm:p-4">
+                      <p className="text-xs font-semibold text-gray-600 uppercase mb-1">Courier Slug</p>
+                      <p className="font-mono font-bold text-xs sm:text-sm text-gray-900 break-all">
+                        {trackingData.courier_slug}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Current Status & Location */}
               <div className={`flex items-start sm:items-center space-x-3 sm:space-x-4 p-3 sm:p-5 rounded-xl border-2 ${
                 trackingData.status === "delivered" || trackingData.status === "ready-for-pickup"
                   ? "bg-green-50 border-green-200"
@@ -307,29 +427,47 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
                     {getStatusText(trackingData.status)}
                   </h4>
                   {trackingData.current_location && (
-                    <p className="text-xs sm:text-sm text-gray-700 mt-1 flex items-center break-words">
-                      <MapPin className="h-3 sm:h-4 w-3 sm:w-4 mr-2 text-gray-600 flex-shrink-0" />
-                      {trackingData.current_location}
+                    <p className="text-xs sm:text-sm text-gray-700 mt-1 flex items-start gap-1 flex-wrap">
+                      <MapPin className="h-3 sm:h-4 w-3 sm:w-4 flex-shrink-0 mt-0.5" />
+                      <span className="break-words">{trackingData.current_location}</span>
                     </p>
                   )}
                 </div>
               </div>
 
-              {/* Delivery Info Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                <div className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200">
-                  <div className="flex items-start space-x-2 mb-2">
-                    <Calendar className="h-4 sm:h-5 w-4 sm:w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                    <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Estimated Delivery</p>
+              {/* Timeline Information */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {/* Created At */}
+                {trackingData.created_at && (
+                  <div className="bg-blue-50 rounded-lg p-3 sm:p-4 border border-blue-200">
+                    <div className="flex items-start space-x-2 mb-2">
+                      <Calendar className="h-4 w-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                      <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Created</p>
+                    </div>
+                    <p className="font-bold text-gray-900 text-xs sm:text-sm break-words">
+                      {formatDateTime(trackingData.created_at)}
+                    </p>
                   </div>
-                  <p className="font-bold text-gray-900 text-xs sm:text-sm break-words">
-                    {trackingData.estimated_delivery && trackingData.estimated_delivery.trim() ? formatDateTime(trackingData.estimated_delivery) : "Not specified"}
-                  </p>
-                </div>
+                )}
+
+                {/* Estimated Delivery */}
+                {trackingData.estimated_delivery && trackingData.estimated_delivery.trim() && (
+                  <div className="bg-orange-50 rounded-lg p-3 sm:p-4 border border-orange-200">
+                    <div className="flex items-start space-x-2 mb-2">
+                      <Clock className="h-4 w-4 text-orange-600 flex-shrink-0 mt-0.5" />
+                      <p className="text-xs font-semibold text-orange-700 uppercase tracking-wide">Est. Delivery</p>
+                    </div>
+                    <p className="font-bold text-gray-900 text-xs sm:text-sm break-words">
+                      {formatDateTime(trackingData.estimated_delivery)}
+                    </p>
+                  </div>
+                )}
+
+                {/* Actual Delivery */}
                 {trackingData.actual_delivery && trackingData.actual_delivery.trim() && (
                   <div className="bg-green-50 rounded-lg p-3 sm:p-4 border border-green-200">
                     <div className="flex items-start space-x-2 mb-2">
-                      <CheckCircle className="h-4 sm:h-5 w-4 sm:w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                      <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
                       <p className="text-xs font-semibold text-green-700 uppercase tracking-wide">Delivered</p>
                     </div>
                     <p className="font-bold text-gray-900 text-xs sm:text-sm break-words">
@@ -337,39 +475,50 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
                     </p>
                   </div>
                 )}
+
+                {/* Last Updated */}
+                {trackingData.last_updated && (
+                  <div className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200">
+                    <div className="flex items-start space-x-2 mb-2">
+                      <Clock className="h-4 w-4 text-gray-600 flex-shrink-0 mt-0.5" />
+                      <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Last Update</p>
+                    </div>
+                    <p className="font-bold text-gray-900 text-xs sm:text-sm break-words">
+                      {formatDateTime(trackingData.last_updated)}
+                    </p>
+                  </div>
+                )}
               </div>
 
-              {/* Courier & Service Info */}
-              <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-3 sm:p-4 border border-gray-200">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
-                  {trackingData.courier_name && (
-                    <div className="bg-white rounded p-2 sm:p-3 text-center border border-gray-200">
-                      <p className="text-xs font-semibold text-gray-600 uppercase mb-1">Courier</p>
-                      <p className="text-xs sm:text-sm font-bold text-gray-900 break-words">{trackingData.courier_name}</p>
+              {/* Order Information */}
+              {(trackingData.order_number || trackingData.channel_order_number) && (
+                <>
+                  <Separator className="my-2" />
+                  <div className="space-y-3">
+                    <p className="text-xs font-bold text-gray-700 uppercase tracking-wide">Order Information</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {trackingData.order_number && (
+                        <div className="bg-white rounded-lg border border-gray-300 p-3 sm:p-4">
+                          <p className="text-xs font-semibold text-gray-600 uppercase mb-1">Order Number</p>
+                          <p className="font-mono font-bold text-xs sm:text-sm text-gray-900 break-all">
+                            {trackingData.order_number}
+                          </p>
+                        </div>
+                      )}
+                      {trackingData.channel_order_number && (
+                        <div className="bg-white rounded-lg border border-gray-300 p-3 sm:p-4">
+                          <p className="text-xs font-semibold text-gray-600 uppercase mb-1">Channel Order Number</p>
+                          <p className="font-mono font-bold text-xs sm:text-sm text-gray-900 break-all">
+                            {trackingData.channel_order_number}
+                          </p>
+                        </div>
+                      )}
                     </div>
-                  )}
-                  {trackingData.service_level && (
-                    <div className="bg-white rounded p-2 sm:p-3 text-center border border-gray-200">
-                      <p className="text-xs font-semibold text-gray-600 uppercase mb-1">Service</p>
-                      <p className="text-xs font-bold text-gray-900 break-words">{trackingData.service_level}</p>
-                    </div>
-                  )}
-                  {trackingData.created_at && (
-                    <div className="bg-white rounded p-2 sm:p-3 text-center border border-gray-200">
-                      <p className="text-xs font-semibold text-gray-600 uppercase mb-1">Created</p>
-                      <p className="text-xs font-bold text-gray-900">{formatDateTime(trackingData.created_at)}</p>
-                    </div>
-                  )}
-                  {trackingData.last_updated && (
-                    <div className="bg-white rounded p-2 sm:p-3 text-center border border-gray-200">
-                      <p className="text-xs font-semibold text-gray-600 uppercase mb-1">Updated</p>
-                      <p className="text-xs font-bold text-gray-900">{formatDateTime(trackingData.last_updated)}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
+                  </div>
+                </>
+              )}
 
-              {/* Delivery Signature */}
+              {/* Recipient Signature */}
               {trackingData.recipient_signature && (
                 <div className="flex items-center space-x-2 sm:space-x-3 p-3 sm:p-4 bg-green-50 rounded-lg border border-green-200">
                   <User className="h-4 sm:h-5 w-4 sm:w-5 text-green-600 flex-shrink-0" />
@@ -383,39 +532,37 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
               )}
 
               {/* External Tracking Link */}
-              <div className="pt-2 flex gap-2 flex-wrap">
-                <Button
-                  onClick={() => {
-                    const url = trackingData.tracking_url || `https://track.bobgo.co.za/${encodeURIComponent(trackingData.tracking_number)}`;
-                    window.open(url, "_blank");
-                  }}
-                  className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto text-sm sm:text-base"
-                >
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  View on Courier Website
-                </Button>
-              </div>
+              <Button
+                onClick={() => {
+                  const url = trackingData.tracking_url || `https://track.bobgo.co.za/${encodeURIComponent(trackingData.tracking_number)}`;
+                  window.open(url, "_blank");
+                }}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base"
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                View on Courier Website
+              </Button>
             </CardContent>
           </Card>
 
           {/* Tracking History */}
-          <Card className="border-0 shadow-lg">
-            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-b border-orange-100">
-              <CardHeader className="p-4 sm:p-6">
-                <CardTitle className="flex items-center space-x-2 sm:space-x-3 text-lg sm:text-xl font-bold text-gray-900">
-                  <div className="bg-white rounded-full p-1.5 sm:p-2 shadow-md flex-shrink-0">
-                    <Clock className="h-4 sm:h-5 w-4 sm:w-5 text-orange-600" />
-                  </div>
-                  <span>Tracking History</span>
-                </CardTitle>
-              </CardHeader>
-            </div>
-            <CardContent className="p-3 sm:p-6">
-              {trackingData.events.length > 0 ? (
+          {trackingData.events.length > 0 && (
+            <Card className="border-0 shadow-lg">
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-b border-orange-100">
+                <CardHeader className="p-4 sm:p-6">
+                  <CardTitle className="flex items-center space-x-2 sm:space-x-3 text-lg sm:text-xl font-bold text-gray-900">
+                    <div className="bg-white rounded-full p-1.5 sm:p-2 shadow-md flex-shrink-0">
+                      <Clock className="h-4 sm:h-5 w-4 sm:w-5 text-orange-600" />
+                    </div>
+                    <span>Tracking History ({trackingData.events.length})</span>
+                  </CardTitle>
+                </CardHeader>
+              </div>
+              <CardContent className="p-3 sm:p-6">
                 <div className="space-y-0">
                   {trackingData.events.map((event, index) => (
                     <div key={index} className="relative">
-                      {/* Timeline line - hidden on mobile for cleaner look */}
+                      {/* Timeline line */}
                       {index < trackingData.events.length - 1 && (
                         <div className="absolute left-4 sm:left-8 top-14 sm:top-16 bottom-0 w-0.5 bg-gradient-to-b from-blue-300 to-gray-200"></div>
                       )}
@@ -458,18 +605,66 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
                     </div>
                   ))}
                 </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Raw Data / Debug Section */}
+          <Card className="border-0 shadow-lg">
+            <button
+              onClick={() => setShowRawData(!showRawData)}
+              className="w-full flex items-center justify-between p-4 sm:p-6 bg-gray-50 hover:bg-gray-100 transition border-b border-gray-200"
+            >
+              <div className="flex items-center space-x-2">
+                <Info className="h-5 w-5 text-gray-600" />
+                <span className="font-semibold text-gray-900">Complete Tracking Data</span>
+              </div>
+              {showRawData ? (
+                <ChevronUp className="h-5 w-5 text-gray-600" />
               ) : (
-                <div className="text-center py-8 sm:py-12">
-                  <Package className="h-12 sm:h-16 w-12 sm:w-16 text-gray-300 mx-auto mb-3 sm:mb-4" />
-                  <p className="text-gray-600 font-medium text-sm sm:text-base">
-                    No tracking events available yet
-                  </p>
-                  <p className="text-gray-500 text-xs sm:text-sm mt-1">
-                    Check back soon for updates
-                  </p>
-                </div>
+                <ChevronDown className="h-5 w-5 text-gray-600" />
               )}
-            </CardContent>
+            </button>
+            {showRawData && (
+              <CardContent className="p-4 sm:p-6">
+                <div className="space-y-4">
+                  {/* All Available Fields */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {[
+                      { label: "Provider", value: trackingData.provider },
+                      { label: "Status", value: trackingData.status_friendly || trackingData.status },
+                      { label: "Courier Slug", value: trackingData.courier_slug },
+                      { label: "Service Level Code", value: trackingData.service_level_code },
+                      { label: "Current Location", value: trackingData.current_location },
+                      { label: "Estimated Delivery", value: trackingData.estimated_delivery },
+                      { label: "Actual Delivery", value: trackingData.actual_delivery },
+                      { label: "Created At", value: trackingData.created_at },
+                      { label: "Last Updated", value: trackingData.last_updated },
+                    ].map((field, idx) => (
+                      field.value && (
+                        <div key={idx} className="bg-gray-50 rounded p-2 sm:p-3 border border-gray-200">
+                          <p className="text-xs font-semibold text-gray-600 uppercase mb-1">{field.label}</p>
+                          <p className="text-xs sm:text-sm font-mono text-gray-900 break-all">{String(field.value)}</p>
+                        </div>
+                      )
+                    ))}
+                  </div>
+
+                  {/* Raw API Response */}
+                  {trackingData.raw && (
+                    <div className="mt-4">
+                      <p className="text-xs font-bold text-gray-700 uppercase tracking-wide mb-2">Raw API Response</p>
+                      <div className="bg-gray-900 text-gray-100 p-3 sm:p-4 rounded-lg overflow-x-auto border border-gray-700">
+                        <pre className="text-xs sm:text-sm font-mono whitespace-pre-wrap break-words">
+                          {JSON.stringify(trackingData.raw, null, 2).slice(0, 2000)}
+                          {JSON.stringify(trackingData.raw, null, 2).length > 2000 && "\n... (truncated)"}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            )}
           </Card>
         </div>
       )}
