@@ -609,63 +609,6 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
             </Card>
           )}
 
-          {/* Raw Data / Debug Section */}
-          <Card className="border-0 shadow-lg">
-            <button
-              onClick={() => setShowRawData(!showRawData)}
-              className="w-full flex items-center justify-between p-4 sm:p-6 bg-gray-50 hover:bg-gray-100 transition border-b border-gray-200"
-            >
-              <div className="flex items-center space-x-2">
-                <Info className="h-5 w-5 text-gray-600" />
-                <span className="font-semibold text-gray-900">Complete Tracking Data</span>
-              </div>
-              {showRawData ? (
-                <ChevronUp className="h-5 w-5 text-gray-600" />
-              ) : (
-                <ChevronDown className="h-5 w-5 text-gray-600" />
-              )}
-            </button>
-            {showRawData && (
-              <CardContent className="p-4 sm:p-6">
-                <div className="space-y-4">
-                  {/* All Available Fields */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {[
-                      { label: "Provider", value: trackingData.provider },
-                      { label: "Status", value: trackingData.status_friendly || trackingData.status },
-                      { label: "Courier Slug", value: trackingData.courier_slug },
-                      { label: "Service Level Code", value: trackingData.service_level_code },
-                      { label: "Current Location", value: trackingData.current_location },
-                      { label: "Estimated Delivery", value: trackingData.estimated_delivery },
-                      { label: "Actual Delivery", value: trackingData.actual_delivery },
-                      { label: "Created At", value: trackingData.created_at },
-                      { label: "Last Updated", value: trackingData.last_updated },
-                    ].map((field, idx) => (
-                      field.value && (
-                        <div key={idx} className="bg-gray-50 rounded p-2 sm:p-3 border border-gray-200">
-                          <p className="text-xs font-semibold text-gray-600 uppercase mb-1">{field.label}</p>
-                          <p className="text-xs sm:text-sm font-mono text-gray-900 break-all">{String(field.value)}</p>
-                        </div>
-                      )
-                    ))}
-                  </div>
-
-                  {/* Raw API Response */}
-                  {trackingData.raw && (
-                    <div className="mt-4">
-                      <p className="text-xs font-bold text-gray-700 uppercase tracking-wide mb-2">Raw API Response</p>
-                      <div className="bg-gray-900 text-gray-100 p-3 sm:p-4 rounded-lg overflow-x-auto border border-gray-700">
-                        <pre className="text-xs sm:text-sm font-mono whitespace-pre-wrap break-words">
-                          {JSON.stringify(trackingData.raw, null, 2).slice(0, 2000)}
-                          {JSON.stringify(trackingData.raw, null, 2).length > 2000 && "\n... (truncated)"}
-                        </pre>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            )}
-          </Card>
         </div>
       )}
 
