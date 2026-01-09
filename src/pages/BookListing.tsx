@@ -88,6 +88,7 @@ const BookListing = () => {
 
     try {
       const searchQuery = searchParams.get("search") || "";
+      const isbnParam = searchParams.get("isbn") || "";
       const category = searchParams.get("category") || "";
       const grade = searchParams.get("grade") || "";
       const genre = searchParams.get("genre") || "";
@@ -97,6 +98,7 @@ const BookListing = () => {
 
       const filters: {
         search?: string;
+        isbn?: string;
         category?: string;
         condition?: string;
         grade?: string;
@@ -111,6 +113,7 @@ const BookListing = () => {
       } = {};
 
       if (searchQuery) filters.search = searchQuery;
+      if (isbnParam) filters.isbn = isbnParam;
       if (category) filters.category = category;
       if (selectedCondition) filters.condition = selectedCondition;
       if (grade) filters.grade = grade;
