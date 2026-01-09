@@ -55,7 +55,7 @@ function isValidISBN13(isbn: string): boolean {
  * @returns true if valid ISBN
  */
 function isValidISBN(isbn: string): boolean {
-  if (!isbn) return true; // Optional field
+  if (!isbn) return false; // Required field
 
   const normalized = normalizeISBN(isbn);
   return isValidISBN10(normalized) || isValidISBN13(normalized);
