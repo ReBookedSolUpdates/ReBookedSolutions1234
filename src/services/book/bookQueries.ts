@@ -102,6 +102,9 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
               `title.ilike.%${filters.search}%,author.ilike.%${filters.search}%`,
             );
           }
+          if (filters.isbn) {
+            query = query.ilike("isbn", `%${filters.isbn}%`);
+          }
           if (filters.category) {
             query = query.eq("category", filters.category);
           }
