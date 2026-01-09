@@ -369,9 +369,9 @@ const EditBook = () => {
               name="isbn"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>ISBN (Optional)</FormLabel>
+                  <FormLabel>ISBN <span className="text-red-500">*</span></FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., 978-0-123456-78-9" {...field} />
+                    <Input placeholder="e.g., 9780123456789" {...field} required />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
