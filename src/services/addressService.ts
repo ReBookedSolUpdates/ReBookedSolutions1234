@@ -161,8 +161,23 @@ export const saveUserAddresses = async (
         // Encryption error
       }
     } else {
-      // If deleting, mark encryption as handled
-      encryptionResults.pickup = true;
+      // If deleting the pickup address, clear the encrypted fields from database
+      try {
+        const { error: deleteError } = await supabase
+          .from("profiles")
+          .update({
+            pickup_address_encrypted: null,
+            pickup_address_iv: null
+          })
+          .eq("id", userId);
+
+        if (!deleteError) {
+          encryptionResults.pickup = true;
+        }
+      } catch (deletionError) {
+        // Deletion error, but continue
+        encryptionResults.pickup = true;
+      }
     }
 
     // Try to encrypt and save shipping address (if different, use comprehensive encryption preparation)
