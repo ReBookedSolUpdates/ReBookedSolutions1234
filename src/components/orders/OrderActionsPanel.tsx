@@ -305,7 +305,7 @@ const OrderActionsPanel: React.FC<OrderActionsPanelProps> = ({
                 <Alert className="border-amber-300 bg-amber-50">
                   <AlertTriangle className="h-4 w-4 text-amber-600" />
                   <AlertDescription className="text-sm text-amber-800 ml-2">
-                    <strong>Note:</strong> Once the book is collected by the courier, you will no longer be able to cancel this order. Please cancel as soon as possible.
+                    <strong>Important:</strong> Once the courier collects this order, you will <strong>no longer be able to cancel it</strong>. Please cancel immediately if you've changed your mind.
                   </AlertDescription>
                 </Alert>
                 <div>
