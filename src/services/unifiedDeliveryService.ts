@@ -97,6 +97,8 @@ export interface UnifiedTrackingEvent {
 export interface UnifiedTrackingResponse {
   provider: "bobgo";
   tracking_number: string;
+  custom_tracking_reference?: string;
+  shipment_id?: string;
   status:
     | "pending"
     | "collected"
@@ -105,6 +107,7 @@ export interface UnifiedTrackingResponse {
     | "delivered"
     | "failed"
     | "cancelled";
+  status_friendly?: string;
   current_location?: string;
   estimated_delivery?: string;
   actual_delivery?: string;
@@ -112,13 +115,25 @@ export interface UnifiedTrackingResponse {
   recipient_signature?: string;
   proof_of_delivery?: string;
   tracking_url?: string;
+  // Courier information
   courier_name?: string;
   courier_slug?: string;
+  courier_phone?: string;
+  courier_logo?: string;
   service_level?: string;
-  shipment_id?: string;
+  service_level_code?: string;
+  // Merchant/Seller information
   merchant_name?: string;
+  merchant_logo?: string;
+  // Order information
+  order_number?: string;
+  channel_order_number?: string;
+  // Timestamps
   created_at?: string;
   last_updated?: string;
+  // Raw API data for debugging
+  raw?: Record<string, unknown>;
+  simulated?: boolean;
 }
 
 const PROVINCE_CODE_MAP: Record<string, string> = {
