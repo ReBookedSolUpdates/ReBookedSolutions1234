@@ -174,34 +174,49 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
               </div>
             </div>
           ) : (
-            <div className="flex gap-4 p-4 bg-gray-50 rounded-lg">
-              <div className="w-20 h-28 flex-shrink-0">
-                <img
-                  src={book.image_url || book.imageUrl || "/placeholder.svg"}
-                  alt={book.title || "Book cover"}
-                  className="w-full h-full object-cover rounded border bg-gray-100"
-                  onError={(e) => {
-                    e.currentTarget.src = "/placeholder.svg";
-                  }}
-                />
-              </div>
-              <div className="flex-1 flex flex-col justify-between">
-                <div>
-                  <h3 className="font-semibold text-base sm:text-lg text-gray-900">{book.title}</h3>
-                  <p className="text-sm text-gray-600 mb-2">by {book.author}</p>
-                  <div className="flex gap-2 flex-wrap">
-                    <Badge variant="outline" className="text-xs">{book.condition}</Badge>
-                    {book.isbn && (
-                      <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded">
-                        ISBN: {book.isbn}
-                      </span>
-                    )}
-                  </div>
+            <div className="space-y-4">
+              <div className="flex gap-4 bg-gray-50 rounded-lg p-4">
+                <div className="w-20 h-28 flex-shrink-0">
+                  <img
+                    src={book.image_url || book.imageUrl || "/placeholder.svg"}
+                    alt={book.title || "Book cover"}
+                    className="w-full h-full object-cover rounded border bg-gray-100"
+                    onError={(e) => {
+                      e.currentTarget.src = "/placeholder.svg";
+                    }}
+                  />
                 </div>
-                <p className="text-lg sm:text-2xl font-bold text-green-600">
-                  R{book.price.toFixed(2)}
-                </p>
+                <div className="flex-1 flex flex-col justify-between">
+                  <div>
+                    <h3 className="font-semibold text-base sm:text-lg text-gray-900">{book.title}</h3>
+                    <p className="text-sm text-gray-600 mb-3">by {book.author}</p>
+                    <div className="flex gap-2 flex-wrap mb-2">
+                      <Badge variant="outline" className="text-xs">{book.condition}</Badge>
+                      {book.category && (
+                        <Badge className="text-xs bg-blue-100 text-blue-800 border-blue-200">{book.category}</Badge>
+                      )}
+                      {book.isbn && (
+                        <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded border">
+                          ISBN: {book.isbn}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-lg sm:text-2xl font-bold text-green-600">
+                    R{book.price.toFixed(2)}
+                  </p>
+                </div>
               </div>
+
+              {/* Book Description */}
+              {book.description && (
+                <div className="bg-white rounded-lg p-4 border border-gray-200">
+                  <h4 className="font-semibold text-sm text-gray-900 mb-2">About This Book</h4>
+                  <p className="text-sm text-gray-700 line-clamp-3 leading-relaxed">
+                    {book.description}
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </CardContent>
