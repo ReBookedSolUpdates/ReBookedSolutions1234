@@ -571,16 +571,22 @@ Time: ${new Date().toISOString()}
 
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between items-center pt-6">
-        <Button variant="outline" onClick={onBack} disabled={processing}>
+      <div className="flex gap-3 pt-6 border-t">
+        <Button
+          variant="outline"
+          onClick={onBack}
+          disabled={processing}
+          className="py-2 px-4"
+        >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
+          <span className="hidden sm:inline">Back</span>
+          <span className="sm:hidden">←</span>
         </Button>
 
         <Button
           onClick={handleBobPayPayment}
           disabled={processing}
-          className="w-full px-8 py-3 text-lg"
+          className="flex-1 py-3 text-base font-semibold bg-green-600 hover:bg-green-700"
         >
           {processing ? (
             <>
