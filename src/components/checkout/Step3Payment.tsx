@@ -37,6 +37,7 @@ import {
 import {
   normalizeAddressFields,
   prepareForStorage,
+  prepareAddressForEncryption,
 } from "@/utils/addressNormalizationUtils";
 
 interface Step3PaymentProps {
