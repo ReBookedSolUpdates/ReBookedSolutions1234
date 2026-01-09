@@ -291,10 +291,12 @@ const Profile = () => {
                       <div className="flex items-center gap-1">
                         <Calendar className="w-4 h-4" />
                         Joined{" "}
-                        {new Date().toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "long",
-                        })}
+                        {profile?.created_at
+                          ? new Date(profile.created_at).toLocaleDateString("en-US", {
+                              year: "numeric",
+                              month: "long",
+                            })
+                          : "Unknown"}
                       </div>
                     </div>
                   </div>
