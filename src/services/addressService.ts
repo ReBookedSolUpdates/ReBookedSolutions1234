@@ -121,9 +121,9 @@ export const saveUserAddresses = async (
       shipping: false
     };
 
-    // Try to encrypt and save pickup address (use normalized address)
+    // Try to encrypt and save pickup address (use comprehensive encryption preparation)
     try {
-      const pickupForEncryption = prepareForStorage(normalizedPickup);
+      const pickupForEncryption = prepareAddressForEncryption(normalizedPickup);
       const pickupResult = await encryptAddress(pickupForEncryption, {
         save: {
           table: 'profiles',
@@ -139,10 +139,10 @@ export const saveUserAddresses = async (
       // Encryption error
     }
 
-    // Try to encrypt and save shipping address (if different, use normalized address)
+    // Try to encrypt and save shipping address (if different, use comprehensive encryption preparation)
     if (!addressesSame) {
       try {
-        const shippingForEncryption = prepareForStorage(normalizedShipping);
+        const shippingForEncryption = prepareAddressForEncryption(normalizedShipping);
         const shippingResult = await encryptAddress(shippingForEncryption, {
           save: {
             table: 'profiles',
