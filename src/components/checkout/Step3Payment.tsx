@@ -168,27 +168,30 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
       const deliveryLockerData = orderSummary.delivery_method === "locker" ? orderSummary.selected_locker : null;
       const deliveryLockerLocationId = orderSummary.delivery_method === "locker" ? orderSummary.selected_locker?.id : null;
 
-      // Step 2: Normalize and encrypt the shipping address (only for door deliveries)
+      // Step 2: Prepare and encrypt the shipping address (only for door deliveries)
       let shipping_address_encrypted = "";
       if (deliveryType === "door") {
-        // Normalize address to ensure consistency
-        const normalized = normalizeAddressFields(orderSummary.buyer_address);
-        if (!normalized) {
-          throw new Error('Invalid shipping address. Please check all required fields.');
+        try {
+          // Use comprehensive address preparation that preserves all fields
+          const shippingObject = prepareAddressForEncryption(orderSummary.buyer_address);
+
+          const { data: encResult, error: encError } = await supabase.functions.invoke(
+            'encrypt-address',
+            { body: { object: shippingObject } }
+          );
+
+          if (encError || !encResult?.success || !encResult?.data) {
+            throw new Error(encError?.message || 'Failed to encrypt shipping address');
+          }
+
+          shipping_address_encrypted = JSON.stringify(encResult.data);
+        } catch (addrError) {
+          throw new Error(
+            addrError instanceof Error
+              ? addrError.message
+              : 'Invalid shipping address. Please check all required fields.'
+          );
         }
-
-        const shippingObject = prepareForStorage(normalized);
-
-        const { data: encResult, error: encError } = await supabase.functions.invoke(
-          'encrypt-address',
-          { body: { object: shippingObject } }
-        );
-
-        if (encError || !encResult?.success || !encResult?.data) {
-          throw new Error(encError?.message || 'Failed to encrypt shipping address');
-        }
-
-        shipping_address_encrypted = JSON.stringify(encResult.data);
       }
 
       // Step 3: Create the order (before payment)
