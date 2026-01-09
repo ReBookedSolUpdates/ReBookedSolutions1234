@@ -48,21 +48,18 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
   useEffect(() => {
     loadCartData();
 
-    // Listen for storage events to detect cart changes
+    // Listen for storage events to detect cart changes (cross-tab or same-tab updates)
     const handleStorageChange = (e) => {
-      if (e.key === 'checkoutCart') {
+      if (e.key === 'checkoutCart' || !e.key) {
+        // Reload cart data when checkoutCart specifically changes or on any storage change
         loadCartData();
       }
     };
 
     window.addEventListener('storage', handleStorageChange);
 
-    // Also check for changes every 100ms for same-tab updates
-    const interval = setInterval(loadCartData, 100);
-
     return () => {
       window.removeEventListener('storage', handleStorageChange);
-      clearInterval(interval);
     };
   }, []);
 
