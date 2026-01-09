@@ -125,13 +125,15 @@ export const saveUserAddresses = async (
       }
     }
 
-    // First validate addresses (keep existing validation)
-    const result = await updateAddressValidation(
-      userId,
-      normalizedPickup,
-      normalizedShipping,
-      addressesSame,
-    );
+    // First validate addresses (keep existing validation) - skip validation if pickup is deleted
+    if (!isPickupDeleted) {
+      const result = await updateAddressValidation(
+        userId,
+        normalizedPickup,
+        normalizedShipping,
+        addressesSame,
+      );
+    }
 
     let encryptionResults = {
       pickup: false,
@@ -139,21 +141,27 @@ export const saveUserAddresses = async (
     };
 
     // Try to encrypt and save pickup address (use comprehensive encryption preparation)
-    try {
-      const pickupForEncryption = prepareAddressForEncryption(normalizedPickup);
-      const pickupResult = await encryptAddress(pickupForEncryption, {
-        save: {
-          table: 'profiles',
-          target_id: userId,
-          address_type: 'pickup'
-        }
-      });
+    // Skip encryption if address is being deleted
+    if (!isPickupDeleted) {
+      try {
+        const pickupForEncryption = prepareAddressForEncryption(normalizedPickup);
+        const pickupResult = await encryptAddress(pickupForEncryption, {
+          save: {
+            table: 'profiles',
+            target_id: userId,
+            address_type: 'pickup'
+          }
+        });
 
-      if (pickupResult && pickupResult.success) {
-        encryptionResults.pickup = true;
+        if (pickupResult && pickupResult.success) {
+          encryptionResults.pickup = true;
+        }
+      } catch (encryptError) {
+        // Encryption error
       }
-    } catch (encryptError) {
-      // Encryption error
+    } else {
+      // If deleting, mark encryption as handled
+      encryptionResults.pickup = true;
     }
 
     // Try to encrypt and save shipping address (if different, use comprehensive encryption preparation)
