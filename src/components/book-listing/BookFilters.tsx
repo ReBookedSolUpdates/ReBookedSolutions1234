@@ -13,6 +13,8 @@ import { ALL_READER_GENRES } from "@/constants/readerGenres";
 interface BookFiltersProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+  isbn: string;
+  setIsbn: (isbn: string) => void;
   selectedCategory: string;
   setSelectedCategory: (category: string) => void;
   selectedCondition: string;
