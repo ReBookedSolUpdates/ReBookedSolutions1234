@@ -273,13 +273,13 @@ const Step4Confirmation: React.FC<Step4ConfirmationProps> = ({
       </Card>
 
       {/* Action Buttons */}
-      <div className="space-y-4">
-        <div className="flex gap-4">
+      <div className="space-y-3 pt-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Button
             onClick={downloadReceipt}
             disabled={isDownloading}
             variant="outline"
-            className="flex-1"
+            className="py-3 font-semibold"
           >
             {isDownloading ? (
               <>
@@ -289,17 +289,17 @@ const Step4Confirmation: React.FC<Step4ConfirmationProps> = ({
             ) : (
               <>
                 <Download className="w-4 h-4 mr-2" />
-                Download Receipt (PNG)
+                Download Receipt
               </>
             )}
           </Button>
-          <Button onClick={onViewOrders} variant="outline" className="flex-1">
+          <Button onClick={onViewOrders} variant="outline" className="py-3 font-semibold">
             <Eye className="w-4 h-4 mr-2" />
             View My Orders
           </Button>
         </div>
 
-        <Button onClick={onContinueShopping} className="w-full" size="lg">
+        <Button onClick={onContinueShopping} className="w-full py-3 text-base font-semibold bg-blue-600 hover:bg-blue-700" size="lg">
           <ShoppingBag className="w-5 h-5 mr-2" />
           Continue Shopping
         </Button>
