@@ -286,7 +286,7 @@ export const saveSimpleUserAddresses = async (
 
     if (normalizedPickup) {
       try {
-        const pickupForEncryption = prepareForStorage(normalizedPickup);
+        const pickupForEncryption = prepareAddressForEncryption(normalizedPickup);
         const result = await encryptAddress(pickupForEncryption as SimpleAddress, {
           save: { table: 'profiles', target_id: userId, address_type: 'pickup' }
         });
@@ -299,7 +299,7 @@ export const saveSimpleUserAddresses = async (
 
     if (normalizedShipping && !addressesAreSame) {
       try {
-        const shippingForEncryption = prepareForStorage(normalizedShipping);
+        const shippingForEncryption = prepareAddressForEncryption(normalizedShipping);
         const result = await encryptAddress(shippingForEncryption as SimpleAddress, {
           save: { table: 'profiles', target_id: userId, address_type: 'shipping' }
         });
@@ -354,8 +354,8 @@ export const saveOrderShippingAddress = async (
       throw new Error("Failed to normalize shipping address");
     }
 
-    // Prepare for storage and encryption
-    const addressForEncryption = prepareForStorage(normalized);
+    // Prepare for comprehensive encryption
+    const addressForEncryption = prepareAddressForEncryption(normalized);
 
     const result = await encryptAddress(addressForEncryption as SimpleAddress, {
       save: { table: 'orders', target_id: orderId, address_type: 'shipping' }
