@@ -44,7 +44,6 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
     useState<UnifiedTrackingResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showRawData, setShowRawData] = useState(false);
 
   useEffect(() => {
     if (initialTrackingNumber) {
