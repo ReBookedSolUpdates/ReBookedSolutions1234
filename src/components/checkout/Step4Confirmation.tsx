@@ -155,16 +155,19 @@ const Step4Confirmation: React.FC<Step4ConfirmationProps> = ({
             </div>
           </div>
 
-          {/* 👤 Seller ID */}
+          {/* 👤 Seller Information */}
           <div>
-            <h3 className="font-medium mb-2">👤 Seller Information</h3>
-            <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-sm font-mono">
-                Seller ID: {orderData.seller_id}
-              </p>
-              <p className="text-sm text-gray-600 mt-1">
-                The seller has been notified and will prepare your book for
-                shipment.
+            <h3 className="font-medium mb-2 text-sm uppercase text-gray-700">👤 Seller Information</h3>
+            <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+              {orderData.seller_name && (
+                <p className="text-base font-semibold text-gray-900 mb-2">
+                  {orderData.seller_name}
+                </p>
+              )}
+              <p className="text-xs font-semibold text-gray-600 uppercase">Seller ID</p>
+              <p className="text-sm font-mono mb-3">{orderData.seller_id}</p>
+              <p className="text-sm text-gray-600">
+                The seller has been notified and will prepare your book for shipment.
               </p>
             </div>
           </div>
