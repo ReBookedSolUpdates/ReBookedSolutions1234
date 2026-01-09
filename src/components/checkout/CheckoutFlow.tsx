@@ -420,17 +420,15 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   };
 
   const goToStep = (step: 1 | 2 | 3 | 4 | 5) => {
-    // Auto-skip Step 2 (delivery method) only if home delivery is auto-selected
-    // We need to keep step 2 visible for locker selection when locker is the method
-    const targetStep = step === 2 && checkoutState.delivery_method === "home" ? 3 : step;
-
+    // Always show all steps - no auto-skipping
+    // Users should see the delivery method selection step
     setCheckoutState((prev) => ({
       ...prev,
       step: {
-        current: targetStep,
-        completed: prev.step.completed.includes(targetStep - 1)
+        current: step,
+        completed: prev.step.completed.includes(step - 1)
           ? prev.step.completed
-          : [...prev.step.completed, targetStep - 1].filter((s) => s > 0),
+          : [...prev.step.completed, step - 1].filter((s) => s > 0),
       },
     }));
   };
