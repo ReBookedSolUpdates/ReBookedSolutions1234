@@ -108,8 +108,12 @@ export const saveUserAddresses = async (
     }
 
     // Normalize addresses to ensure consistency
-    const normalizedPickup = normalizeAddressFields(pickupAddress);
-    if (!normalizedPickup) {
+    // If pickup address is being deleted, use empty object for normalization
+    let normalizedPickup = isPickupDeleted
+      ? { country: "South Africa" } as CanonicalAddress
+      : normalizeAddressFields(pickupAddress);
+
+    if (!isPickupDeleted && !normalizedPickup) {
       throw new Error("Failed to normalize pickup address");
     }
 
