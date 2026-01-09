@@ -352,28 +352,38 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
       )}
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between items-center pt-4">
+      <div className="flex justify-between items-center gap-3 pt-6 border-t">
+        <Button
+          variant="outline"
+          onClick={onBack}
+          className="py-2 px-4"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          <span className="hidden sm:inline">Back</span>
+          <span className="sm:hidden">←</span>
+        </Button>
+
         <div className="flex gap-2">
           {onCancel && (
-            <Button variant="ghost" size="sm" onClick={onCancel} className="text-xs h-8">
+            <Button
+              variant="ghost"
+              onClick={onCancel}
+              className="py-2 px-4"
+            >
+              <X className="w-4 h-4 mr-2" />
               Cancel
             </Button>
           )}
-          <Button variant="outline" size="sm" onClick={onBack} className="text-xs h-8">
-            <ArrowLeft className="w-3 h-3 mr-1" />
-            Back
+
+          <Button
+            onClick={handleProceed}
+            disabled={loading || (deliveryMethod === "locker" && !selectedLocker && !(savedLocker && !wantToChangeLocker))}
+            className="py-2 px-4 bg-blue-600 hover:bg-blue-700"
+          >
+            Next
+            <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </div>
-
-        <Button
-          size="sm"
-          onClick={handleProceed}
-          disabled={loading || (deliveryMethod === "locker" && !selectedLocker && !(savedLocker && !wantToChangeLocker))}
-          className="text-xs h-8"
-        >
-          Next
-          <ArrowRight className="w-3 h-3 ml-1" />
-        </Button>
       </div>
     </div>
   );
