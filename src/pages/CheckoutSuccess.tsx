@@ -102,32 +102,7 @@ const CheckoutSuccess: React.FC = () => {
       } catch (emailError) {
       }
 
-      // Step 3: Create in-app notifications
-      try {
-        // Notification for buyer
-        await NotificationService.createOrderConfirmation(
-          order.buyer_id,
-          order.id,
-          bookTitle,
-          false // isForSeller
-        );
-        // Buyer notification created
-      } catch (notifError) {
-      }
-
-      try {
-        // Notification for seller
-        await NotificationService.createOrderConfirmation(
-          order.seller_id,
-          order.id,
-          bookTitle,
-          true // isForSeller
-        );
-        // Seller notification created
-      } catch (notifError) {
-      }
-
-      // Step 4: Update order status to pending_commit if still pending
+      // Step 3: Update order status to pending_commit if still pending
       if (order.status === "pending" || order.payment_status === "pending") {
         try {
           const { error: updateError } = await supabase
