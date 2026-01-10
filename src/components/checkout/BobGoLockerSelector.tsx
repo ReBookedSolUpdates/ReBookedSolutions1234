@@ -143,6 +143,8 @@ const BobGoLockerSelector: React.FC<BobGoLockerSelectorProps> = ({
         .from("profiles")
         .update({
           preferred_delivery_locker_data: location,
+          preferred_pickup_locker_location_id: location.id ? parseInt(location.id) : null,
+          preferred_pickup_locker_provider_slug: location.provider_slug || null,
           preferred_delivery_locker_saved_at: new Date().toISOString(),
         })
         .eq("id", user.id);
