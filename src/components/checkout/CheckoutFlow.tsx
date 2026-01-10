@@ -683,7 +683,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   };
 
   const handleViewOrders = () => {
-    navigate("/activity");
+    navigate("/profile", { state: { tab: "orders" } });
   };
 
   const handleContinueShopping = () => {

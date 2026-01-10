@@ -153,6 +153,21 @@ const Step4Confirmation: React.FC<Step4ConfirmationProps> = ({
               <div>
                 <p className="font-bold text-base text-gray-900">{orderData.book_title}</p>
               </div>
+              {orderData.book_author && (
+                <p className="text-sm text-gray-700">
+                  <span className="font-semibold">Author:</span> {orderData.book_author}
+                </p>
+              )}
+              {orderData.book_condition && (
+                <p className="text-sm text-gray-700">
+                  <span className="font-semibold">Condition:</span> {orderData.book_condition}
+                </p>
+              )}
+              {orderData.book_description && (
+                <p className="text-sm text-gray-600">
+                  <span className="font-semibold">Description:</span> {orderData.book_description.substring(0, 150)}{orderData.book_description.length > 150 ? '...' : ''}
+                </p>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <div className="bg-white rounded p-2">
                   <p className="text-xs text-gray-600 font-semibold uppercase">Book ID</p>
@@ -408,6 +423,21 @@ const Step4Confirmation: React.FC<Step4ConfirmationProps> = ({
               <p style={{ margin: "0 0 10px 0", fontSize: "15px", fontWeight: "bold" }}>
                 {orderData.book_title}
               </p>
+              {orderData.book_author && (
+                <p style={{ margin: "0 0 5px 0", fontSize: "13px", color: "#4e7a63" }}>
+                  Author: {orderData.book_author}
+                </p>
+              )}
+              {orderData.book_condition && (
+                <p style={{ margin: "0 0 5px 0", fontSize: "13px", color: "#4e7a63" }}>
+                  Condition: {orderData.book_condition}
+                </p>
+              )}
+              {orderData.book_description && (
+                <p style={{ margin: "0 0 10px 0", fontSize: "12px", color: "#4e7a63" }}>
+                  {orderData.book_description.substring(0, 150)}{orderData.book_description.length > 150 ? '...' : ''}
+                </p>
+              )}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px", fontSize: "13px" }}>
                 <p style={{ margin: "0", color: "#4e7a63" }}>
                   Book ID: {orderData.book_id}

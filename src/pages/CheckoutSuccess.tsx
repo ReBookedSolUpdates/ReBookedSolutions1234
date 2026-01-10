@@ -7,7 +7,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EnhancedPurchaseEmailService } from "@/services/enhancedPurchaseEmailService";
-import { NotificationService } from "@/services/notificationService";
 
 const CheckoutSuccess: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -102,32 +101,7 @@ const CheckoutSuccess: React.FC = () => {
       } catch (emailError) {
       }
 
-      // Step 3: Create in-app notifications
-      try {
-        // Notification for buyer
-        await NotificationService.createOrderConfirmation(
-          order.buyer_id,
-          order.id,
-          bookTitle,
-          false // isForSeller
-        );
-        // Buyer notification created
-      } catch (notifError) {
-      }
-
-      try {
-        // Notification for seller
-        await NotificationService.createOrderConfirmation(
-          order.seller_id,
-          order.id,
-          bookTitle,
-          true // isForSeller
-        );
-        // Seller notification created
-      } catch (notifError) {
-      }
-
-      // Step 4: Update order status to pending_commit if still pending
+      // Step 3: Update order status to pending_commit if still pending
       if (order.status === "pending" || order.payment_status === "pending") {
         try {
           const { error: updateError } = await supabase
@@ -215,14 +189,35 @@ const CheckoutSuccess: React.FC = () => {
       // Extract metadata (includes buyer_id and platform fee)
       const metadata = order.metadata || {};
 
+      // Fetch seller profile for seller name (if available)
+      let sellerName: string | undefined;
+      try {
+        const { data: sellerProfile } = await supabase
+          .from("profiles")
+          .select("full_name, name, first_name, last_name")
+          .eq("id", order.seller_id)
+          .single();
+
+        if (sellerProfile) {
+          sellerName = sellerProfile.full_name || sellerProfile.name ||
+            `${sellerProfile.first_name || ''} ${sellerProfile.last_name || ''}`.trim();
+        }
+      } catch (err) {
+        // Seller name fetch failed, continue without it
+      }
+
       // Construct OrderConfirmation object from order data
       const confirmation: OrderConfirmation = {
         order_id: order.payment_reference || order.id,
         payment_reference: paymentReference,
         book_id: bookItem?.book_id || "",
         seller_id: order.seller_id,
+        seller_name: sellerName,
         buyer_id: metadata.buyer_id || "",
         book_title: bookItem?.book_title || "Book",
+        book_author: bookItem?.author, // Add book author from items
+        book_description: bookItem?.description, // Add book description from items
+        book_condition: bookItem?.condition, // Add book condition from items
         book_price: bookItem?.price ? bookItem.price / 100 : 0, // Convert from kobo to rands
         delivery_method: deliveryData?.delivery_method || "Standard",
         delivery_price: deliveryData?.delivery_price ? deliveryData.delivery_price / 100 : 0, // Convert from kobo to rands
