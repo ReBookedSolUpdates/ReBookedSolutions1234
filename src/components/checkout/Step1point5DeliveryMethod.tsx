@@ -141,6 +141,8 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
         .from("profiles")
         .update({
           preferred_delivery_locker_data: selectedLocker,
+          preferred_pickup_locker_location_id: selectedLocker.id ? parseInt(selectedLocker.id) : null,
+          preferred_pickup_locker_provider_slug: selectedLocker.provider_slug || null,
           preferred_delivery_locker_saved_at: new Date().toISOString(),
         })
         .eq("id", user.id);
