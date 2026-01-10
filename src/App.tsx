@@ -59,7 +59,6 @@ import GettingStarted from "./pages/GettingStarted";
 import NotificationsNew from "./pages/NotificationsNew";
 import ClearNotifications from "./pages/ClearNotifications";
 import RestoreBooks from "./pages/RestoreBooks";
-import ActivityLog from "./pages/ActivityLog";
 import BankingSetup from "./pages/BankingSetup";
 import UserProfile from "./pages/UserProfile";
 import Transparency from "./pages/Transparency";
