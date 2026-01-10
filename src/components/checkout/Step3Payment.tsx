@@ -244,10 +244,16 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
       }
 
       // Step 3: Create the order (before payment)
+      console.log('[PAYMENT] Creating order...');
 
       // Normalize locker data if present
       const normalizedLockerData = deliveryLockerData ? normalizeLockerData(deliveryLockerData) : null;
       const normalizedLockerLocationId = normalizedLockerData?.location_id || null;
+
+      console.log('[PAYMENT] Locker data normalized:', {
+        hasLockerData: !!normalizedLockerData,
+        providerId: normalizedLockerData?.provider_slug,
+      });
 
       // Step 3.1: Call create-order edge function for atomic order creation with idempotency
       // This is the ONLY place orders should be created - the edge function handles idempotency checks
@@ -269,12 +275,14 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
         delivery_locker_provider_slug: normalizedLockerData?.provider_slug,
       };
 
+      console.log('[PAYMENT] Calling create-order function...');
       const { data: createOrderResult, error: createOrderError } = await supabase.functions.invoke(
         'create-order',
         { body: createOrderPayload }
       );
 
       if (createOrderError || !createOrderResult?.success) {
+        console.error('[PAYMENT] Order creation failed:', { error: createOrderError, result: createOrderResult });
         throw new Error(
           createOrderError?.message || createOrderResult?.error || 'Failed to create order'
         );
@@ -282,13 +290,17 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
 
       const createdOrder = createOrderResult.order;
       if (!createdOrder?.id) {
+        console.error('[PAYMENT] No order ID returned from create-order');
         throw new Error('No order ID returned from create-order function');
       }
+
+      console.log('[PAYMENT] Order created successfully:', { orderId: createdOrder.id });
 
       // Register order creation for idempotency tracking
       registerOrderCreation(customPaymentId, createdOrder.id);
 
       // Step 3.5: Process affiliate earning if seller was referred
+      console.log('[PAYMENT] Processing affiliate earning (fire and forget)...');
       supabase.functions.invoke('process-affiliate-earning', {
         body: {
           book_id: orderSummary.book.id,
@@ -296,7 +308,9 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
           seller_id: orderSummary.book.seller_id,
         },
       }).then(() => {
+        console.log('[PAYMENT] Affiliate earning processed');
       }).catch((affiliateErr) => {
+        console.warn('[PAYMENT] Error processing affiliate earning:', affiliateErr);
       });
 
       // Step 4: Initialize BobPay payment with the order_id
