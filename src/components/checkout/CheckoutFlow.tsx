@@ -522,10 +522,17 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   };
 
   const handleDeliverySelection = (delivery: DeliveryOption) => {
+    console.log('[CHECKOUT_FLOW] Delivery selected:', {
+      provider: delivery.provider,
+      serviceType: delivery.service_type,
+      price: delivery.price,
+    });
+
     // For locker delivery, we need the locker; for home delivery, we need the buyer address
     const isLockerDelivery = checkoutState.delivery_method === "locker" && checkoutState.selected_locker;
 
     if (!isLockerDelivery && !checkoutState.buyer_address) {
+      console.error('[CHECKOUT_FLOW] No buyer address set for home delivery');
       toast.error("Please set your delivery address first");
       return;
     }
@@ -551,6 +558,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         country: "South Africa",
         additional_info: `Pickup at: ${locker.name}`,
       };
+      console.log('[CHECKOUT_FLOW] Using locker as delivery address:', { locker: locker.name });
     }
 
     const bookPrice = checkoutState.book!.price;
@@ -573,6 +581,14 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       coupon_discount: couponDiscount,
       subtotal_before_discount: bookPrice,
     };
+
+    console.log('[CHECKOUT_FLOW] Order summary created:', {
+      bookPrice: priceAfterDiscount,
+      deliveryPrice: delivery.price,
+      platformFee: PLATFORM_FEE,
+      totalPrice: orderSummary.total_price,
+      couponDiscount,
+    });
 
     setCheckoutState((prev) => ({
       ...prev,
