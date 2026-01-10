@@ -122,33 +122,50 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
   }, []);
 
   const handleBobPayPayment = async () => {
+    console.log('[PAYMENT] Starting BobPay payment process...', {
+      userId,
+      bookId: orderSummary.book.id,
+      totalAmount: orderSummary.total_price,
+    });
+
     setProcessing(true);
     setError(null);
     try {
       // Use cached user from AuthContext instead of calling supabase.auth.getUser() again
       if (!authUser || !authUser.email) {
+        console.error('[PAYMENT] User authentication error');
         throw new Error("User authentication error");
       }
 
+      console.log('[PAYMENT] User authenticated:', authUser.email);
+
       const customPaymentId = `ORDER-${Date.now()}-${userId}`;
+      console.log('[PAYMENT] Generated payment reference:', customPaymentId);
 
       // Check for duplicate order submission (idempotency)
       const cachedOrderId = getCachedOrderId(customPaymentId);
       if (cachedOrderId) {
+        console.warn('[PAYMENT] Duplicate order submission detected:', cachedOrderId);
         throw new Error(`Order already being processed. Order ID: ${cachedOrderId}. Please wait and check your account.`);
       }
 
       // Validate pickup setup based on delivery method
       const pickupType = orderSummary.delivery_method === "locker" ? "locker" : "door";
+      console.log('[PAYMENT] Validating pickup setup:', { pickupType, deliveryMethod: orderSummary.delivery_method });
+
       const pickupErrors = validatePickupSetup(
         pickupType,
         orderSummary.delivery_method === "locker" ? orderSummary.selected_locker : null,
         orderSummary.delivery_method === "door" ? orderSummary.seller_address : null
       );
       if (pickupErrors.length > 0) {
+        console.error('[PAYMENT] Pickup validation failed:', pickupErrors);
         throw new Error(`Pickup validation failed: ${pickupErrors.join("; ")}`);
       }
+
+      console.log('[PAYMENT] Pickup validation passed');
       const baseUrl = window.location.origin;
+      console.log('[PAYMENT] Base URL:', baseUrl);
 
       // Step 1: Fetch buyer and seller profiles for denormalized data (in parallel)
       const [buyerProfileResult, sellerProfileResult] = await Promise.allSettled([
