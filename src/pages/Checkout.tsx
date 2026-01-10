@@ -165,10 +165,9 @@ const Checkout: React.FC = () => {
 
   const loadBookData = async () => {
     try {
+      console.log('[CHECKOUT] Starting loadBookData...', { id });
       setLoading(true);
       setError(null);
-
-      // Loading book data
 
       if (!id || id.trim() === "") {
         throw new Error("Invalid book ID");
@@ -176,6 +175,7 @@ const Checkout: React.FC = () => {
 
       // Extract UUID part from book ID (remove any timestamp suffixes)
       const uuidPart = id.split('-').slice(0, 5).join('-');
+      console.log('[CHECKOUT] Extracted UUID from ID:', { original: id, extracted: uuidPart });
 
       // Validate UUID format
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -185,6 +185,7 @@ const Checkout: React.FC = () => {
 
       // Use the cleaned UUID for database query
       const cleanBookId = uuidPart;
+      console.log('[CHECKOUT] Querying book with ID:', cleanBookId);
 
       // Get book data first
       const { data: bookData, error: bookError } = await supabase
@@ -194,36 +195,42 @@ const Checkout: React.FC = () => {
         .single();
 
       if (bookError) {
+        console.error('[CHECKOUT] Error fetching book:', bookError);
         throw new Error(`Failed to load book details: ${bookError.message}`);
       }
 
       if (!bookData) {
+        console.error('[CHECKOUT] Book not found for ID:', cleanBookId);
         throw new Error("Book not found");
       }
 
+      console.log('[CHECKOUT] Book data fetched:', {
+        id: bookData.id,
+        title: bookData.title,
+        price: bookData.price,
+        seller_id: bookData.seller_id,
+        availability: bookData.availability,
+      });
+
       // Validate essential book data fields
       if (!bookData.id || !bookData.seller_id) {
+        console.error('[CHECKOUT] Missing required fields:', { id: bookData.id, seller_id: bookData.seller_id });
         throw new Error("Invalid book data - missing required fields");
       }
-
-      // Book data loaded
-
-      // Skip sold check for now to allow testing - books should be available after cleanup
-      // if (bookData.sold === true) {
-      //   throw new Error("This book has already been sold");
-      // }
 
       // More flexible availability check - only block if explicitly unavailable
       if (
         bookData.availability === "unavailable" ||
         bookData.availability === "sold"
       ) {
+        console.warn('[CHECKOUT] Book not available:', { availability: bookData.availability });
         throw new Error(
           `This book is not available for purchase (status: ${bookData.availability})`,
         );
       }
 
       // Get seller information separately
+      console.log('[CHECKOUT] Fetching seller information for:', bookData.seller_id);
       let sellerData = null;
       if (bookData.seller_id) {
         const { data: seller, error: sellerError } = await supabase
@@ -232,8 +239,13 @@ const Checkout: React.FC = () => {
           .eq("id", bookData.seller_id)
           .maybeSingle();
 
-        if (!sellerError && seller) {
+        if (sellerError) {
+          console.warn('[CHECKOUT] Error fetching seller:', sellerError);
+        } else if (seller) {
+          console.log('[CHECKOUT] Seller data fetched:', { id: seller.id, name: seller.name });
           sellerData = seller;
+        } else {
+          console.warn('[CHECKOUT] No seller data found');
         }
       }
 
@@ -265,12 +277,18 @@ const Checkout: React.FC = () => {
         },
       };
 
-      // Checkout book created
+      console.log('[CHECKOUT] Checkout book created:', {
+        id: checkoutBook.id,
+        title: checkoutBook.title,
+        price: checkoutBook.price,
+        seller: checkoutBook.seller_name,
+      });
 
       setBook(checkoutBook);
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to load book";
+      console.error('[CHECKOUT] Error loading book:', errorMessage, err);
       setError(errorMessage);
     } finally {
       setLoading(false);
