@@ -233,9 +233,10 @@ serve(async (req) => {
 
     if (deliveryType === 'locker') {
       // Use provided locker info or fall back to buyer's preferred
+      // Support both preferred_delivery_locker_* and preferred_pickup_locker_* column names
       deliveryLockerData = requestData.delivery_locker_data || buyer.preferred_delivery_locker_data;
-      deliveryLockerLocationId = requestData.delivery_locker_location_id || buyer.preferred_delivery_locker_location_id;
-      deliveryLockerProviderSlug = requestData.delivery_locker_provider_slug || buyer.preferred_delivery_locker_provider_slug;
+      deliveryLockerLocationId = requestData.delivery_locker_location_id || buyer.preferred_delivery_locker_location_id || buyer.preferred_pickup_locker_location_id;
+      deliveryLockerProviderSlug = requestData.delivery_locker_provider_slug || buyer.preferred_delivery_locker_provider_slug || buyer.preferred_pickup_locker_provider_slug;
     } else {
       // For door delivery, use provided address or fall back to buyer's stored address
       shippingAddressEncrypted = shippingAddressEncrypted || buyer.shipping_address_encrypted;
