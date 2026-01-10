@@ -423,6 +423,21 @@ const Step4Confirmation: React.FC<Step4ConfirmationProps> = ({
               <p style={{ margin: "0 0 10px 0", fontSize: "15px", fontWeight: "bold" }}>
                 {orderData.book_title}
               </p>
+              {orderData.book_author && (
+                <p style={{ margin: "0 0 5px 0", fontSize: "13px", color: "#4e7a63" }}>
+                  Author: {orderData.book_author}
+                </p>
+              )}
+              {orderData.book_condition && (
+                <p style={{ margin: "0 0 5px 0", fontSize: "13px", color: "#4e7a63" }}>
+                  Condition: {orderData.book_condition}
+                </p>
+              )}
+              {orderData.book_description && (
+                <p style={{ margin: "0 0 10px 0", fontSize: "12px", color: "#4e7a63" }}>
+                  {orderData.book_description.substring(0, 150)}{orderData.book_description.length > 150 ? '...' : ''}
+                </p>
+              )}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px", fontSize: "13px" }}>
                 <p style={{ margin: "0", color: "#4e7a63" }}>
                   Book ID: {orderData.book_id}
