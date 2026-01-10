@@ -368,14 +368,23 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       };
 
       // Get buyer address (try multiple sources, prefer encrypted)
+      console.log('[CHECKOUT_FLOW] Fetching buyer address...');
       let buyerAddress: CheckoutAddress | null = null;
 
       // 1) Standard checkout data helper (encrypted + legacy JSONB fallback)
-      const buyerData = await getBuyerCheckoutData(user.id).catch(() => null);
-      if (buyerData?.address) buyerAddress = buyerData.address;
+      console.log('[CHECKOUT_FLOW] Attempting to load buyer address (method 1: checkout data)...');
+      const buyerData = await getBuyerCheckoutData(user.id).catch((err) => {
+        console.warn('[CHECKOUT_FLOW] Error in getBuyerCheckoutData:', err);
+        return null;
+      });
+      if (buyerData?.address) {
+        buyerAddress = buyerData.address;
+        console.log('[CHECKOUT_FLOW] Buyer address found via method 1');
+      }
 
       // 2) Direct encrypted fetch as a second attempt
       if (!buyerAddress) {
+        console.log('[CHECKOUT_FLOW] Attempting to load buyer address (method 2: simplified service)...');
         try {
           const { getSimpleUserAddresses } = await import("@/services/simplifiedAddressService");
           const addrData = await getSimpleUserAddresses(user.id);
@@ -388,12 +397,16 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
               postal_code: sa.postalCode || sa.postal_code,
               country: "South Africa",
             };
+            console.log('[CHECKOUT_FLOW] Buyer address found via method 2');
           }
-        } catch {}
+        } catch (err) {
+          console.warn('[CHECKOUT_FLOW] Error in getSimpleUserAddresses:', err);
+        }
       }
 
       // 3) Comprehensive address service as final fallback
       if (!buyerAddress) {
+        console.log('[CHECKOUT_FLOW] Attempting to load buyer address (method 3: comprehensive service)...');
         try {
           const { getUserAddresses } = await import("@/services/addressService");
           const full = await getUserAddresses(user.id);
@@ -406,8 +419,20 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
               postal_code: sa.postalCode || sa.postal_code,
               country: sa.country || "South Africa",
             } as CheckoutAddress;
+            console.log('[CHECKOUT_FLOW] Buyer address found via method 3');
           }
-        } catch {}
+        } catch (err) {
+          console.warn('[CHECKOUT_FLOW] Error in getUserAddresses:', err);
+        }
+      }
+
+      if (buyerAddress) {
+        console.log('[CHECKOUT_FLOW] Buyer address loaded:', {
+          city: buyerAddress.city,
+          province: buyerAddress.province,
+        });
+      } else {
+        console.log('[CHECKOUT_FLOW] No buyer address found, will require address entry');
       }
 
       // Determine available delivery methods and auto-select if only one exists
