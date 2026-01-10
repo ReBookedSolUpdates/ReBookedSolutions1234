@@ -240,14 +240,6 @@ function App() {
                           </ProtectedRoute>
                         }
                       />
-                                                                  <Route
-                        path="/activity"
-                        element={
-                          <ProtectedRoute>
-                            <ActivityLog />
-                          </ProtectedRoute>
-                        }
-                      />
                       <Route
                         path="/banking-setup"
                         element={
