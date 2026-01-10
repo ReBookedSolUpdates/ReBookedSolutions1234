@@ -257,6 +257,7 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
 
       // Step 3.1: Call create-order edge function for atomic order creation with idempotency
       // This is the ONLY place orders should be created - the edge function handles idempotency checks
+      // NOTE: All prices must be converted to cents (kobo) for backend consistency
       const createOrderPayload = {
         buyer_id: userId,
         seller_id: orderSummary.book.seller_id,
@@ -268,7 +269,8 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
         selected_service_code: orderSummary.delivery.service_level_code || "",
         selected_courier_name: orderSummary.delivery.provider_name || orderSummary.delivery.courier,
         selected_service_name: orderSummary.delivery.service_name,
-        selected_shipping_cost: orderSummary.delivery_price,
+        // Convert delivery_price from Rands to cents for backend (backend expects cents/kobo)
+        selected_shipping_cost: Math.round(orderSummary.delivery_price * 100),
         delivery_type: deliveryType,
         delivery_locker_data: normalizedLockerData,
         delivery_locker_location_id: normalizedLockerLocationId,
