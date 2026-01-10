@@ -272,6 +272,8 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
         // Convert delivery_price from Rands to cents for backend (backend expects cents/kobo)
         selected_shipping_cost: Math.round(orderSummary.delivery_price * 100),
         delivery_type: deliveryType,
+        // Add human-readable delivery method for display (e.g., "Home Delivery", "BobGo Locker")
+        delivery_method: orderSummary.delivery_method === "locker" ? "BobGo Locker" : "Home Delivery",
         delivery_locker_data: normalizedLockerData,
         delivery_locker_location_id: normalizedLockerLocationId,
         delivery_locker_provider_slug: normalizedLockerData?.provider_slug,
