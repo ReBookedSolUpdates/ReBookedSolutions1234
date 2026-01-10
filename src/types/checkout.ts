@@ -71,6 +71,9 @@ export interface OrderConfirmation {
   buyer_id: string;
   buyer_name?: string;
   book_title: string;
+  book_author?: string;
+  book_description?: string;
+  book_condition?: string;
   book_price: number;
   delivery_method: string;
   delivery_price: number;
