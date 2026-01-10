@@ -696,6 +696,10 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   };
 
   const handleAddressSubmit = (address: CheckoutAddress) => {
+    console.log('[CHECKOUT_FLOW] Address submitted:', {
+      city: address.city,
+      province: address.province,
+    });
     setCheckoutState((prev) => ({
       ...prev,
       buyer_address: address,
@@ -704,7 +708,12 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   };
 
   const handleSaveAddressToProfile = async (address: CheckoutAddress) => {
-    if (!user?.id) return;
+    console.log('[CHECKOUT_FLOW] Saving address to profile...');
+
+    if (!user?.id) {
+      console.warn('[CHECKOUT_FLOW] No user ID for saving address');
+      return;
+    }
 
     try {
       const { saveSimpleUserAddresses } = await import(
@@ -737,8 +746,10 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         false, // Addresses are different
       );
 
+      console.log('[CHECKOUT_FLOW] Address saved to profile successfully');
       toast.success("Address saved to your profile!");
     } catch (error) {
+      console.error('[CHECKOUT_FLOW] Error saving address to profile:', error);
       toast.error(
         "Failed to save address to profile, but proceeding with order",
       );
@@ -746,10 +757,15 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   };
 
   const handleEditAddress = () => {
+    console.log('[CHECKOUT_FLOW] Edit address mode enabled');
     setIsEditingAddress(true);
   };
 
   const handleAddressUpdate = (newAddress: CheckoutAddress) => {
+    console.log('[CHECKOUT_FLOW] Address updated:', {
+      city: newAddress.city,
+      province: newAddress.province,
+    });
     setCheckoutState(prev => ({
       ...prev,
       buyer_address: newAddress,
