@@ -87,6 +87,11 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
   const totalWithCoupon = calculateTotalWithCoupon();
 
   const handleCouponApply = (coupon: AppliedCoupon) => {
+    console.log('[PAYMENT] Coupon applied:', {
+      code: coupon.code,
+      discountAmount: coupon.discountAmount,
+      discountType: coupon.discountType,
+    });
     setAppliedCoupon(coupon);
     if (onCouponChange) {
       onCouponChange(coupon);
@@ -94,6 +99,7 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
   };
 
   const handleCouponRemove = () => {
+    console.log('[PAYMENT] Coupon removed');
     setAppliedCoupon(null);
     if (onCouponChange) {
       onCouponChange(null);
@@ -104,9 +110,12 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
   React.useEffect(() => {
     const fetchUserEmail = async () => {
       try {
+        console.log('[PAYMENT] Fetching user email...');
         const email = await getUserEmail();
+        console.log('[PAYMENT] User email fetched:', email);
         setUserEmail(email);
       } catch (err) {
+        console.error('[PAYMENT] Error fetching user email:', err);
       }
     };
     fetchUserEmail();
