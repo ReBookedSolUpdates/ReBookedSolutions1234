@@ -143,6 +143,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
 
       // OPTIMIZATION: Parallelize independent seller data fetches using Promise.allSettled
       // These calls don't depend on each other, so we fetch them concurrently
+      console.log('[CHECKOUT_FLOW] Fetching seller data in parallel...');
       const [
         sellerProfileResult,
         subaccountResult,
@@ -171,30 +172,52 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
           .maybeSingle(),
       ]);
 
+      console.log('[CHECKOUT_FLOW] Seller data fetch results:', {
+        profileStatus: sellerProfileResult.status,
+        subaccountStatus: subaccountResult.status,
+        addressStatus: sellerAddressResult.status,
+        lockerStatus: sellerProfileForLockerResult.status,
+      });
+
       // Process seller profile result
       if (sellerProfileResult.status === 'fulfilled' && sellerProfileResult.value.data) {
         sellerProfile = sellerProfileResult.value.data;
+        console.log('[CHECKOUT_FLOW] Seller profile loaded:', { id: sellerProfile.id, name: sellerProfile.name });
       }
 
       // Process subaccount result (non-critical)
       if (subaccountResult.status === 'fulfilled' && subaccountResult.value.data?.subaccount_code) {
         sellerSubaccountCode = subaccountResult.value.data.subaccount_code;
+        console.log('[CHECKOUT_FLOW] Subaccount code loaded');
         // Update the book with the subaccount code for future purchases (fire-and-forget, non-blocking)
         supabase
           .from("books")
           .update({ seller_subaccount_code: sellerSubaccountCode })
           .eq("id", bookData.id)
-          .catch(() => {}); // Silently ignore update errors
+          .catch((err) => {
+            console.warn('[CHECKOUT_FLOW] Failed to update book subaccount code:', err);
+          }); // Silently ignore update errors
       }
 
       // Process seller address result
       if (sellerAddressResult.status === 'fulfilled') {
         sellerAddress = sellerAddressResult.value;
+        console.log('[CHECKOUT_FLOW] Seller address loaded:', {
+          city: sellerAddress?.city,
+          province: sellerAddress?.province,
+        });
+      } else if (sellerAddressResult.status === 'rejected') {
+        console.warn('[CHECKOUT_FLOW] Failed to load seller address:', sellerAddressResult.reason);
       }
 
       // Process seller locker preference result
       if (sellerProfileForLockerResult.status === 'fulfilled' && sellerProfileForLockerResult.value.data) {
         const profile = sellerProfileForLockerResult.value.data;
+        console.log('[CHECKOUT_FLOW] Seller locker preference loaded:', {
+          preferredMethod: profile.preferred_pickup_method,
+          hasLockerData: !!profile.preferred_delivery_locker_data,
+        });
+
         // Load preferred pickup method
         if (profile.preferred_pickup_method) {
           sellerPreferredPickupMethod = profile.preferred_pickup_method;
@@ -205,6 +228,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
           const lockerData = profile.preferred_delivery_locker_data as any;
           if (lockerData.id && lockerData.name && lockerData.provider_slug) {
             sellerLockerData = lockerData;
+            console.log('[CHECKOUT_FLOW] Seller locker data loaded:', { name: lockerData.name });
           }
         }
 
@@ -214,6 +238,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
           if (lockerData.id && lockerData.name && lockerData.provider_slug) {
             sellerLockerData = lockerData;
             sellerPreferredPickupMethod = "locker";
+            console.log('[CHECKOUT_FLOW] Using locker as fallback preference');
           }
         }
       }
@@ -221,6 +246,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       // Default to pickup method if we have an address, otherwise locker
       if (!sellerPreferredPickupMethod) {
         sellerPreferredPickupMethod = sellerAddress ? "pickup" : "locker";
+        console.log('[CHECKOUT_FLOW] Using default pickup method:', sellerPreferredPickupMethod);
       }
 
       if (!sellerAddress && !sellerLockerData) {
