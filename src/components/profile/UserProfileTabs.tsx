@@ -361,11 +361,11 @@ const UserProfileTabs = ({
                   </div>
 
                   <Button
-                    onClick={() => navigate("/activity")}
+                    onClick={() => navigate("/profile", { state: { tab: "orders" } })}
                     className="bg-gray-900 hover:bg-gray-800 text-white font-semibold px-8 py-3 text-lg transition-all"
                   >
                     <Activity className="h-5 w-5 mr-2" />
-                    Open Activity Center
+                    View My Orders
                   </Button>
 
                   <p className="text-gray-500 text-sm mt-4">
