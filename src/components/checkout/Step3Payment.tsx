@@ -314,6 +314,11 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
       });
 
       // Step 4: Initialize BobPay payment with the order_id
+      console.log('[PAYMENT] Initializing BobPay payment...', {
+        orderId: createdOrder.id,
+        amount: orderSummary.total_price,
+      });
+
       const paymentRequest = {
         order_id: createdOrder.id,
         amount: orderSummary.total_price,
@@ -329,12 +334,14 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
         buyer_id: userId,
       };
 
+      console.log('[PAYMENT] Payment request prepared, calling bobpay-initialize-payment...');
       const { data: bobpayResult, error: bobpayError } = await supabase.functions.invoke(
         "bobpay-initialize-payment",
         { body: paymentRequest }
       );
 
       if (bobpayError || !bobpayResult?.success) {
+        console.error('[PAYMENT] BobPay initialization failed:', { error: bobpayError, result: bobpayResult });
         throw new Error(
           bobpayError?.message || bobpayResult?.error || "Failed to initialize BobPay payment"
         );
@@ -342,15 +349,18 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
 
       const paymentUrl = bobpayResult.data?.payment_url;
       if (!paymentUrl) {
+        console.error('[PAYMENT] No payment URL received from BobPay');
         throw new Error("No payment URL received from BobPay");
       }
 
+      console.log('[PAYMENT] Payment URL received, redirecting...');
       toast.success("Redirecting to payment page...");
 
       // Open payment page in the same tab
       window.location.href = paymentUrl;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Payment initialization failed";
+      console.error('[PAYMENT] Payment error:', errorMessage, err);
       const classifiedError = classifyPaymentError(errorMessage);
       setError(classifiedError);
       onPaymentError(errorMessage);
