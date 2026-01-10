@@ -90,6 +90,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       setCheckoutState((prev) => ({ ...prev, loading: true, error: null }));
 
       // Get fresh book data with seller information from books table
+      console.log('[CHECKOUT_FLOW] Fetching book data from database...');
       const { data, error: bookError } = await supabase
         .from("books")
         .select("*")
@@ -98,12 +99,26 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
 
       bookData = data; // Assign to outer scope variable
 
-      if (bookError || !bookData) {
+      if (bookError) {
+        console.error('[CHECKOUT_FLOW] Book fetch error:', bookError);
         throw new Error("Failed to load book details");
       }
 
+      if (!bookData) {
+        console.error('[CHECKOUT_FLOW] No book data returned');
+        throw new Error("Failed to load book details");
+      }
+
+      console.log('[CHECKOUT_FLOW] Book data retrieved:', {
+        id: bookData.id,
+        title: bookData.title,
+        seller_id: bookData.seller_id,
+        subaccount_code: bookData.seller_subaccount_code,
+      });
+
       // Explicit type guard to ensure bookData is not null
       if (!bookData.id || !bookData.seller_id) {
+        console.error('[CHECKOUT_FLOW] Missing required fields:', { id: bookData.id, seller_id: bookData.seller_id });
         throw new Error("Invalid book data - missing required fields");
       }
 
@@ -113,8 +128,11 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       }
 
       if (typeof bookData.seller_id !== 'string' || bookData.seller_id.length < 10) {
+        console.error('[CHECKOUT_FLOW] Invalid seller_id format:', { seller_id: bookData.seller_id, type: typeof bookData.seller_id });
         throw new Error(`Invalid seller_id format: ${bookData.seller_id} (type: ${typeof bookData.seller_id})`);
       }
+
+      console.log('[CHECKOUT_FLOW] Seller validation passed');
 
       // Initialize variables for seller data
       let sellerProfile = null;
