@@ -482,6 +482,8 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         error instanceof Error
           ? error.message
           : "Failed to initialize checkout";
+      console.error('[CHECKOUT_FLOW] Error initializing checkout:', errorMessage, error);
+
       setCheckoutState((prev) => ({
         ...prev,
         error: errorMessage,
@@ -490,6 +492,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
 
       // If this is the seller's own book, offer to go to profile
       if (bookData && user?.id === bookData.seller_id) {
+        console.log('[CHECKOUT_FLOW] Showing seller-specific error message');
         toast.error(errorMessage, {
           description: "Click here to update your pickup address",
           action: {
