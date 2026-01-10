@@ -71,7 +71,10 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   }, [book.id, user?.id]);
 
   const initializeCheckout = async () => {
+    console.log('[CHECKOUT_FLOW] Initializing checkout', { userId: user?.id, bookId: book.id });
+
     if (!user?.id) {
+      console.error('[CHECKOUT_FLOW] No user ID found');
       setCheckoutState((prev) => ({
         ...prev,
         error: "Please log in to continue",
@@ -83,6 +86,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
     let bookData = null; // Declare outside try block to prevent undefined error in catch
 
     try {
+      console.log('[CHECKOUT_FLOW] Setting loading state...');
       setCheckoutState((prev) => ({ ...prev, loading: true, error: null }));
 
       // Get fresh book data with seller information from books table
