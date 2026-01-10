@@ -600,10 +600,17 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   };
 
   const handlePaymentSuccess = async (orderData: OrderConfirmation) => {
+    console.log('[CHECKOUT_FLOW] Payment successful!', {
+      orderId: orderData.orderId,
+      totalAmount: orderData.totalAmount,
+      status: orderData.status,
+    });
+
     setOrderConfirmation(orderData);
 
     // Remove book from cart after successful purchase
     // This fixes the bug where books remain in cart after Buy Now purchase
+    console.log('[CHECKOUT_FLOW] Removing book from cart...');
     try {
       // Remove from legacy cart
       removeFromCart(book.id);
@@ -612,12 +619,15 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       if (book.seller?.id) {
         removeFromSellerCart(book.seller.id, book.id);
       }
+      console.log('[CHECKOUT_FLOW] Book removed from cart successfully');
     } catch (error) {
+      console.warn('[CHECKOUT_FLOW] Error removing book from cart:', error);
       // Don't block the checkout success flow if cart removal fails
     }
 
     // Email fallback system
     // Send purchase confirmation emails with multiple fallback layers
+    console.log('[CHECKOUT_FLOW] Sending purchase confirmation emails...');
     try {
       const purchaseEmailData = {
         orderId: orderData.orderId || book.id,
@@ -635,6 +645,11 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       // Use enhanced email service with guaranteed fallbacks
       const emailResult = await EnhancedPurchaseEmailService.sendPurchaseEmailsWithFallback(purchaseEmailData);
 
+      console.log('[CHECKOUT_FLOW] Email result:', {
+        sellerEmailSent: emailResult.sellerEmailSent,
+        buyerEmailSent: emailResult.buyerEmailSent,
+      });
+
       // Show user feedback about email status
       if (emailResult.sellerEmailSent && emailResult.buyerEmailSent) {
         toast.success("Confirmation emails sent to all parties");
@@ -645,12 +660,14 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       }
 
     } catch (emailError) {
+      console.error('[CHECKOUT_FLOW] Error sending emails:', emailError);
       // Don't block checkout completion if emails fail
       toast.warning("Emails are being processed manually", {
         description: "Your purchase is complete but notifications may be delayed."
       });
     }
 
+    console.log('[CHECKOUT_FLOW] Moving to confirmation step');
     goToStep(5);
   };
 
