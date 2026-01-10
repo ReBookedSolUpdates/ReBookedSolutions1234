@@ -223,6 +223,9 @@ const CheckoutSuccess: React.FC = () => {
         seller_id: order.seller_id,
         buyer_id: metadata.buyer_id || "",
         book_title: bookItem?.book_title || "Book",
+        book_author: bookItem?.author, // Add book author from items
+        book_description: bookItem?.description, // Add book description from items
+        book_condition: bookItem?.condition, // Add book condition from items
         book_price: bookItem?.price ? bookItem.price / 100 : 0, // Convert from kobo to rands
         delivery_method: deliveryData?.delivery_method || "Standard",
         delivery_price: deliveryData?.delivery_price ? deliveryData.delivery_price / 100 : 0, // Convert from kobo to rands
