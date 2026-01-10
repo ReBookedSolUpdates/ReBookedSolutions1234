@@ -215,12 +215,30 @@ const CheckoutSuccess: React.FC = () => {
       // Extract metadata (includes buyer_id and platform fee)
       const metadata = order.metadata || {};
 
+      // Fetch seller profile for seller name (if available)
+      let sellerName: string | undefined;
+      try {
+        const { data: sellerProfile } = await supabase
+          .from("profiles")
+          .select("full_name, name, first_name, last_name")
+          .eq("id", order.seller_id)
+          .single();
+
+        if (sellerProfile) {
+          sellerName = sellerProfile.full_name || sellerProfile.name ||
+            `${sellerProfile.first_name || ''} ${sellerProfile.last_name || ''}`.trim();
+        }
+      } catch (err) {
+        // Seller name fetch failed, continue without it
+      }
+
       // Construct OrderConfirmation object from order data
       const confirmation: OrderConfirmation = {
         order_id: order.payment_reference || order.id,
         payment_reference: paymentReference,
         book_id: bookItem?.book_id || "",
         seller_id: order.seller_id,
+        seller_name: sellerName,
         buyer_id: metadata.buyer_id || "",
         book_title: bookItem?.book_title || "Book",
         book_author: bookItem?.author, // Add book author from items
