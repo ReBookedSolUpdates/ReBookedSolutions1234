@@ -507,6 +507,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   };
 
   const goToStep = (step: 1 | 2 | 3 | 4 | 5) => {
+    console.log('[CHECKOUT_FLOW] Navigating to step:', step);
     // Always show all steps - no auto-skipping
     // Users should see the delivery method selection step
     setCheckoutState((prev) => ({
