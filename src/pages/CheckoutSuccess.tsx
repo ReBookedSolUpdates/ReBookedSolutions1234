@@ -7,7 +7,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EnhancedPurchaseEmailService } from "@/services/enhancedPurchaseEmailService";
-import { NotificationService } from "@/services/notificationService";
 
 const CheckoutSuccess: React.FC = () => {
   const [searchParams] = useSearchParams();
