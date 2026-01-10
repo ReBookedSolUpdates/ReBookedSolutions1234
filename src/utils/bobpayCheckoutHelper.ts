@@ -59,6 +59,8 @@ export const initializeBobPayCheckout = async (
       selected_service_name: orderSummary.delivery.service_name,
       // Convert delivery price from Rands to cents for backend (backend expects cents/kobo)
       selected_shipping_cost: Math.round(orderSummary.delivery.price * 100),
+      // Add human-readable delivery method for display
+      delivery_method: orderSummary.delivery_method === "locker" ? "BobGo Locker" : "Home Delivery",
     };
 
     const { data: createData, error: createErr } = await supabase.functions.invoke(
