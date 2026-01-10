@@ -160,9 +160,30 @@ const ModernAddressTab = ({
         return;
       }
 
+      // If method is locker, fetch the saved locker data to also store the location_id and provider_slug
+      let updateData: any = { preferred_pickup_method: method };
+
+      if (method === "locker" && hasSavedLocker) {
+        // Fetch the full locker data
+        const { data: profile, error: fetchError } = await supabase
+          .from("profiles")
+          .select("preferred_delivery_locker_data")
+          .eq("id", user.id)
+          .single();
+
+        if (!fetchError && profile?.preferred_delivery_locker_data) {
+          const lockerData = profile.preferred_delivery_locker_data as any;
+          updateData = {
+            ...updateData,
+            preferred_pickup_locker_location_id: lockerData.id ? parseInt(lockerData.id) : null,
+            preferred_pickup_locker_provider_slug: lockerData.provider_slug || null,
+          };
+        }
+      }
+
       const { error } = await supabase
         .from("profiles")
-        .update({ preferred_pickup_method: method })
+        .update(updateData)
         .eq("id", user.id);
 
       if (error) {

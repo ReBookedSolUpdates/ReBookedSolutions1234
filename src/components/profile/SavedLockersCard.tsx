@@ -86,6 +86,8 @@ const SavedLockersCard = forwardRef<
         .from("profiles")
         .update({
           preferred_delivery_locker_data: null,
+          preferred_pickup_locker_location_id: null,
+          preferred_pickup_locker_provider_slug: null,
           preferred_delivery_locker_saved_at: null,
         })
         .eq("id", user.id);
