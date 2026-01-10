@@ -376,10 +376,12 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
 
 
   const handleRetryPayment = () => {
+    console.log('[PAYMENT] Retrying payment, retry count:', retryCount + 1);
     setError(null);
     setRetryCount((prev) => prev + 1);
 
     if (retryCount >= 2) {
+      console.warn('[PAYMENT] Multiple payment attempts detected');
       toast.warning(
         "Multiple payment attempts detected. Please contact support if issues persist.",
       );
@@ -387,6 +389,7 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
   };
 
   const handleContactSupport = () => {
+    console.log('[PAYMENT] Opening support email form');
     const subject = "Payment Issue - ReBooked Solutions";
     const body = `
 I'm experiencing payment issues:
