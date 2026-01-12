@@ -279,9 +279,22 @@ const CheckoutSuccess: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-gray-600">Loading your order confirmation...</p>
+        <div className="text-center space-y-4">
+          <Loader2 className="w-12 h-12 animate-spin mx-auto text-blue-600" />
+          <div>
+            {isConfirmingPayment ? (
+              <>
+                <p className="text-gray-700 font-medium">Confirming your payment...</p>
+                <p className="text-sm text-gray-500 mt-2">
+                  {retryCount > 0 ? `Checking payment status (${retryCount} of 3)...` : "This may take a moment"}
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-gray-600">Loading your order confirmation...</p>
+              </>
+            )}
+          </div>
         </div>
       </div>
     );
