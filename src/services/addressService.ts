@@ -92,6 +92,17 @@ export const saveUserAddresses = async (
       !pickupAddress.postalCode &&
       !pickupAddress.postal_code;
 
+    // Check if shipping address is intentionally being deleted (all fields empty)
+    const isShippingDeleted =
+      shippingAddress &&
+      !shippingAddress.street &&
+      !shippingAddress.streetAddress &&
+      !shippingAddress.street_address &&
+      !shippingAddress.city &&
+      !shippingAddress.province &&
+      !shippingAddress.postalCode &&
+      !shippingAddress.postal_code;
+
     // Validate address structure before encryption (skip if being deleted)
     if (!isPickupDeleted) {
       const pickupErrors = validateAddressStructure(pickupAddress);
@@ -100,7 +111,7 @@ export const saveUserAddresses = async (
       }
     }
 
-    if (!addressesSame) {
+    if (!addressesSame && !isShippingDeleted) {
       const shippingErrors = validateAddressStructure(shippingAddress);
       if (shippingErrors.length > 0) {
         throw new Error(`Shipping address invalid: ${shippingErrors.join("; ")}`);
