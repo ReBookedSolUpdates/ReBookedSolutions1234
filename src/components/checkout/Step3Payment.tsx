@@ -87,11 +87,6 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
   const totalWithCoupon = calculateTotalWithCoupon();
 
   const handleCouponApply = (coupon: AppliedCoupon) => {
-    console.log('[PAYMENT] Coupon applied:', {
-      code: coupon.code,
-      discountAmount: coupon.discountAmount,
-      discountType: coupon.discountType,
-    });
     setAppliedCoupon(coupon);
     if (onCouponChange) {
       onCouponChange(coupon);
