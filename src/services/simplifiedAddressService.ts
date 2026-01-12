@@ -298,8 +298,12 @@ export const saveSimpleUserAddresses = async (
         });
         if (result && (result as any).success) {
           pickupEncrypted = true;
+        } else {
+          throw new Error("Encryption service returned invalid response");
         }
       } catch (encryptError) {
+        const errorMsg = encryptError instanceof Error ? encryptError.message : 'Unknown error';
+        throw new Error(`Failed to save pickup address: ${errorMsg}`);
       }
     }
 
@@ -311,18 +315,15 @@ export const saveSimpleUserAddresses = async (
         });
         if (result && (result as any).success) {
           shippingEncrypted = true;
+        } else {
+          throw new Error("Encryption service returned invalid response");
         }
       } catch (encryptError) {
+        const errorMsg = encryptError instanceof Error ? encryptError.message : 'Unknown error';
+        throw new Error(`Failed to save shipping address: ${errorMsg}`);
       }
     } else {
       shippingEncrypted = pickupEncrypted;
-    }
-
-    if (pickupAddress && !pickupEncrypted) {
-      throw new Error("Failed to encrypt pickup address. Address not saved for security reasons.");
-    }
-    if (shippingAddress && !addressesAreSame && !shippingEncrypted) {
-      throw new Error("Failed to encrypt shipping address. Address not saved for security reasons.");
     }
 
     const { error } = await supabase
