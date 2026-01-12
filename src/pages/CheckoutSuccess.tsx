@@ -34,16 +34,17 @@ const CheckoutSuccess: React.FC = () => {
   const handlePostPaymentActions = async (order: any) => {
     try {
       // Processing post-payment actions
-
       const bookItem = order.items?.[0];
       const bookId = bookItem?.book_id || order.book_id;
 
-      // Step 1: Invoke create-order function to mark book as sold
-      // This is a fallback mechanism in case the webhook didn't fire
-      if (bookId && order.buyer_id && order.seller_id) {
+      // Step 1: Only invoke create-order as fallback if order is still in pending state
+      // The webhook should have already done this, so we check first
+      if (bookId && order.buyer_id && order.seller_id &&
+          (order.payment_status === "pending" || order.status === "pending")) {
         try {
-          // Invoking create-order function
-
+          // IDEMPOTENCY CHECK: create-order is idempotent by payment_reference
+          // It will return existing order if it was already created, and also mark book as sold again (safe)
+          // Only invoke this if webhook might have failed (order is still pending)
           const { data: createOrderResult, error: createOrderError } = await supabase.functions.invoke(
             'create-order',
             {
@@ -68,9 +69,9 @@ const CheckoutSuccess: React.FC = () => {
           );
 
           if (createOrderError) {
-            // Don't throw - this might be expected if already marked
+            // Log but don't fail - webhook may have already processed this
           } else if (createOrderResult?.success) {
-            // Book marked as sold
+            // Book marked as sold (or already was)
           }
         } catch (functionError) {
           // Continue with other actions even if function call fails
