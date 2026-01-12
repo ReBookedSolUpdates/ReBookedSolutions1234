@@ -212,6 +212,7 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
       // Step 3.1: Call create-order edge function for atomic order creation with idempotency
       // This is the ONLY place orders should be created - the edge function handles idempotency checks
       // NOTE: All prices must be converted to cents (kobo) for backend consistency
+      // CRITICAL: Pass seller's preferred pickup method to ensure pickup_type matches rate calculation
       const createOrderPayload = {
         buyer_id: userId,
         seller_id: orderSummary.book.seller_id,
@@ -231,6 +232,8 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
         delivery_locker_data: normalizedLockerData,
         delivery_locker_location_id: normalizedLockerLocationId,
         delivery_locker_provider_slug: normalizedLockerData?.provider_slug,
+        // CRITICAL: Pass seller's preferred pickup method to determine pickup_type correctly
+        seller_preferred_pickup_method: orderSummary.seller_locker_data ? "locker" : "pickup",
       };
 
       const { data: createOrderResult, error: createOrderError } = await supabase.functions.invoke(
