@@ -145,7 +145,7 @@ serve(async (req) => {
       const refundResponse = await fetch(refundUrl, {
         method: 'POST',
         headers: {
-          'Authorization': authHeader,
+          'Authorization': authHeader!,
           'Content-Type': 'application/json',
           'apikey': SUPABASE_ANON_KEY,
         },
