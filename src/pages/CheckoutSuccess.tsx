@@ -183,8 +183,19 @@ const CheckoutSuccess: React.FC = () => {
       // Extract book info from items array
       const bookItem = order.items?.[0];
 
-      // Extract delivery info from delivery_data
-      const deliveryData = order.delivery_data;
+      // Extract delivery info from delivery_data - with multiple fallback sources
+      const deliveryData = order.delivery_data || {};
+
+      // Fallback delivery price from order.selected_shipping_cost if delivery_data.delivery_price is missing
+      const deliveryPrice = deliveryData?.delivery_price !== undefined
+        ? deliveryData.delivery_price
+        : order.selected_shipping_cost || 0;
+
+      // Fallback delivery method from order.delivery_type or delivery_method
+      const deliveryMethod = deliveryData?.delivery_method
+        || order.delivery_method
+        || (order.delivery_type === "locker" ? "BobGo Locker" : "Home Delivery")
+        || "Standard";
 
       // Extract metadata (includes buyer_id and platform fee)
       const metadata = order.metadata || {};
@@ -207,22 +218,23 @@ const CheckoutSuccess: React.FC = () => {
       }
 
       // Construct OrderConfirmation object from order data
+      // All prices are converted from kobo/cents to Rands for display
       const confirmation: OrderConfirmation = {
         order_id: order.payment_reference || order.id,
         payment_reference: paymentReference,
         book_id: bookItem?.book_id || "",
         seller_id: order.seller_id,
         seller_name: sellerName,
-        buyer_id: metadata.buyer_id || "",
+        buyer_id: metadata.buyer_id || order.buyer_id || "",
         book_title: bookItem?.book_title || "Book",
-        book_author: bookItem?.author, // Add book author from items
-        book_description: bookItem?.description, // Add book description from items
-        book_condition: bookItem?.condition, // Add book condition from items
-        book_price: bookItem?.price ? bookItem.price / 100 : 0, // Convert from kobo to rands
-        delivery_method: deliveryData?.delivery_method || "Standard",
-        delivery_price: deliveryData?.delivery_price ? deliveryData.delivery_price / 100 : 0, // Convert from kobo to rands
-        platform_fee: metadata.platform_fee ? metadata.platform_fee / 100 : 20, // Convert from kobo to rands
-        total_paid: order.amount ? order.amount / 100 : 0, // Convert from kobo to rands
+        book_author: bookItem?.author, // Book author from order items
+        book_description: bookItem?.description, // Book description from order items
+        book_condition: bookItem?.condition, // Book condition from order items
+        book_price: bookItem?.price ? bookItem.price / 100 : 0, // Convert from kobo to Rands
+        delivery_method: deliveryMethod, // Use consistent delivery method field
+        delivery_price: deliveryPrice ? deliveryPrice / 100 : 0, // Convert from kobo to Rands with fallback
+        platform_fee: metadata.platform_fee ? metadata.platform_fee / 100 : 20, // Convert from kobo to Rands (default R20)
+        total_paid: order.amount ? order.amount / 100 : 0, // Convert from kobo to Rands
         created_at: order.created_at || new Date().toISOString(),
         status: order.status || "pending",
       };
