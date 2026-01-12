@@ -302,7 +302,6 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
       window.location.href = paymentUrl;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Payment initialization failed";
-      console.error('[PAYMENT] Payment error:', errorMessage, err);
       const classifiedError = classifyPaymentError(errorMessage);
       setError(classifiedError);
       onPaymentError(errorMessage);
@@ -315,10 +314,7 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
     }
   };
 
-
-
   const handleRetryPayment = () => {
-    console.log('[PAYMENT] Retrying payment, retry count:', retryCount + 1);
     setError(null);
     setRetryCount((prev) => prev + 1);
 
