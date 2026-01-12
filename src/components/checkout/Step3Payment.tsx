@@ -114,25 +114,15 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
   }, []);
 
   const handleBobPayPayment = async () => {
-    console.log('[PAYMENT] Starting BobPay payment process...', {
-      userId,
-      bookId: orderSummary.book.id,
-      totalAmount: orderSummary.total_price,
-    });
-
     setProcessing(true);
     setError(null);
     try {
       // Use cached user from AuthContext instead of calling supabase.auth.getUser() again
       if (!authUser || !authUser.email) {
-        console.error('[PAYMENT] User authentication error');
         throw new Error("User authentication error");
       }
 
-      console.log('[PAYMENT] User authenticated:', authUser.email);
-
       const customPaymentId = `ORDER-${Date.now()}-${userId}`;
-      console.log('[PAYMENT] Generated payment reference:', customPaymentId);
 
       // Check for duplicate order submission (idempotency)
       const cachedOrderId = getCachedOrderId(customPaymentId);
