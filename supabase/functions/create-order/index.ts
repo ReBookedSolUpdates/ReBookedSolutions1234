@@ -26,6 +26,8 @@ interface CreateOrderRequest {
   delivery_locker_data?: any;
   delivery_locker_location_id?: number;
   delivery_locker_provider_slug?: string;
+  // Seller's preferred pickup method (CRITICAL for correct pickup type determination)
+  seller_preferred_pickup_method?: 'locker' | 'pickup';
 }
 
 serve(async (req) => {
