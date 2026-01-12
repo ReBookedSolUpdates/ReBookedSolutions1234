@@ -213,17 +213,56 @@ serve(async (req) => {
 
     console.log("✅ Book marked as sold:", { id: book.id, title: book.title });
 
-    // Determine pickup type and data
-    const pickupType = requestData.pickup_type || 'door';
+    // CRITICAL: Determine pickup type based on seller's preference, not arbitrary default to 'door'
+    // If seller_preferred_pickup_method is 'locker', use locker pickup
+    // If seller_preferred_pickup_method is 'pickup' or pickup address exists, use door pickup
+    // Otherwise fail with error
+    let pickupType: 'door' | 'locker' = 'door';
     let pickupLockerData = null;
     let pickupLockerLocationId = null;
     let pickupLockerProviderSlug = null;
 
-    if (pickupType === 'locker') {
-      // Use provided locker info or fall back to seller's preferred
+    // CRITICAL FIX: Use seller's preferred pickup method from checkout, not default to door
+    if (requestData.seller_preferred_pickup_method === 'locker') {
+      console.log('📍 Seller preferred pickup method: locker - using locker pickup');
+      pickupType = 'locker';
+      // Use provided locker info or fall back to seller's profile preferred locker
       pickupLockerData = requestData.pickup_locker_data || seller.preferred_pickup_locker_data;
       pickupLockerLocationId = requestData.pickup_locker_location_id || seller.preferred_pickup_locker_location_id;
       pickupLockerProviderSlug = requestData.pickup_locker_provider_slug || seller.preferred_pickup_locker_provider_slug;
+
+      // Validate that locker data exists
+      if (!pickupLockerLocationId) {
+        console.error("❌ Locker pickup selected but seller has no locker location saved");
+        // Rollback book marking
+        await supabase.from("books").update({
+          sold: false,
+          available_quantity: book.available_quantity,
+          sold_quantity: book.sold_quantity
+        }).eq("id", requestData.book_id);
+
+        return new Response(
+          JSON.stringify({ success: false, error: "Seller locker pickup selected but no locker location is configured. Please contact the seller." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    } else if (requestData.seller_preferred_pickup_method === 'pickup' || seller.pickup_address_encrypted) {
+      console.log('🚪 Seller preferred pickup method: door - using door/home pickup');
+      pickupType = 'door';
+      // Door pickup - pickup address will be handled below
+    } else {
+      console.error("❌ No valid pickup method available - seller has neither locker nor address");
+      // Rollback book marking
+      await supabase.from("books").update({
+        sold: false,
+        available_quantity: book.available_quantity,
+        sold_quantity: book.sold_quantity
+      }).eq("id", requestData.book_id);
+
+      return new Response(
+        JSON.stringify({ success: false, error: "Seller has not configured a pickup method (locker or address). Please contact the seller." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     // Determine delivery type and data
