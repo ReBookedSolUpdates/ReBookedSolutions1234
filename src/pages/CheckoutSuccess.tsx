@@ -191,60 +191,54 @@ const CheckoutSuccess: React.FC = () => {
       // Get the payment_reference from the order record
       const paymentReference = order.payment_reference || cleanReference;
 
-      // Extract book info from items array
-      const bookItem = order.items?.[0];
+      // FETCH FRESH BOOK DATA from DB instead of relying on order.items
+      const { data: freshBookData, error: bookFetchError } = await supabase
+        .from('books')
+        .select('id, title, author, price, condition, image_url, description')
+        .eq('id', order.book_id)
+        .single();
 
-      // Extract delivery info from delivery_data - with multiple fallback sources
+      if (bookFetchError || !freshBookData) {
+        throw new Error('Failed to fetch book details. Please try refreshing the page.');
+      }
+
+      // Extract delivery info from delivery_data - with fallback sources
       const deliveryData = order.delivery_data || {};
 
-      // Fallback delivery price from order.selected_shipping_cost if delivery_data.delivery_price is missing
-      const deliveryPrice = deliveryData?.delivery_price !== undefined
-        ? deliveryData.delivery_price
-        : order.selected_shipping_cost || 0;
+      // Delivery price: use order.selected_shipping_cost (stored in cents/kobo)
+      const deliveryPrice = order.selected_shipping_cost || 0;
 
-      // Fallback delivery method from order.delivery_type or delivery_method
-      const deliveryMethod = deliveryData?.delivery_method
-        || order.delivery_method
-        || (order.delivery_type === "locker" ? "BobGo Locker" : "Home Delivery")
-        || "Standard";
+      // Delivery method: use order denormalized field
+      const deliveryMethod = order.delivery_method || "Standard";
 
       // Extract metadata (includes buyer_id and platform fee)
       const metadata = order.metadata || {};
 
-      // Fetch seller profile for seller name (if available)
-      let sellerName: string | undefined;
-      try {
-        const { data: sellerProfile } = await supabase
-          .from("profiles")
-          .select("full_name, name, first_name, last_name")
-          .eq("id", order.seller_id)
-          .single();
+      // Seller name is already denormalized in order record
+      const sellerName = order.seller_full_name || "Seller";
 
-        if (sellerProfile) {
-          sellerName = sellerProfile.full_name || sellerProfile.name ||
-            `${sellerProfile.first_name || ''} ${sellerProfile.last_name || ''}`.trim();
-        }
-      } catch (err) {
-        // Seller name fetch failed, continue without it
+      // Validate critical order fields exist
+      if (!order.id || !order.buyer_id || !order.seller_id || !order.book_id) {
+        throw new Error('Incomplete order data. Please contact support.');
       }
 
-      // Construct OrderConfirmation object from order data
+      // Construct OrderConfirmation object from FRESH book data and order record
       // All prices are converted from kobo/cents to Rands for display
       const confirmation: OrderConfirmation = {
         order_id: order.payment_reference || order.id,
         payment_reference: paymentReference,
-        book_id: bookItem?.book_id || "",
+        book_id: order.book_id,
         seller_id: order.seller_id,
         seller_name: sellerName,
-        buyer_id: metadata.buyer_id || order.buyer_id || "",
-        book_title: bookItem?.book_title || "Book",
-        book_author: bookItem?.author, // Book author from order items
-        book_description: bookItem?.description, // Book description from order items
-        book_condition: bookItem?.condition, // Book condition from order items
-        book_price: bookItem?.price ? bookItem.price / 100 : 0, // Convert from kobo to Rands
-        delivery_method: deliveryMethod, // Use consistent delivery method field
-        delivery_price: deliveryPrice ? deliveryPrice / 100 : 0, // Convert from kobo to Rands with fallback
-        platform_fee: metadata.platform_fee ? metadata.platform_fee / 100 : 20, // Convert from kobo to Rands (default R20)
+        buyer_id: order.buyer_id,
+        book_title: freshBookData.title || "Book",
+        book_author: freshBookData.author,
+        book_description: freshBookData.description,
+        book_condition: freshBookData.condition,
+        book_price: freshBookData.price ? freshBookData.price / 100 : 0, // Convert from kobo to Rands
+        delivery_method: deliveryMethod,
+        delivery_price: deliveryPrice ? deliveryPrice / 100 : 0, // Convert from kobo to Rands
+        platform_fee: metadata.platform_fee ? metadata.platform_fee / 100 : 20, // Default R20
         total_paid: order.amount ? order.amount / 100 : 0, // Convert from kobo to Rands
         created_at: order.created_at || new Date().toISOString(),
         status: order.status || "pending",
