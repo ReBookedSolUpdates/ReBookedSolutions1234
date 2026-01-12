@@ -92,6 +92,17 @@ export const saveUserAddresses = async (
       !pickupAddress.postalCode &&
       !pickupAddress.postal_code;
 
+    // Check if shipping address is intentionally being deleted (all fields empty)
+    const isShippingDeleted =
+      shippingAddress &&
+      !shippingAddress.street &&
+      !shippingAddress.streetAddress &&
+      !shippingAddress.street_address &&
+      !shippingAddress.city &&
+      !shippingAddress.province &&
+      !shippingAddress.postalCode &&
+      !shippingAddress.postal_code;
+
     // Validate address structure before encryption (skip if being deleted)
     if (!isPickupDeleted) {
       const pickupErrors = validateAddressStructure(pickupAddress);
@@ -100,7 +111,7 @@ export const saveUserAddresses = async (
       }
     }
 
-    if (!addressesSame) {
+    if (!addressesSame && !isShippingDeleted) {
       const shippingErrors = validateAddressStructure(shippingAddress);
       if (shippingErrors.length > 0) {
         throw new Error(`Shipping address invalid: ${shippingErrors.join("; ")}`);
@@ -119,8 +130,11 @@ export const saveUserAddresses = async (
 
     let normalizedShipping = normalizedPickup;
     if (!addressesSame) {
-      normalizedShipping = normalizeAddressFields(shippingAddress);
-      if (!normalizedShipping) {
+      // If shipping address is being deleted, use empty object for normalization
+      normalizedShipping = isShippingDeleted
+        ? { country: "South Africa" } as CanonicalAddress
+        : normalizeAddressFields(shippingAddress);
+      if (!isShippingDeleted && !normalizedShipping) {
         throw new Error("Failed to normalize shipping address");
       }
     }
@@ -190,27 +204,49 @@ export const saveUserAddresses = async (
 
     // Try to encrypt and save shipping address (if different, use comprehensive encryption preparation)
     if (!addressesSame) {
-      try {
-        const shippingForEncryption = prepareAddressForEncryption(normalizedShipping);
-        const shippingResult = await encryptAddress(shippingForEncryption, {
-          save: {
-            table: 'profiles',
-            target_id: userId,
-            address_type: 'shipping'
+      // If deleting the shipping address, clear the encrypted fields from database
+      if (isShippingDeleted) {
+        try {
+          const { error: deleteError } = await supabase
+            .from("profiles")
+            .update({
+              shipping_address_encrypted: null,
+              shipping_address_iv: null
+            })
+            .eq("id", userId);
+
+          if (deleteError) {
+            throw deleteError;
           }
-        });
-
-        // EXPLICIT ERROR CHECK: Encryption must succeed
-        if (!shippingResult || !shippingResult.success) {
-          throw new Error('Encryption service returned failure for shipping address');
+          encryptionResults.shipping = true;
+        } catch (deletionError) {
+          const errorMsg = deletionError instanceof Error ? deletionError.message : 'Unknown error';
+          safeLogError('Shipping address deletion failed', deletionError);
+          throw new Error(`Failed to delete shipping address: ${errorMsg}`);
         }
+      } else {
+        try {
+          const shippingForEncryption = prepareAddressForEncryption(normalizedShipping);
+          const shippingResult = await encryptAddress(shippingForEncryption, {
+            save: {
+              table: 'profiles',
+              target_id: userId,
+              address_type: 'shipping'
+            }
+          });
 
-        encryptionResults.shipping = true;
-      } catch (encryptError) {
-        // Provide meaningful error to user
-        const errorMsg = encryptError instanceof Error ? encryptError.message : 'Failed to encrypt shipping address';
-        safeLogError('Shipping address encryption failed', encryptError);
-        throw new Error(`Failed to save shipping address: ${errorMsg}. Please check your internet connection and try again.`);
+          // EXPLICIT ERROR CHECK: Encryption must succeed
+          if (!shippingResult || !shippingResult.success) {
+            throw new Error('Encryption service returned failure for shipping address');
+          }
+
+          encryptionResults.shipping = true;
+        } catch (encryptError) {
+          // Provide meaningful error to user
+          const errorMsg = encryptError instanceof Error ? encryptError.message : 'Failed to encrypt shipping address';
+          safeLogError('Shipping address encryption failed', encryptError);
+          throw new Error(`Failed to save shipping address: ${errorMsg}. Please check your internet connection and try again.`);
+        }
       }
     } else {
       // If addresses are the same, mark shipping encryption as successful if pickup succeeded

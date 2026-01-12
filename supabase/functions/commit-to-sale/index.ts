@@ -659,7 +659,10 @@ serve(async (req) => {
       const pickupAddress = pickupData!.address as Record<string, string>;
       shipmentPayload.pickup_address = {
         street_address:
-          pickupAddress.streetAddress || pickupAddress.street_address || "",
+          pickupAddress.street ||
+          pickupAddress.streetAddress ||
+          pickupAddress.street_address ||
+          "",
         local_area:
           pickupAddress.local_area ||
           pickupAddress.suburb ||
@@ -670,7 +673,7 @@ serve(async (req) => {
           pickupAddress.local_area ||
           pickupAddress.suburb ||
           "",
-        zone: pickupAddress.province || pickupAddress.zone || "ZA",
+        zone: pickupAddress.province || pickupAddress.provinceCode || pickupAddress.zone || "ZA",
         code:
           pickupAddress.postalCode ||
           pickupAddress.postal_code ||
@@ -696,7 +699,10 @@ serve(async (req) => {
       if (shippingAddr) {
         shipmentPayload.delivery_address = {
           street_address:
-            shippingAddr.streetAddress || shippingAddr.street_address || "",
+            shippingAddr.street ||
+            shippingAddr.streetAddress ||
+            shippingAddr.street_address ||
+            "",
           local_area:
             shippingAddr.local_area ||
             shippingAddr.suburb ||
@@ -707,7 +713,7 @@ serve(async (req) => {
             shippingAddr.local_area ||
             shippingAddr.suburb ||
             "",
-          zone: shippingAddr.province || shippingAddr.zone || "ZA",
+          zone: shippingAddr.province || shippingAddr.provinceCode || shippingAddr.zone || "ZA",
           code:
             shippingAddr.postalCode ||
             shippingAddr.postal_code ||
@@ -723,7 +729,10 @@ serve(async (req) => {
       const shippingAddr = deliveryData!.address as Record<string, string>;
       shipmentPayload.delivery_address = {
         street_address:
-          shippingAddr.streetAddress || shippingAddr.street_address || "",
+          shippingAddr.street ||
+          shippingAddr.streetAddress ||
+          shippingAddr.street_address ||
+          "",
         local_area:
           shippingAddr.local_area ||
           shippingAddr.suburb ||
@@ -734,7 +743,7 @@ serve(async (req) => {
           shippingAddr.local_area ||
           shippingAddr.suburb ||
           "",
-        zone: shippingAddr.province || shippingAddr.zone || "ZA",
+        zone: shippingAddr.province || shippingAddr.provinceCode || shippingAddr.zone || "ZA",
         code:
           shippingAddr.postalCode ||
           shippingAddr.postal_code ||
