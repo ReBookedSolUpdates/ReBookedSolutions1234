@@ -104,12 +104,10 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
   React.useEffect(() => {
     const fetchUserEmail = async () => {
       try {
-        console.log('[PAYMENT] Fetching user email...');
         const email = await getUserEmail();
-        console.log('[PAYMENT] User email fetched:', email);
         setUserEmail(email);
       } catch (err) {
-        console.error('[PAYMENT] Error fetching user email:', err);
+        // Error fetching user email
       }
     };
     fetchUserEmail();
