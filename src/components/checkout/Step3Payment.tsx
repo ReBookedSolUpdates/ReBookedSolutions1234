@@ -159,25 +159,16 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
           .single(),
       ]);
 
-      console.log('[PAYMENT] Profile fetch results:', {
-        buyerStatus: buyerProfileResult.status,
-        sellerStatus: sellerProfileResult.status,
-      });
-
       const buyerProfile = buyerProfileResult.status === 'fulfilled' ? buyerProfileResult.value.data : null;
       const sellerProfile = sellerProfileResult.status === 'fulfilled' ? sellerProfileResult.value.data : null;
 
       if (!buyerProfile) {
-        console.error('[PAYMENT] Buyer profile not found');
         throw new Error("Failed to fetch buyer profile");
       }
 
       if (!sellerProfile) {
-        console.error('[PAYMENT] Seller profile not found');
         throw new Error("Failed to fetch seller profile");
       }
-
-      console.log('[PAYMENT] Profiles loaded successfully');
 
       const buyerFullName = buyerProfile.full_name || buyerProfile.name || `${buyerProfile.first_name || ''} ${buyerProfile.last_name || ''}`.trim() || 'Buyer';
       const sellerFullName = sellerProfile.full_name || sellerProfile.name || `${sellerProfile.first_name || ''} ${sellerProfile.last_name || ''}`.trim() || 'Seller';
