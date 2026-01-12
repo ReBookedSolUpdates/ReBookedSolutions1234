@@ -663,10 +663,18 @@ serve(async (req) => {
 
     // Add pickup information based on type
     if (pickupData!.type === "locker") {
+      console.log(`[commit-to-sale] 📍 Creating LOCKER PICKUP shipment:`, {
+        pickupType: pickupType,
+        locationId: pickupData!.location_id,
+        providerSlug: pickupData!.provider_slug,
+      });
       shipmentPayload.pickup_locker_location_id = pickupData!.location_id;
       shipmentPayload.pickup_locker_provider_slug = pickupData!.provider_slug;
       shipmentPayload.pickup_locker_data = pickupData!.locker_data;
     } else {
+      console.log(`[commit-to-sale] 🚪 Creating DOOR PICKUP shipment:`, {
+        pickupType: pickupType,
+      });
       const pickupAddress = pickupData!.address as Record<string, string>;
       shipmentPayload.pickup_address = {
         street_address:
