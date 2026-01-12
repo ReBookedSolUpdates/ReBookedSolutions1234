@@ -396,6 +396,17 @@ export const saveOrderShippingAddress = async (
       throw new Error("Failed to encrypt shipping address for order");
     }
 
+    // VERIFICATION: Confirm data was saved
+    const { data: verifyData, error: verifyError } = await supabase
+      .from("orders")
+      .select("shipping_address_encrypted")
+      .eq("id", orderId)
+      .single();
+
+    if (verifyError || !verifyData?.shipping_address_encrypted) {
+      throw new Error("Shipping address failed to save to database. Please try again.");
+    }
+
     return { success: true };
   } catch (error) {
     throw error;
