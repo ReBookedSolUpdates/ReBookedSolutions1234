@@ -335,7 +335,31 @@ export const saveSimpleUserAddresses = async (
       .eq("id", userId);
 
     if (error) {
-      throw error;
+      throw new Error(`Failed to update profile: ${error.message}`);
+    }
+
+    // VERIFICATION: Confirm data was saved
+    try {
+      const { data: verifyData, error: verifyError } = await supabase
+        .from("profiles")
+        .select("pickup_address_encrypted, shipping_address_encrypted")
+        .eq("id", userId)
+        .single();
+
+      if (verifyError || !verifyData) {
+        throw new Error('Failed to verify address save');
+      }
+
+      if (!verifyData.pickup_address_encrypted) {
+        throw new Error('Pickup address failed to save to database');
+      }
+
+      if (!addressesAreSame && !verifyData.shipping_address_encrypted) {
+        throw new Error('Shipping address failed to save to database');
+      }
+    } catch (verifyError) {
+      const errorMsg = verifyError instanceof Error ? verifyError.message : 'Unknown error';
+      throw new Error(`Address verification failed: ${errorMsg}`);
     }
 
     return { success: true };
