@@ -130,8 +130,11 @@ export const saveUserAddresses = async (
 
     let normalizedShipping = normalizedPickup;
     if (!addressesSame) {
-      normalizedShipping = normalizeAddressFields(shippingAddress);
-      if (!normalizedShipping) {
+      // If shipping address is being deleted, use empty object for normalization
+      normalizedShipping = isShippingDeleted
+        ? { country: "South Africa" } as CanonicalAddress
+        : normalizeAddressFields(shippingAddress);
+      if (!isShippingDeleted && !normalizedShipping) {
         throw new Error("Failed to normalize shipping address");
       }
     }
