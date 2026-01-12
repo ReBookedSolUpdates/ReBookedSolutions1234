@@ -55,9 +55,15 @@ export class OrderCancellationService {
   ): Promise<CancellationResult> {
     try {
       // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error("User not authenticated");
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        throw new Error("You must be logged in to cancel an order");
+      }
+
+      // Ensure session is valid
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session?.access_token) {
+        throw new Error("Authentication session expired. Please log in again.");
       }
 
       // Use the new edge function for comprehensive cancellation handling
@@ -69,27 +75,29 @@ export class OrderCancellationService {
       });
 
       if (error) {
-        throw error;
+        console.error("Cancel order edge function error:", error);
+        throw new Error(error.message || "Failed to communicate with server");
       }
 
-      if (!data.success) {
+      if (!data?.success) {
         return {
           success: false,
-          message: data.error || "Cancellation failed",
+          message: data?.error || "Cancellation failed",
         };
       }
 
-            return {
+      return {
         success: true,
         message: data.message || "Order cancelled successfully",
-        refund_amount: data.refund_amount,
-            };
+        refund_amount: data.data?.refund_amount,
+      };
     } catch (error) {
+      console.error("Cancel delivery error:", error);
       return {
         success: false,
-        message: "Failed to cancel order",
-        error: error.message,
-            };
+        message: error instanceof Error ? error.message : "Failed to cancel order",
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
     }
   }
 
