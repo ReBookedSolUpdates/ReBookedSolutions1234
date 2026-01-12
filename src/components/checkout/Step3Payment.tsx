@@ -327,7 +327,6 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
   };
 
   const handleContactSupport = () => {
-    console.log('[PAYMENT] Opening support email form');
     const subject = "Payment Issue - ReBooked Solutions";
     const body = `
 I'm experiencing payment issues:
