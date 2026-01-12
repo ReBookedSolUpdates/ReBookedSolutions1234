@@ -133,7 +133,6 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
 
       // Validate pickup setup based on delivery method
       const pickupType = orderSummary.delivery_method === "locker" ? "locker" : "door";
-      console.log('[PAYMENT] Validating pickup setup:', { pickupType, deliveryMethod: orderSummary.delivery_method });
 
       const pickupErrors = validatePickupSetup(
         pickupType,
@@ -141,16 +140,12 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
         orderSummary.delivery_method === "door" ? orderSummary.seller_address : null
       );
       if (pickupErrors.length > 0) {
-        console.error('[PAYMENT] Pickup validation failed:', pickupErrors);
         throw new Error(`Pickup validation failed: ${pickupErrors.join("; ")}`);
       }
 
-      console.log('[PAYMENT] Pickup validation passed');
       const baseUrl = window.location.origin;
-      console.log('[PAYMENT] Base URL:', baseUrl);
 
       // Step 1: Fetch buyer and seller profiles for denormalized data (in parallel)
-      console.log('[PAYMENT] Fetching buyer and seller profiles...');
       const [buyerProfileResult, sellerProfileResult] = await Promise.allSettled([
         supabase
           .from("profiles")
