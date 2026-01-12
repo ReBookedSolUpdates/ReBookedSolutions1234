@@ -137,6 +137,18 @@ const OrderActionsPanel: React.FC<OrderActionsPanelProps> = ({
   const handleSellerCancel = async () => {
     setIsLoading(true);
     try {
+      // Verify user is authenticated
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        throw new Error("You must be logged in to cancel an order");
+      }
+
+      // Get current session to ensure auth token is available
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session?.access_token) {
+        throw new Error("Authentication session expired. Please log in again.");
+      }
+
       const { data, error } = await supabase.functions.invoke("cancel-order-with-refund", {
         body: {
           order_id: order.id,
@@ -145,7 +157,8 @@ const OrderActionsPanel: React.FC<OrderActionsPanelProps> = ({
       });
 
       if (error) {
-        throw new Error(error.message || "Failed to cancel order");
+        console.error("Cancel order error:", error);
+        throw new Error(error.message || "Failed to send request to server");
       }
 
       if (!data?.success) {
@@ -160,6 +173,7 @@ const OrderActionsPanel: React.FC<OrderActionsPanelProps> = ({
         onOrderUpdate();
       }, 500);
     } catch (err: any) {
+      console.error("Order cancellation error:", err);
       toast.error(err?.message || "Failed to cancel order");
     } finally {
       setIsLoading(false);
