@@ -255,8 +255,6 @@ const EnhancedShippingForm: React.FC<EnhancedShippingFormProps> = ({
 
     setIsLoadingQuotes(true);
     try {
-      console.log("🚚 Getting delivery quotes...");
-
       const fallbackOptions: DeliveryOption[] = [];
 
       if (watchedValues.province === "Western Cape") {
