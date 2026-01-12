@@ -821,7 +821,7 @@ const ModernAddressTab = ({
               </Button>
               <Button
                 onClick={handleSave}
-                disabled={!pickupAddress || !shippingAddress || isSaving}
+                disabled={!isAddressValid(pickupAddress) || !isAddressValid(shippingAddress) || isSaving}
                 className="bg-purple-600 hover:bg-purple-700"
               >
                 {isSaving ? (
