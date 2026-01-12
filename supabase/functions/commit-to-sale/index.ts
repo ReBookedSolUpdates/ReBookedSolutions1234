@@ -729,7 +729,10 @@ serve(async (req) => {
       const shippingAddr = deliveryData!.address as Record<string, string>;
       shipmentPayload.delivery_address = {
         street_address:
-          shippingAddr.streetAddress || shippingAddr.street_address || "",
+          shippingAddr.street ||
+          shippingAddr.streetAddress ||
+          shippingAddr.street_address ||
+          "",
         local_area:
           shippingAddr.local_area ||
           shippingAddr.suburb ||
@@ -740,7 +743,7 @@ serve(async (req) => {
           shippingAddr.local_area ||
           shippingAddr.suburb ||
           "",
-        zone: shippingAddr.province || shippingAddr.zone || "ZA",
+        zone: shippingAddr.province || shippingAddr.provinceCode || shippingAddr.zone || "ZA",
         code:
           shippingAddr.postalCode ||
           shippingAddr.postal_code ||
