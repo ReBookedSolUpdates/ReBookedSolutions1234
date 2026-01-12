@@ -178,16 +178,12 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
       const deliveryLockerData = orderSummary.delivery_method === "locker" ? orderSummary.selected_locker : null;
       const deliveryLockerLocationId = orderSummary.delivery_method === "locker" ? orderSummary.selected_locker?.id : null;
 
-      console.log('[PAYMENT] Delivery type:', { deliveryType, hasLockerData: !!deliveryLockerData });
-
       // Step 2: Prepare and encrypt the shipping address (only for door deliveries)
       let shipping_address_encrypted = "";
       if (deliveryType === "door") {
-        console.log('[PAYMENT] Encrypting shipping address...');
         try {
           // Use comprehensive address preparation that preserves all fields
           const shippingObject = prepareAddressForEncryption(orderSummary.buyer_address);
-          console.log('[PAYMENT] Address prepared for encryption');
 
           const { data: encResult, error: encError } = await supabase.functions.invoke(
             'encrypt-address',
@@ -195,14 +191,11 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
           );
 
           if (encError || !encResult?.success || !encResult?.data) {
-            console.error('[PAYMENT] Address encryption failed:', encError);
             throw new Error(encError?.message || 'Failed to encrypt shipping address');
           }
 
           shipping_address_encrypted = JSON.stringify(encResult.data);
-          console.log('[PAYMENT] Address encrypted successfully');
         } catch (addrError) {
-          console.error('[PAYMENT] Error encrypting address:', addrError);
           throw new Error(
             addrError instanceof Error
               ? addrError.message
