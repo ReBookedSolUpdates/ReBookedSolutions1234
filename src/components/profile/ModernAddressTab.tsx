@@ -204,8 +204,27 @@ const ModernAddressTab = ({
     }
   };
 
+  const isAddressValid = (addr: Address | null): boolean => {
+    if (!addr) return false;
+    return !!(
+      (addr.street || addr.streetAddress || addr.street_address) &&
+      addr.city &&
+      addr.province &&
+      (addr.postalCode || addr.postal_code)
+    );
+  };
+
   const handleSave = async () => {
-    if (!pickupAddress || !shippingAddress || !onSaveAddresses) return;
+    if (!onSaveAddresses) return;
+
+    // Validate that addresses have actual content
+    const pickupValid = isAddressValid(pickupAddress);
+    const shippingValid = isAddressValid(shippingAddress);
+
+    if (!pickupValid || !shippingValid) {
+      toast.error("Please fill in all required address fields before saving");
+      return;
+    }
 
     setIsSaving(true);
     try {
