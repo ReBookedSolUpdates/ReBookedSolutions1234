@@ -154,11 +154,17 @@ export const saveUserAddresses = async (
           }
         });
 
-        if (pickupResult && pickupResult.success) {
-          encryptionResults.pickup = true;
+        // EXPLICIT ERROR CHECK: Encryption must succeed
+        if (!pickupResult || !pickupResult.success) {
+          throw new Error('Encryption service returned failure for pickup address');
         }
+
+        encryptionResults.pickup = true;
       } catch (encryptError) {
-        // Encryption error
+        // Provide meaningful error to user
+        const errorMsg = encryptError instanceof Error ? encryptError.message : 'Failed to encrypt pickup address';
+        safeLogError('Pickup address encryption failed', encryptError);
+        throw new Error(`Failed to save pickup address: ${errorMsg}. Please check your internet connection and try again.`);
       }
     } else {
       // If deleting the pickup address, clear the encrypted fields from database
@@ -171,12 +177,14 @@ export const saveUserAddresses = async (
           })
           .eq("id", userId);
 
-        if (!deleteError) {
-          encryptionResults.pickup = true;
+        if (deleteError) {
+          throw deleteError;
         }
-      } catch (deletionError) {
-        // Deletion error, but continue
         encryptionResults.pickup = true;
+      } catch (deletionError) {
+        const errorMsg = deletionError instanceof Error ? deletionError.message : 'Unknown error';
+        safeLogError('Pickup address deletion failed', deletionError);
+        throw new Error(`Failed to delete pickup address: ${errorMsg}`);
       }
     }
 
@@ -192,11 +200,17 @@ export const saveUserAddresses = async (
           }
         });
 
-        if (shippingResult && shippingResult.success) {
-          encryptionResults.shipping = true;
+        // EXPLICIT ERROR CHECK: Encryption must succeed
+        if (!shippingResult || !shippingResult.success) {
+          throw new Error('Encryption service returned failure for shipping address');
         }
+
+        encryptionResults.shipping = true;
       } catch (encryptError) {
-        // Encryption error
+        // Provide meaningful error to user
+        const errorMsg = encryptError instanceof Error ? encryptError.message : 'Failed to encrypt shipping address';
+        safeLogError('Shipping address encryption failed', encryptError);
+        throw new Error(`Failed to save shipping address: ${errorMsg}. Please check your internet connection and try again.`);
       }
     } else {
       // If addresses are the same, mark shipping encryption as successful if pickup succeeded
@@ -206,17 +220,14 @@ export const saveUserAddresses = async (
     // Only update encryption status and addresses_same flag - no plaintext storage
     const updateData: any = {
       addresses_same: addressesSame,
+      encryption_status: 'encrypted', // Will be updated if any encryption failed
     };
 
-    // Check encryption results and fail if encryption didn't work
+    // Check encryption results and throw explicit error if any failed
     if (!encryptionResults.pickup) {
-      updateData.encryption_status = 'failed';
       throw new Error("Failed to encrypt pickup address. Please try again.");
     } else if (!addressesSame && !encryptionResults.shipping) {
-      updateData.encryption_status = 'failed';
       throw new Error("Failed to encrypt shipping address. Please try again.");
-    } else {
-      updateData.encryption_status = 'encrypted';
     }
 
     const { error } = await supabase
@@ -226,7 +237,33 @@ export const saveUserAddresses = async (
 
     if (error) {
       safeLogError("Error updating profile metadata", error);
-      throw error;
+      throw new Error(`Failed to update profile: ${error.message}`);
+    }
+
+    // VERIFICATION: Re-query to confirm data was saved
+    try {
+      const { data: verifyData, error: verifyError } = await supabase
+        .from("profiles")
+        .select("pickup_address_encrypted, shipping_address_encrypted, addresses_same, encryption_status")
+        .eq("id", userId)
+        .single();
+
+      if (verifyError || !verifyData) {
+        throw new Error('Failed to verify address save');
+      }
+
+      // Verify the encrypted fields are set (unless being deleted)
+      if (!isPickupDeleted && !verifyData.pickup_address_encrypted) {
+        throw new Error('Pickup address failed to save to database. Please try again.');
+      }
+
+      if (!addressesSame && !verifyData.shipping_address_encrypted) {
+        throw new Error('Shipping address failed to save to database. Please try again.');
+      }
+    } catch (verifyError) {
+      const errorMsg = verifyError instanceof Error ? verifyError.message : 'Unknown verification error';
+      safeLogError("Address save verification failed", verifyError);
+      throw new Error(`Address verification failed: ${errorMsg}`);
     }
 
     return {

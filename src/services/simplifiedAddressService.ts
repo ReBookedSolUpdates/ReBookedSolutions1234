@@ -163,12 +163,18 @@ const encryptAddress = async (address: SimpleAddress, options?: { save?: { table
     });
 
     if (error) {
-      return null;
+      throw new Error(`Encryption service error: ${error.message || 'Unknown error'}`);
+    }
+
+    if (!data || !data.success) {
+      throw new Error('Encryption service returned failure');
     }
 
     return data as any;
   } catch (error) {
-    return null;
+    // Re-throw with context
+    const errorMsg = error instanceof Error ? error.message : 'Unknown encryption error';
+    throw new Error(`Address encryption failed: ${errorMsg}`);
   }
 };
 
@@ -292,8 +298,12 @@ export const saveSimpleUserAddresses = async (
         });
         if (result && (result as any).success) {
           pickupEncrypted = true;
+        } else {
+          throw new Error("Encryption service returned invalid response");
         }
       } catch (encryptError) {
+        const errorMsg = encryptError instanceof Error ? encryptError.message : 'Unknown error';
+        throw new Error(`Failed to save pickup address: ${errorMsg}`);
       }
     }
 
@@ -305,18 +315,15 @@ export const saveSimpleUserAddresses = async (
         });
         if (result && (result as any).success) {
           shippingEncrypted = true;
+        } else {
+          throw new Error("Encryption service returned invalid response");
         }
       } catch (encryptError) {
+        const errorMsg = encryptError instanceof Error ? encryptError.message : 'Unknown error';
+        throw new Error(`Failed to save shipping address: ${errorMsg}`);
       }
     } else {
       shippingEncrypted = pickupEncrypted;
-    }
-
-    if (pickupAddress && !pickupEncrypted) {
-      throw new Error("Failed to encrypt pickup address. Address not saved for security reasons.");
-    }
-    if (shippingAddress && !addressesAreSame && !shippingEncrypted) {
-      throw new Error("Failed to encrypt shipping address. Address not saved for security reasons.");
     }
 
     const { error } = await supabase
@@ -328,7 +335,31 @@ export const saveSimpleUserAddresses = async (
       .eq("id", userId);
 
     if (error) {
-      throw error;
+      throw new Error(`Failed to update profile: ${error.message}`);
+    }
+
+    // VERIFICATION: Confirm data was saved
+    try {
+      const { data: verifyData, error: verifyError } = await supabase
+        .from("profiles")
+        .select("pickup_address_encrypted, shipping_address_encrypted")
+        .eq("id", userId)
+        .single();
+
+      if (verifyError || !verifyData) {
+        throw new Error('Failed to verify address save');
+      }
+
+      if (!verifyData.pickup_address_encrypted) {
+        throw new Error('Pickup address failed to save to database');
+      }
+
+      if (!addressesAreSame && !verifyData.shipping_address_encrypted) {
+        throw new Error('Shipping address failed to save to database');
+      }
+    } catch (verifyError) {
+      const errorMsg = verifyError instanceof Error ? verifyError.message : 'Unknown error';
+      throw new Error(`Address verification failed: ${errorMsg}`);
     }
 
     return { success: true };
@@ -363,6 +394,17 @@ export const saveOrderShippingAddress = async (
 
     if (!result || !(result as any).success) {
       throw new Error("Failed to encrypt shipping address for order");
+    }
+
+    // VERIFICATION: Confirm data was saved
+    const { data: verifyData, error: verifyError } = await supabase
+      .from("orders")
+      .select("shipping_address_encrypted")
+      .eq("id", orderId)
+      .single();
+
+    if (verifyError || !verifyData?.shipping_address_encrypted) {
+      throw new Error("Shipping address failed to save to database. Please try again.");
     }
 
     return { success: true };
