@@ -157,16 +157,30 @@ const CheckoutSuccess: React.FC = () => {
 
       // Check if order processing is still pending (webhook may not have fired yet)
       if (order.payment_status === "pending" && order.status === "pending") {
-        // Wait a bit for webhook to process, then retry
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        return fetchOrderData(); // Retry fetching
+        setIsConfirmingPayment(true);
+
+        // Wait a bit for webhook to process, then retry (max 3 retries = ~6 seconds)
+        if (retryCount < 3) {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          setRetryCount(prev => prev + 1);
+          return fetchOrderData(); // Retry fetching
+        } else {
+          // Fallback: trigger post-payment actions if webhook hasn't fired
+          setIsConfirmingPayment(false);
+          await handlePostPaymentActions(order);
+          // Refetch order after actions
+          return fetchOrderData();
+        }
       }
 
       // Only trigger post-payment actions if order is still pending (webhook might not have fired)
       // This is now a FALLBACK mechanism only
       if (order.payment_status === "pending" || order.status === "pending") {
+        setIsConfirmingPayment(true);
         await handlePostPaymentActions(order);
       }
+
+      setIsConfirmingPayment(false);
 
       // Log that user visited the success page
       if (order.buyer_id) {
