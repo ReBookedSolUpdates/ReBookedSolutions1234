@@ -108,7 +108,7 @@ const SubaccountEditForm: React.FC<SubaccountEditFormProps> = ({
           const data = result.data.paystack_data;
           setOriginalData(data);
 
-          // Map Paystack data to form fields
+          // Map subaccount data to form fields
           setFormData({
             business_name: data.business_name || "",
             primary_contact_email: data.primary_contact_email || "",
@@ -337,7 +337,7 @@ const SubaccountEditForm: React.FC<SubaccountEditFormProps> = ({
         description: data.description || "",
         settlement_schedule: (data.settlement_schedule as any) || "auto",
       });
-      toast.success("Data refreshed from Paystack");
+      toast.success("Data refreshed successfully");
     } else {
       toast.error("Failed to refresh data");
     }
@@ -354,7 +354,7 @@ const SubaccountEditForm: React.FC<SubaccountEditFormProps> = ({
               Loading Subaccount Details
             </h3>
             <p className="text-gray-600">
-              Fetching your current settings from Paystack...
+              Fetching your current settings...
             </p>
           </CardContent>
         </Card>
@@ -372,7 +372,7 @@ const SubaccountEditForm: React.FC<SubaccountEditFormProps> = ({
               Subaccount Updated Successfully!
             </h3>
             <p className="text-green-800">
-              Your payment account details have been updated in Paystack.
+              Your payment account details have been updated successfully.
             </p>
             <Button
               onClick={onSuccess}
@@ -397,7 +397,7 @@ const SubaccountEditForm: React.FC<SubaccountEditFormProps> = ({
                 Edit Subaccount Details
               </CardTitle>
               <CardDescription className="text-book-700">
-                Update your Paystack subaccount settings and banking information
+                Update your subaccount settings and banking information
               </CardDescription>
             </div>
             <Button
@@ -445,7 +445,7 @@ const SubaccountEditForm: React.FC<SubaccountEditFormProps> = ({
               <AlertCircle className="h-4 w-4 text-orange-600" />
               <AlertDescription className="text-orange-800">
                 You have unsaved changes. Click "Save Changes" to apply them to
-                your Paystack subaccount.
+                your subaccount.
               </AlertDescription>
             </Alert>
           )}
@@ -681,7 +681,7 @@ const SubaccountEditForm: React.FC<SubaccountEditFormProps> = ({
           {/* Footer */}
           <div className="text-center pt-4 border-t">
             <p className="text-xs text-gray-500">
-              Changes are applied directly to your Paystack subaccount
+              Changes are applied directly to your subaccount
             </p>
           </div>
         </CardContent>

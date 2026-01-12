@@ -213,7 +213,6 @@ This email was sent regarding order ${data.orderId}. Please keep this email for 
   return { subject, html, text };
 };
 
-// Example usage:
 export const sendDenialEmail = async (emailData: DenialEmailData) => {
   const template = createDenialEmailTemplate(emailData);
   

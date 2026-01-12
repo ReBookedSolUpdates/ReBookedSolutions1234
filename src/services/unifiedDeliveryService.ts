@@ -97,6 +97,8 @@ export interface UnifiedTrackingEvent {
 export interface UnifiedTrackingResponse {
   provider: "bobgo";
   tracking_number: string;
+  custom_tracking_reference?: string;
+  shipment_id?: string;
   status:
     | "pending"
     | "collected"
@@ -105,6 +107,7 @@ export interface UnifiedTrackingResponse {
     | "delivered"
     | "failed"
     | "cancelled";
+  status_friendly?: string;
   current_location?: string;
   estimated_delivery?: string;
   actual_delivery?: string;
@@ -112,13 +115,25 @@ export interface UnifiedTrackingResponse {
   recipient_signature?: string;
   proof_of_delivery?: string;
   tracking_url?: string;
+  // Courier information
   courier_name?: string;
   courier_slug?: string;
+  courier_phone?: string;
+  courier_logo?: string;
   service_level?: string;
-  shipment_id?: string;
+  service_level_code?: string;
+  // Merchant/Seller information
   merchant_name?: string;
+  merchant_logo?: string;
+  // Order information
+  order_number?: string;
+  channel_order_number?: string;
+  // Timestamps
   created_at?: string;
   last_updated?: string;
+  // Raw API data for debugging
+  raw?: Record<string, unknown>;
+  simulated?: boolean;
 }
 
 const PROVINCE_CODE_MAP: Record<string, string> = {
@@ -327,7 +342,10 @@ export const trackUnifiedShipment = async (
   trackingNumber: string,
   provider?: "bobgo",
 ): Promise<UnifiedTrackingResponse> => {
-  const { data, error } = await supabase.functions.invoke(`bobgo-track-shipment/${encodeURIComponent(trackingNumber)}`, { method: "GET" as any });
+  const { data, error } = await supabase.functions.invoke("bobgo-track-shipment", {
+    method: "POST",
+    body: JSON.stringify({ tracking_number: trackingNumber }),
+  });
   if (error) throw new Error(error.message);
   const t = data?.tracking || {};
 
@@ -344,7 +362,10 @@ export const trackUnifiedShipment = async (
   return {
     provider: "bobgo",
     tracking_number: t.tracking_number || t.shipment_tracking_reference || trackingNumber,
+    custom_tracking_reference: t.custom_tracking_reference,
+    shipment_id: t.shipment_id || t.id,
     status: (t.status || "pending").toLowerCase().replace(/_/g, "-"),
+    status_friendly: t.status_friendly || t.status,
     current_location: t.current_location || t.zone || "Unknown",
     estimated_delivery: t.estimated_delivery || t.shipment_estimated_delivery_date_to,
     actual_delivery: t.delivered_at || t.shipment_movement_events?.delivered_time,
@@ -354,11 +375,18 @@ export const trackUnifiedShipment = async (
     tracking_url: t.tracking_url || `https://track.bobgo.co.za/${encodeURIComponent(trackingNumber)}`,
     courier_name: t.courier_name,
     courier_slug: t.courier_slug,
+    courier_phone: t.courier_phone,
+    courier_logo: t.courier_logo,
     service_level: t.service_level,
-    shipment_id: t.shipment_id || t.id,
+    service_level_code: t.service_level_code,
     merchant_name: t.merchant_name,
+    merchant_logo: t.merchant_logo,
+    order_number: t.order_number,
+    channel_order_number: t.channel_order_number,
     created_at: t.created_at,
     last_updated: t.updated_at,
+    raw: data,
+    simulated: data?.simulated,
   };
 };
 

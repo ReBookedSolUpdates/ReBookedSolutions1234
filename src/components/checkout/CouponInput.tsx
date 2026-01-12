@@ -47,7 +47,6 @@ const CouponInput: React.FC<CouponInputProps> = ({
         try {
           usedEdgeFunction = true;
           const url = `${ENV.VITE_SUPABASE_URL}/functions/v1/validate-coupon`;
-          console.log("Calling coupon validation endpoint:", url);
 
           const response = await fetch(url, {
             method: "POST",
@@ -60,10 +59,7 @@ const CouponInput: React.FC<CouponInputProps> = ({
             }),
           });
 
-          console.log("Edge function response status:", response.status);
-
           const data = await response.json();
-          console.log("Edge function response data:", data);
 
           if (response.ok && data.isValid) {
             result = data.coupon;
@@ -72,17 +68,12 @@ const CouponInput: React.FC<CouponInputProps> = ({
             throw new Error(data.error || "Edge function validation failed");
           }
         } catch (edgeErr) {
-          console.warn(
-            "Edge function failed, falling back to local validation:",
-            edgeErr
-          );
           usedEdgeFunction = false;
         }
       }
 
       // Fallback to local couponService if edge function fails
       if (!result) {
-        console.log("Using local coupon service for validation");
         const validationResult = await couponService.validateCoupon(
           formattedCode,
           subtotal

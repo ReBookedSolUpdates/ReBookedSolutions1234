@@ -47,6 +47,7 @@ export const mapBookFromDatabase = (bookData: BookQueryResult): Book => {
     universityYear: bookData.university_year,
     university: bookData.university,
     curriculum: (bookData as any).curriculum || undefined,
+    isbn: (bookData as any).isbn || undefined,
     province: province,
     // Quantity fields
     initialQuantity: bookData.initial_quantity ?? undefined,

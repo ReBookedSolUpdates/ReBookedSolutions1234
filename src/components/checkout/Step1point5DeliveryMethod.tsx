@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -10,11 +9,10 @@ import {
   MapPin,
   Loader2,
   CheckCircle,
-  AlertTriangle,
   ArrowLeft,
   ArrowRight,
   Save,
-  Info,
+  X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -30,6 +28,7 @@ interface Step1point5DeliveryMethodProps {
   onBack: () => void;
   onCancel?: () => void;
   loading?: boolean;
+  preSelectedMethod?: "home" | "locker" | null;
 }
 
 const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
@@ -38,8 +37,9 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
   onBack,
   onCancel,
   loading = false,
+  preSelectedMethod = null,
 }) => {
-  const [deliveryMethod, setDeliveryMethod] = useState<"home" | "locker">("locker");
+  const [deliveryMethod, setDeliveryMethod] = useState<"home" | "locker">(preSelectedMethod || "locker");
   const [selectedLocker, setSelectedLocker] = useState<BobGoLocation | null>(null);
   const [savedLocker, setSavedLocker] = useState<BobGoLocation | null>(null);
   const [isLoadingSavedLocker, setIsLoadingSavedLocker] = useState(true);
@@ -141,6 +141,8 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
         .from("profiles")
         .update({
           preferred_delivery_locker_data: selectedLocker,
+          preferred_pickup_locker_location_id: selectedLocker.id ? parseInt(selectedLocker.id) : null,
+          preferred_pickup_locker_provider_slug: selectedLocker.provider_slug || null,
           preferred_delivery_locker_saved_at: new Date().toISOString(),
         })
         .eq("id", user.id);
@@ -190,240 +192,201 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          How would you like your order delivered?
+    <div className="max-w-2xl mx-auto space-y-4">
+      <div className="text-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-1">
+          Choose Delivery Method
         </h1>
-        <p className="text-gray-600">
-          Choose where {bookTitle} will be dropped off
+        <p className="text-sm text-gray-600">
+          Pick your preferred way to receive {bookTitle}
         </p>
       </div>
 
-      {/* Delivery Method Selection */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MapPin className="w-5 h-5" />
-            Delivery Method
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-3">
-            {/* Locker Drop-Off Option */}
-            <div
-              className={`flex items-start space-x-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                deliveryMethod === "locker"
-                  ? "bg-purple-50 border-purple-500"
-                  : "bg-gray-50 border-gray-200 hover:border-purple-300"
-              }`}
-              onClick={() => handleSelectLockerMethod(savedLocker)}
-              role="radio"
-              aria-checked={deliveryMethod === "locker"}
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  handleSelectLockerMethod(savedLocker);
-                }
-              }}
-            >
-              <div className="mt-1 flex-shrink-0 w-4 h-4 rounded-full border-2 border-gray-300 flex items-center justify-center" style={
-                deliveryMethod === "locker" ? {
-                  borderColor: "#a855f7",
-                  backgroundColor: "#a855f7"
-                } : {}
-              }>
-                {deliveryMethod === "locker" && (
-                  <div className="w-2 h-2 bg-white rounded-full"></div>
-                )}
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 font-medium text-base">
-                  <MapPin className="w-5 h-5 flex-shrink-0" />
-                  <span>BobGo Locker Drop-Off</span>
-                  <Badge className="bg-amber-100 text-amber-800">Recommended</Badge>
-                </div>
-                <p className="text-sm text-gray-600 mt-2">
-                  Our courier will drop the book at your chosen BobGo pickup location. You'll collect it from there.
-                </p>
-
-                {/* Show if user has saved locker and locker method is selected */}
-                {savedLocker && deliveryMethod === "locker" && (
-                  <Badge className="mt-3 bg-green-100 text-green-800 flex w-fit gap-1">
-                    <CheckCircle className="w-3 h-3" />
-                    You have a saved locker
-                  </Badge>
-                )}
-              </div>
+      {/* Compact Delivery Method Cards */}
+      <div className="space-y-3">
+        {/* Locker Option - Compact */}
+        <div
+          className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+            deliveryMethod === "locker"
+              ? "bg-purple-50 border-purple-400"
+              : "bg-white border-gray-200 hover:border-purple-300"
+          }`}
+          onClick={() => handleSelectLockerMethod(savedLocker)}
+          role="radio"
+          aria-checked={deliveryMethod === "locker"}
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              handleSelectLockerMethod(savedLocker);
+            }
+          }}
+        >
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 flex-shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center"
+              style={deliveryMethod === "locker" ? { borderColor: "#a855f7", backgroundColor: "#a855f7" } : { borderColor: "#d1d5db" }}>
+              {deliveryMethod === "locker" && <div className="w-2 h-2 bg-white rounded-full"></div>}
             </div>
-
-            {/* Home Delivery Option */}
-            <div
-              className={`flex items-start space-x-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                deliveryMethod === "home"
-                  ? "bg-blue-50 border-blue-500"
-                  : "bg-gray-50 border-gray-200 hover:border-blue-300"
-              }`}
-              onClick={() => {
-                setDeliveryMethod("home");
-                setSelectedLocker(null);
-              }}
-              role="radio"
-              aria-checked={deliveryMethod === "home"}
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  setDeliveryMethod("home");
-                  setSelectedLocker(null);
-                }
-              }}
-            >
-              <div className="mt-1 flex-shrink-0 w-4 h-4 rounded-full border-2 border-gray-300 flex items-center justify-center" style={
-                deliveryMethod === "home" ? {
-                  borderColor: "#3b82f6",
-                  backgroundColor: "#3b82f6"
-                } : {}
-              }>
-                {deliveryMethod === "home" && (
-                  <div className="w-2 h-2 bg-white rounded-full"></div>
-                )}
+            <div className="flex-1">
+              <div className="flex items-center gap-2 font-medium">
+                <MapPin className="w-4 h-4" />
+                <span className="text-sm">BobGo Locker</span>
+                {savedLocker && <Badge className="bg-green-100 text-green-800 text-xs">Saved</Badge>}
               </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 font-medium text-base">
-                  <Home className="w-5 h-5 flex-shrink-0" />
-                  <span>Home Delivery</span>
-                </div>
-                <p className="text-sm text-gray-600 mt-2">
-                  Our courier will collect the book from the seller's address and deliver it to your home.
-                </p>
-              </div>
+              <p className="text-xs text-gray-600 mt-1">
+                Pick up at a convenient locker location
+              </p>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Locker Selection - Only show if locker method is selected */}
+        {/* Home Delivery Option - Compact */}
+        <div
+          className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+            deliveryMethod === "home"
+              ? "bg-blue-50 border-blue-400"
+              : "bg-white border-gray-200 hover:border-blue-300"
+          }`}
+          onClick={() => {
+            setDeliveryMethod("home");
+            setSelectedLocker(null);
+          }}
+          role="radio"
+          aria-checked={deliveryMethod === "home"}
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setDeliveryMethod("home");
+              setSelectedLocker(null);
+            }
+          }}
+        >
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 flex-shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center"
+              style={deliveryMethod === "home" ? { borderColor: "#3b82f6", backgroundColor: "#3b82f6" } : { borderColor: "#d1d5db" }}>
+              {deliveryMethod === "home" && <div className="w-2 h-2 bg-white rounded-full"></div>}
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 font-medium">
+                <Home className="w-4 h-4" />
+                <span className="text-sm">Home Delivery</span>
+              </div>
+              <p className="text-xs text-gray-600 mt-1">
+                Courier delivers to your home
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Locker Selection - Compact Version */}
       {deliveryMethod === "locker" && (
-        <Card className="border-purple-200 bg-purple-50">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-purple-600" />
-              {savedLocker && !wantToChangeLocker ? "Your Pickup Location" : "Select Your Pickup Location"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Show saved locker option if available and not changing */}
+        <Card className="border-purple-100 bg-purple-50">
+          <CardContent className="p-4 space-y-3">
+            {/* Saved Locker Display */}
             {savedLocker && !wantToChangeLocker && (
-              <div className="p-4 bg-white border-2 border-green-300 rounded-lg">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <p className="font-semibold text-gray-900 flex items-center gap-2">
+              <div className="p-3 bg-white border border-green-200 rounded-md">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="font-medium text-sm flex items-center gap-1.5 text-gray-900">
                       <CheckCircle className="w-4 h-4 text-green-600" />
-                      Your Saved Locker
+                      {savedLocker.name}
                     </p>
-                    <p className="text-sm text-gray-700 mt-2">{savedLocker.name}</p>
-                    <p className="text-xs text-gray-500 mt-1">{savedLocker.address || savedLocker.full_address}</p>
+                    <p className="text-xs text-gray-600 mt-1">
+                      {savedLocker.address || savedLocker.full_address}
+                    </p>
                   </div>
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setWantToChangeLocker(true)}
-                  className="mt-4 w-full"
+                  className="mt-3 w-full text-xs h-8"
                 >
-                  Change Locker
+                  Change
                 </Button>
               </div>
             )}
 
-            {/* Search for lockers if no saved locker or user wants to change */}
+            {/* Locker Selector */}
             {!savedLocker || wantToChangeLocker ? (
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-gray-700">
-                  {savedLocker && wantToChangeLocker ? "Search for a different locker:" : "Search for a locker near you:"}
-                </p>
+              <div>
                 <BobGoLockerSelector
                   onLockerSelect={setSelectedLocker}
                   selectedLockerId={selectedLocker?.id}
-                  title="Find a Locker Location"
-                  description="Enter an address and we'll show you nearby locker locations where you can pick up your order."
+                  title="Select Locker"
+                  description="Enter an address to find nearby locations"
                   showCardLayout={false}
                 />
               </div>
             ) : null}
 
-            {/* Selected Locker Summary - Only show if searching for different locker */}
-            {selectedLocker && selectedLocker.id !== savedLocker?.id && (
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm font-medium text-blue-900 flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4" />
-                  Selected: {selectedLocker.name}
+            {/* Selected Different Locker */}
+            {selectedLocker && savedLocker && selectedLocker.id !== savedLocker.id && (
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                <p className="text-xs font-medium text-blue-900 flex items-center gap-1">
+                  <CheckCircle className="w-3 h-3" />
+                  {selectedLocker.name}
                 </p>
-                <p className="text-xs text-blue-700 mt-1">
-                  {selectedLocker.address || selectedLocker.full_address}
-                </p>
-
-                {/* Save to Profile Button - Only show if not already saved */}
-                {selectedLocker.id !== savedLocker?.id && (
-                  <Button
-                    onClick={handleSaveLockerToProfile}
-                    disabled={isSavingLocker}
-                    size="sm"
-                    variant="outline"
-                    className="mt-3 w-full"
-                  >
-                    {isSavingLocker ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="w-4 h-4 mr-2" />
-                        Save to My Profile
-                      </>
-                    )}
-                  </Button>
-                )}
+                <Button
+                  onClick={handleSaveLockerToProfile}
+                  disabled={isSavingLocker}
+                  size="sm"
+                  variant="outline"
+                  className="mt-2 w-full text-xs h-8"
+                >
+                  {isSavingLocker ? (
+                    <>
+                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                      Saving
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-3 h-3 mr-1" />
+                      Save
+                    </>
+                  )}
+                </Button>
               </div>
             )}
-
-            {/* Info Alert */}
-            <Alert>
-              <Info className="h-4 w-4" />
-              <AlertDescription>
-                {savedLocker && !wantToChangeLocker
-                  ? "Your saved locker will be used for this delivery. Click 'Change Locker' to choose a different location."
-                  : "You can update your saved locker anytime by selecting a different location and clicking 'Save to My Profile'."}
-              </AlertDescription>
-            </Alert>
           </CardContent>
         </Card>
       )}
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between items-center pt-6">
-        <div className="flex gap-3">
+      <div className="flex justify-between items-center gap-3 pt-6 border-t">
+        <Button
+          variant="outline"
+          onClick={onBack}
+          className="py-2 px-4"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          <span className="hidden sm:inline">Back</span>
+          <span className="sm:hidden">←</span>
+        </Button>
+
+        <div className="flex gap-2">
           {onCancel && (
-            <Button variant="ghost" onClick={onCancel}>
+            <Button
+              variant="ghost"
+              onClick={onCancel}
+              className="py-2 px-4"
+            >
+              <X className="w-4 h-4 mr-2" />
               Cancel
             </Button>
           )}
-          <Button variant="outline" onClick={onBack}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
+
+          <Button
+            onClick={handleProceed}
+            disabled={loading || (deliveryMethod === "locker" && !selectedLocker && !(savedLocker && !wantToChangeLocker))}
+            className="py-2 px-4 bg-blue-600 hover:bg-blue-700"
+          >
+            Next
+            <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </div>
-
-        <Button
-          onClick={handleProceed}
-          disabled={loading || (deliveryMethod === "locker" && !selectedLocker && !(savedLocker && !wantToChangeLocker))}
-        >
-          Next: Select Address
-          <ArrowRight className="w-4 h-4 ml-2" />
-        </Button>
       </div>
     </div>
   );

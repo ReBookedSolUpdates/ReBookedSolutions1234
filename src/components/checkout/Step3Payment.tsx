@@ -17,6 +17,7 @@ import { AppliedCoupon } from "@/types/coupon";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/contexts/AuthContext";
 import PaymentErrorHandler, {
   classifyPaymentError,
   PaymentError,
@@ -24,6 +25,21 @@ import PaymentErrorHandler, {
 import { logError, getUserFriendlyErrorMessage } from "@/utils/errorLogging";
 import { sendPurchaseWebhook } from "@/utils/webhookUtils";
 import CouponInput from "./CouponInput";
+import {
+  getCachedOrderId,
+  registerOrderCreation,
+  isPaymentReferenceClaimed,
+} from "@/utils/idempotencyUtils";
+import {
+  validatePickupSetup,
+  normalizeLockerData,
+  normalizePickupData,
+} from "@/utils/pickupTypeValidationUtils";
+import {
+  normalizeAddressFields,
+  prepareForStorage,
+  prepareAddressForEncryption,
+} from "@/utils/addressNormalizationUtils";
 
 interface Step3PaymentProps {
   orderSummary: OrderSummary;
@@ -42,6 +58,7 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
   userId,
   onCouponChange,
 }) => {
+  const { user: authUser } = useAuth();
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<PaymentError | null>(null);
   const [userEmail, setUserEmail] = useState<string>("");
@@ -90,6 +107,7 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
         const email = await getUserEmail();
         setUserEmail(email);
       } catch (err) {
+        // Error fetching user email
       }
     };
     fetchUserEmail();
@@ -99,32 +117,56 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
     setProcessing(true);
     setError(null);
     try {
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError || !userData.user?.email) {
+      // Use cached user from AuthContext instead of calling supabase.auth.getUser() again
+      if (!authUser || !authUser.email) {
         throw new Error("User authentication error");
       }
 
       const customPaymentId = `ORDER-${Date.now()}-${userId}`;
+
+      // Check for duplicate order submission (idempotency)
+      const cachedOrderId = getCachedOrderId(customPaymentId);
+      if (cachedOrderId) {
+        console.warn('[PAYMENT] Duplicate order submission detected:', cachedOrderId);
+        throw new Error(`Order already being processed. Order ID: ${cachedOrderId}. Please wait and check your account.`);
+      }
+
+      // Validate pickup setup based on delivery method
+      const pickupType = orderSummary.delivery_method === "locker" ? "locker" : "door";
+
+      const pickupErrors = validatePickupSetup(
+        pickupType,
+        orderSummary.delivery_method === "locker" ? orderSummary.selected_locker : null,
+        orderSummary.delivery_method === "door" ? orderSummary.seller_address : null
+      );
+      if (pickupErrors.length > 0) {
+        throw new Error(`Pickup validation failed: ${pickupErrors.join("; ")}`);
+      }
+
       const baseUrl = window.location.origin;
 
-      // Step 1: Fetch buyer and seller profiles for denormalized data
-      const { data: buyerProfile, error: buyerError } = await supabase
-        .from("profiles")
-        .select("id, full_name, name, first_name, last_name, email, phone_number")
-        .eq("id", userId)
-        .single();
+      // Step 1: Fetch buyer and seller profiles for denormalized data (in parallel)
+      const [buyerProfileResult, sellerProfileResult] = await Promise.allSettled([
+        supabase
+          .from("profiles")
+          .select("id, full_name, name, first_name, last_name, email, phone_number")
+          .eq("id", userId)
+          .single(),
+        supabase
+          .from("profiles")
+          .select("id, full_name, name, first_name, last_name, email, phone_number, pickup_address_encrypted")
+          .eq("id", orderSummary.book.seller_id)
+          .single(),
+      ]);
 
-      if (buyerError || !buyerProfile) {
+      const buyerProfile = buyerProfileResult.status === 'fulfilled' ? buyerProfileResult.value.data : null;
+      const sellerProfile = sellerProfileResult.status === 'fulfilled' ? sellerProfileResult.value.data : null;
+
+      if (!buyerProfile) {
         throw new Error("Failed to fetch buyer profile");
       }
 
-      const { data: sellerProfile, error: sellerError } = await supabase
-        .from("profiles")
-        .select("id, full_name, name, first_name, last_name, email, phone_number, pickup_address_encrypted")
-        .eq("id", orderSummary.book.seller_id)
-        .single();
-
-      if (sellerError || !sellerProfile) {
+      if (!sellerProfile) {
         throw new Error("Failed to fetch seller profile");
       }
 
@@ -136,107 +178,82 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
       const deliveryLockerData = orderSummary.delivery_method === "locker" ? orderSummary.selected_locker : null;
       const deliveryLockerLocationId = orderSummary.delivery_method === "locker" ? orderSummary.selected_locker?.id : null;
 
-      // Step 2: Encrypt the shipping address (only for door deliveries)
+      // Step 2: Prepare and encrypt the shipping address (only for door deliveries)
       let shipping_address_encrypted = "";
       if (deliveryType === "door") {
-        const shippingObject = {
-          streetAddress: orderSummary.buyer_address.street,
-          city: orderSummary.buyer_address.city,
-          province: orderSummary.buyer_address.province,
-          postalCode: orderSummary.buyer_address.postal_code,
-          country: orderSummary.buyer_address.country,
-          phone: orderSummary.buyer_address.phone,
-          additional_info: orderSummary.buyer_address.additional_info,
-        };
+        try {
+          // Use comprehensive address preparation that preserves all fields
+          const shippingObject = prepareAddressForEncryption(orderSummary.buyer_address);
 
-        const { data: encResult, error: encError } = await supabase.functions.invoke(
-          'encrypt-address',
-          { body: { object: shippingObject } }
-        );
+          const { data: encResult, error: encError } = await supabase.functions.invoke(
+            'encrypt-address',
+            { body: { object: shippingObject } }
+          );
 
-        if (encError || !encResult?.success || !encResult?.data) {
-          throw new Error(encError?.message || 'Failed to encrypt shipping address');
+          if (encError || !encResult?.success || !encResult?.data) {
+            throw new Error(encError?.message || 'Failed to encrypt shipping address');
+          }
+
+          shipping_address_encrypted = JSON.stringify(encResult.data);
+        } catch (addrError) {
+          throw new Error(
+            addrError instanceof Error
+              ? addrError.message
+              : 'Invalid shipping address. Please check all required fields.'
+          );
         }
-
-        shipping_address_encrypted = JSON.stringify(encResult.data);
       }
 
       // Step 3: Create the order (before payment)
+      // Normalize locker data if present
+      const normalizedLockerData = deliveryLockerData ? normalizeLockerData(deliveryLockerData) : null;
+      const normalizedLockerLocationId = normalizedLockerData?.location_id || null;
 
-      const { data: createdOrder, error: orderError } = await supabase
-        .from("orders")
-        .insert([
-          {
-            buyer_email: buyerProfile.email || userData.user.email,
-            buyer_full_name: buyerFullName,
-            seller_id: orderSummary.book.seller_id,
-            seller_email: sellerProfile.email || "",
-            seller_full_name: sellerFullName,
-            buyer_phone_number: buyerProfile.phone_number || "",
-            seller_phone_number: sellerProfile.phone_number || "",
-            pickup_address_encrypted: sellerProfile.pickup_address_encrypted || "",
-            amount: Math.round(orderSummary.total_price * 100),
-            status: "pending",
-            payment_reference: customPaymentId,
-            buyer_id: userId,
-            book_id: orderSummary.book.id,
-            delivery_option: orderSummary.delivery.service_name,
-            payment_status: "pending",
+      // Step 3.1: Call create-order edge function for atomic order creation with idempotency
+      // This is the ONLY place orders should be created - the edge function handles idempotency checks
+      // NOTE: All prices must be converted to cents (kobo) for backend consistency
+      // CRITICAL: Pass seller's preferred pickup method to ensure pickup_type matches rate calculation
+      const createOrderPayload = {
+        buyer_id: userId,
+        seller_id: orderSummary.book.seller_id,
+        book_id: orderSummary.book.id,
+        delivery_option: orderSummary.delivery.service_name,
+        shipping_address_encrypted: shipping_address_encrypted || "",
+        payment_reference: customPaymentId,
+        selected_courier_slug: orderSummary.delivery.provider_slug || orderSummary.delivery.courier,
+        selected_service_code: orderSummary.delivery.service_level_code || "",
+        selected_courier_name: orderSummary.delivery.provider_name || orderSummary.delivery.courier,
+        selected_service_name: orderSummary.delivery.service_name,
+        // Delivery price in cents (kobo) for backend consistency
+        selected_shipping_cost: Math.round(orderSummary.delivery_price * 100),
+        delivery_type: deliveryType,
+        // Human-readable delivery method for display: "Home Delivery" or "BobGo Locker"
+        delivery_method: orderSummary.delivery_method === "locker" ? "BobGo Locker" : "Home Delivery",
+        delivery_locker_data: normalizedLockerData,
+        delivery_locker_location_id: normalizedLockerLocationId,
+        delivery_locker_provider_slug: normalizedLockerData?.provider_slug,
+        // CRITICAL: Pass seller's preferred pickup method to determine pickup_type correctly
+        seller_preferred_pickup_method: orderSummary.seller_locker_data ? "locker" : "pickup",
+      };
 
-            items: [
-              {
-                type: "book",
-                book_id: orderSummary.book.id,
-                book_title: orderSummary.book.title,
-                price: Math.round(orderSummary.book_price * 100),
-                quantity: 1,
-                condition: orderSummary.book.condition,
-                seller_id: orderSummary.book.seller_id,
-              },
-            ],
+      const { data: createOrderResult, error: createOrderError } = await supabase.functions.invoke(
+        'create-order',
+        { body: createOrderPayload }
+      );
 
-            shipping_address_encrypted,
-
-            delivery_data: {
-              delivery_method: orderSummary.delivery.service_name,
-              delivery_price: Math.round(orderSummary.delivery_price * 100),
-              courier: orderSummary.delivery.courier,
-              estimated_days: orderSummary.delivery.estimated_days,
-              pickup_address: orderSummary.seller_address,
-              pickup_locker_data: orderSummary.seller_locker_data || null,
-              delivery_quote: orderSummary.delivery,
-              delivery_type: deliveryType,
-            },
-
-            metadata: {
-              buyer_id: userId,
-              platform_fee: 2000,
-              seller_amount: Math.round(orderSummary.book_price * 100) - 2000,
-              original_total: orderSummary.total_price,
-              original_book_price: orderSummary.book_price,
-              original_delivery_price: orderSummary.delivery_price,
-              coupon_code: orderSummary.coupon_code || null,
-              coupon_discount: orderSummary.coupon_discount ? Math.round(orderSummary.coupon_discount * 100) : null,
-              original_book_price_before_discount: orderSummary.subtotal_before_discount ? Math.round(orderSummary.subtotal_before_discount * 100) : null,
-            },
-
-            total_amount: orderSummary.total_price,
-            selected_courier_name: orderSummary.delivery.provider_name || orderSummary.delivery.courier,
-            selected_courier_slug: orderSummary.delivery.provider_slug || orderSummary.delivery.courier,
-            selected_service_code: orderSummary.delivery.service_level_code || "",
-            selected_service_name: orderSummary.delivery.service_name,
-            selected_shipping_cost: orderSummary.delivery_price,
-            delivery_type: deliveryType,
-            delivery_locker_data: deliveryLockerData,
-            delivery_locker_location_id: deliveryLockerLocationId,
-          },
-        ])
-        .select()
-        .single();
-
-      if (orderError) {
-        throw new Error(`Failed to create order: ${orderError.message}`);
+      if (createOrderError || !createOrderResult?.success) {
+        throw new Error(
+          createOrderError?.message || createOrderResult?.error || 'Failed to create order'
+        );
       }
+
+      const createdOrder = createOrderResult.order;
+      if (!createdOrder?.id) {
+        throw new Error('No order ID returned from create-order function');
+      }
+
+      // Register order creation for idempotency tracking
+      registerOrderCreation(customPaymentId, createdOrder.id);
 
       // Step 3.5: Process affiliate earning if seller was referred
       supabase.functions.invoke('process-affiliate-earning', {
@@ -245,15 +262,16 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
           order_id: createdOrder.id,
           seller_id: orderSummary.book.seller_id,
         },
-      }).then(() => {
-      }).catch((affiliateErr) => {
+      }).catch(() => {
+        // Affiliate earning processing error - non-blocking
       });
 
       // Step 4: Initialize BobPay payment with the order_id
+
       const paymentRequest = {
         order_id: createdOrder.id,
         amount: orderSummary.total_price,
-        email: buyerProfile.email || userData.user.email,
+        email: buyerProfile.email || authUser.email,
         mobile_number: buyerProfile.phone_number || "",
         item_name: orderSummary.book.title,
         item_description: `Book purchase - ${orderSummary.book.author || "Unknown Author"}`,
@@ -299,280 +317,12 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
     }
   };
 
-  const handlePaystackSuccess = async (paystackResponse: {
-    reference: string;
-    status: string;
-    trans: string;
-    transaction: string;
-    trxref: string;
-    redirecturl: string;
-  }) => {
-    setProcessing(true);
-    try {
-      // Encrypt buyer shipping address AFTER payment
-      const buyer = orderSummary.buyer_address;
-      const shippingObject = {
-        streetAddress: buyer.street,
-        city: buyer.city,
-        province: buyer.province,
-        postalCode: buyer.postal_code,
-        country: buyer.country,
-        phone: buyer.phone,
-        additional_info: buyer.additional_info,
-      } as any;
-
-      const { data: encResult, error: encError } = await supabase.functions.invoke('encrypt-address', {
-        body: { object: shippingObject },
-      });
-      if (encError || !encResult?.success || !encResult?.data) {
-        throw new Error(encError?.message || 'Failed to encrypt shipping address');
-      }
-
-      const shipping_address_encrypted = JSON.stringify(encResult.data);
-
-      // Create order only after payment
-      const createOrderPayload = {
-        buyer_id: userId,
-        seller_id: orderSummary.book.seller_id,
-        book_id: orderSummary.book.id,
-        delivery_option: orderSummary.delivery.service_name,
-        shipping_address_encrypted,
-        payment_reference: paystackResponse.reference,
-        selected_courier_slug: orderSummary.delivery.provider_slug,
-        selected_service_code: orderSummary.delivery.service_level_code,
-        selected_courier_name: orderSummary.delivery.provider_name || orderSummary.delivery.courier,
-        selected_service_name: orderSummary.delivery.service_name,
-        selected_shipping_cost: orderSummary.delivery.price,
-      };
-
-      // Create order first
-      const { data: createData, error: createErr } = await supabase.functions.invoke('create-order', {
-        body: createOrderPayload,
-      });
-
-      if (createErr || !createData?.success || !createData?.order?.id) {
-        throw new Error(createErr?.message || 'Failed to create order');
-      }
-
-      // Send webhook notification for purchase (non-blocking)
-      sendPurchaseWebhook(createData.order).catch(err => console.error("Webhook send failed:", err));
-
-      // Invoke process-affiliate-earning immediately after order creation (in parallel/background)
-      supabase.functions.invoke('process-affiliate-earning', {
-        body: {
-          book_id: orderSummary.book.id,
-          order_id: createData.order.id,
-          seller_id: orderSummary.book.seller_id,
-        },
-      }).then(() => {
-      }).catch((affiliateErr) => {
-      });
-
-      onPaymentSuccess({
-        order_id: createData.order.id,
-        payment_reference: paystackResponse.reference,
-        book_id: orderSummary.book.id,
-        seller_id: orderSummary.book.seller_id,
-        buyer_id: userId,
-        book_title: orderSummary.book.title,
-        book_price: orderSummary.book_price,
-        delivery_method: orderSummary.delivery.service_name,
-        delivery_price: orderSummary.delivery_price,
-        total_paid: orderSummary.total_price,
-        created_at: new Date().toISOString(),
-        status: 'paid',
-      });
-      toast.success('Payment successful. Order created.');
-    } catch (error) {
-      if (error) {
-        const extractErrorMessage = (err: any): string => {
-          // Handle null/undefined
-          if (err === null || err === undefined) {
-            return 'Edge function returned null error';
-          }
-
-          // Direct string check
-          if (typeof err === 'string') {
-            return err === '[object Object]' ? 'Edge function returned unreadable error' : err;
-          }
-
-          // Handle Supabase FunctionsError objects
-          if (err && typeof err === 'object') {
-            // Most common Supabase patterns
-            if (err.context?.message) {
-              return String(err.context.message);
-            }
-
-            if (err.message && err.message !== '[object Object]') {
-              return String(err.message);
-            }
-
-            if (err.details && err.details !== '[object Object]') {
-              return String(err.details);
-            }
-
-            if (err.hint) {
-              return String(err.hint);
-            }
-
-            if (err.code) {
-              return `Error code: ${err.code}`;
-            }
-
-            // Check if this looks like a network error
-            if (err.name === 'FunctionsError' || err.name === 'FunctionsHttpError') {
-              return 'Edge function is not available or not deployed';
-            }
-
-            // Try to extract any string property
-            const keys = Object.keys(err);
-            for (const key of keys) {
-              const value = err[key];
-              if (typeof value === 'string' && value && value !== '[object Object]') {
-                return `${key}: ${value}`;
-              }
-            }
-
-            // If all else fails, describe what we have
-            return `Edge function error (${err.constructor?.name || 'Unknown'}) with keys: ${keys.join(', ')}`;
-          }
-
-          return 'Edge function returned an unrecognizable error';
-        };
-
-        const userFriendlyMessage = extractErrorMessage(error);
-
-        try {
-          const fallbackOrderData = {
-            buyer_email: (await supabase.auth.getUser()).data.user?.email,
-            seller_id: orderSummary.book.seller_id,
-            amount: Math.round(orderSummary.total_price * 100),
-            paystack_ref: paystackResponse.reference,
-            status: "pending",
-            items: [
-              {
-                type: "book",
-                book_id: orderSummary.book.id,
-                book_title: orderSummary.book.title,
-                price: Math.round(orderSummary.book_price * 100),
-                condition: orderSummary.book.condition,
-                seller_id: orderSummary.book.seller_id,
-                quantity: 1,
-              },
-            ],
-            shipping_address: orderSummary.buyer_address,
-            delivery_data: {
-              method: orderSummary.delivery.service_name,
-              courier: orderSummary.delivery.courier,
-              price: orderSummary.delivery_price,
-              estimated_days: orderSummary.delivery.estimated_days,
-            },
-            metadata: {
-              buyer_id: userId,
-              fallback_creation: true,
-              edge_function_error: error?.message,
-              platform_fee: 2000,
-              seller_amount: Math.round(orderSummary.book_price * 100) - 2000,
-            },
-          };
-
-          const { data: fallbackOrder, error: fallbackError } = await supabase
-            .from("orders")
-            .insert(fallbackOrderData)
-            .select()
-            .single();
-
-          if (fallbackError) {
-            throw new Error(`Fallback order creation failed: ${fallbackError.message}`);
-          }
-
-          // Send webhook notification for fallback purchase (non-blocking)
-          if (fallbackOrder) {
-            sendPurchaseWebhook(fallbackOrder).catch(err => console.error("Webhook send failed:", err));
-          }
-
-          // Mark book as sold (non-blocking - order is already created)
-          try {
-            await supabase
-              .from("books")
-              .update({
-                sold: true,
-                sold_at: new Date().toISOString(),
-                availability: "sold",
-              })
-              .eq("id", orderSummary.book.id);
-          } catch (bookError) {
-          }
-
-          // Continue with success flow using fallback data
-          onPaymentSuccess({
-            order_id: fallbackOrder.id,
-            payment_reference: paystackResponse.reference,
-            book_id: orderSummary.book.id,
-            seller_id: orderSummary.book.seller_id,
-            buyer_id: userId,
-            book_title: orderSummary.book.title,
-            book_price: orderSummary.book_price,
-            delivery_method: orderSummary.delivery.service_name,
-            delivery_price: orderSummary.delivery_price,
-            total_paid: orderSummary.total_price,
-            created_at: fallbackOrder.created_at,
-            status: "completed",
-          });
-
-          toast.success("Payment completed successfully! (Fallback mode)");
-          return;
-        } catch (fallbackError) {
-          logError("Fallback order creation failed", fallbackError);
-        }
-
-        // Final safety check and throw
-        let finalMessage: string;
-
-        try {
-          const messageStr = String(userFriendlyMessage || 'Unknown error');
-
-          if (messageStr === '[object Object]' || messageStr.includes('[object Object]')) {
-            const immediateError = (window as any).lastEdgeFunctionError;
-            if (immediateError && typeof immediateError === 'string') {
-              finalMessage = immediateError;
-            } else {
-              finalMessage = 'Edge function failed with unreadable error format';
-            }
-          } else {
-            finalMessage = messageStr;
-          }
-        } catch (stringError) {
-          finalMessage = 'Edge function error stringification failed';
-        }
-
-        if (typeof finalMessage !== 'string') {
-          finalMessage = 'Edge function returned non-string error';
-        }
-
-        if (finalMessage.includes('[object Object]')) {
-          finalMessage = 'Edge function returned unprocessable error object';
-        }
-
-        const contextualMessage = finalMessage.includes('Edge function')
-          ? finalMessage
-          : `Edge function (process-book-purchase) error: ${finalMessage}`;
-
-        toast.error(contextualMessage, { duration: 10000 });
-      }
-
-      toast.error('Payment captured but there was a client error. Check your orders.');
-    } finally {
-      setProcessing(false);
-    }
-  };
-
-
   const handleRetryPayment = () => {
     setError(null);
     setRetryCount((prev) => prev + 1);
 
     if (retryCount >= 2) {
+      console.warn('[PAYMENT] Multiple payment attempts detected');
       toast.warning(
         "Multiple payment attempts detected. Please contact support if issues persist.",
       );
@@ -598,470 +348,14 @@ Time: ${new Date().toISOString()}
     window.open(mailtoLink, "_blank");
   };
 
-  // Get user email for payment
+  // Get user email for payment (use cached authUser from AuthContext)
   const getUserEmail = async () => {
-    const { data: userData, error } = await supabase.auth.getUser();
-    if (error || !userData.user?.email) {
+    if (!authUser || !authUser.email) {
       throw new Error("User authentication error");
     }
-    return userData.user.email;
+    return authUser.email;
   };
 
-  /**
-   * Legacy payment initialization method - keeping for reference
-   * Now using PaystackPopup component for better UX
-   */
-  const initiatePaymentLegacy = async () => {
-    setProcessing(true);
-    setError(null);
-
-    try {
-      // Verify user authentication first
-      const { data: authCheck, error: authError } =
-        await supabase.auth.getSession();
-      if (authError || !authCheck.session) {
-        throw new Error("User authentication failed. Please log in again.");
-      }
-
-      // Debug mode: Test payment initialization with simplified data
-      const debugMode = import.meta.env.DEV && false; // Set to true for debugging
-
-      if (debugMode) {
-        const simplePaymentRequest = {
-          order_id: "test-order-" + Date.now(),
-          email: authCheck.session.user?.email,
-          amount: orderSummary.total_price,
-          currency: "ZAR",
-          callback_url: `${window.location.origin}/checkout/success`,
-          metadata: {
-            debug: true,
-            book_title: orderSummary.book.title,
-            buyer_id: userId,
-          },
-        };
-
-        const { data: testData, error: testError } =
-          await supabase.functions.invoke("initialize-paystack-payment", {
-            body: simplePaymentRequest,
-          });
-
-        if (testError) {
-          throw new Error(`DEBUG: Payment test failed - ${testError.message}`);
-        }
-
-        return; // Exit early in debug mode
-      }
-
-      // Get user email first
-      const { data: userData, error: userError } =
-        await supabase.auth.getUser();
-      if (userError || !userData.user?.email) {
-        throw new Error("User authentication error");
-      }
-
-      // Subaccount not required: funds go to main Paystack account
-
-      // Step 1: Encrypt shipping address
-      const shippingObject = {
-        streetAddress: orderSummary.buyer_address.street,
-        city: orderSummary.buyer_address.city,
-        province: orderSummary.buyer_address.province,
-        postalCode: orderSummary.buyer_address.postal_code,
-        country: orderSummary.buyer_address.country,
-        phone: orderSummary.buyer_address.phone,
-        additional_info: orderSummary.buyer_address.additional_info,
-      };
-
-      const { data: encResult, error: encError } = await supabase.functions.invoke(
-        'encrypt-address',
-        { body: { object: shippingObject } }
-      );
-
-      if (encError || !encResult?.success || !encResult?.data) {
-        throw new Error(encError?.message || 'Failed to encrypt shipping address');
-      }
-
-      const shipping_address_encrypted = JSON.stringify(encResult.data);
-
-      // Step 2: Create order with correct field names
-      const createOrderRequest = {
-        buyer_id: userId,
-        seller_id: orderSummary.book.seller_id,
-        book_id: orderSummary.book.id,
-        delivery_option: orderSummary.delivery.service_name,
-        shipping_address_encrypted,
-        selected_courier_slug: orderSummary.delivery.provider_slug,
-        selected_service_code: orderSummary.delivery.service_level_code,
-        selected_courier_name: orderSummary.delivery.provider_name || orderSummary.delivery.courier,
-        selected_service_name: orderSummary.delivery.service_name,
-        selected_shipping_cost: orderSummary.delivery.price,
-      };
-
-      // Create the order first
-      let orderInvokeResult;
-      try {
-        orderInvokeResult = await supabase.functions.invoke("create-order", {
-          body: createOrderRequest,
-        });
-      } catch (invokeError) {
-        let errorMessage = "Function call failed";
-        if (invokeError.message) {
-          errorMessage = invokeError.message;
-        } else if (typeof invokeError === "string") {
-          errorMessage = invokeError;
-        } else {
-          errorMessage = `Function invoke error: ${JSON.stringify(invokeError)}`;
-        }
-
-        // Check for specific Edge Function errors
-        if (errorMessage.includes("non-2xx status code")) {
-          errorMessage += ". The order service may be temporarily unavailable.";
-        }
-
-        throw new Error(errorMessage);
-      }
-
-      const { data: orderData, error: orderError } = orderInvokeResult;
-
-      if (orderError) {
-        // Extract more specific error information
-        let errorMessage = "Failed to create order";
-
-        if (orderError.message) {
-          errorMessage = orderError.message;
-        } else if (orderError.details) {
-          errorMessage = orderError.details;
-        } else if (typeof orderError === "string") {
-          errorMessage = orderError;
-        } else {
-          errorMessage = `Order service error: ${JSON.stringify(orderError)}`;
-        }
-
-        throw new Error(`Order creation failed: ${errorMessage}`);
-      }
-
-      if (!orderData?.success || !orderData?.order?.id) {
-        throw new Error("Failed to create order - no order ID returned");
-      }
-
-      // Step 1.5: Process affiliate earning if seller was referred
-      try {
-        await supabase.functions.invoke(
-          "process-affiliate-earning",
-          {
-            body: {
-              book_id: orderSummary.book.id,
-              order_id: orderData.order.id,
-              seller_id: orderSummary.book.seller_id,
-            },
-          }
-        );
-      } catch (affiliateException) {
-        // Don't throw - affiliate earning is not critical to order completion
-      }
-
-      // Step 2: Initialize payment with the correct parameters for the function
-      const paymentRequest = {
-        user_id: userId,
-        email: userData.user.email,
-        total_amount: orderSummary.total_price * 100, // Convert to kobo
-        items: [
-          {
-            book_id: orderSummary.book.id,
-            title: orderSummary.book.title,
-            price: orderSummary.book_price * 100, // Convert to kobo
-            seller_id: orderSummary.book.seller_id,
-            condition: orderSummary.book.condition,
-          },
-        ],
-        shipping_address: orderSummary.buyer_address,
-        metadata: {
-          order_id: orderData.order.id,
-          order_data: orderData,
-          book_title: orderSummary.book.title,
-          delivery_method: orderSummary.delivery.service_name,
-          delivery_price: orderSummary.delivery_price * 100, // Convert to kobo
-          buyer_id: userId,
-        },
-      };
-
-      // Initialize Paystack payment with correct format
-      let paymentInvokeResult;
-      try {
-        paymentInvokeResult = await supabase.functions.invoke(
-          "initialize-paystack-payment",
-          {
-            body: paymentRequest,
-          },
-        );
-      } catch (invokeError) {
-        let errorMessage = "Payment function call failed";
-        if (invokeError.message) {
-          errorMessage = invokeError.message;
-        } else if (typeof invokeError === "string") {
-          errorMessage = invokeError;
-        } else {
-          errorMessage = `Function invoke error: ${JSON.stringify(invokeError)}`;
-        }
-
-        // Check for specific Edge Function errors
-        if (errorMessage.includes("non-2xx status code")) {
-          errorMessage +=
-            ". The payment service may be temporarily unavailable.";
-        }
-
-        throw new Error(errorMessage);
-      }
-
-      const { data: paymentData, error: paymentError } = paymentInvokeResult;
-
-      if (paymentError) {
-        // Extract more specific error information
-        let errorMessage = "Failed to initialize payment";
-
-        if (paymentError.message) {
-          errorMessage = paymentError.message;
-        } else if (paymentError.details) {
-          errorMessage = paymentError.details;
-        } else if (typeof paymentError === "string") {
-          errorMessage = paymentError;
-        } else {
-          errorMessage = `Payment service error: ${JSON.stringify(paymentError)}`;
-        }
-
-        throw new Error(`Payment initialization failed: ${errorMessage}`);
-      }
-
-      if (!paymentData) {
-        throw new Error("No response received from payment service");
-      }
-
-      if (!paymentData.success) {
-        throw new Error(paymentData.message || "Payment initialization failed");
-      }
-
-      // Use Paystack popup instead of redirect
-      if (!paymentData.data?.reference) {
-        throw new Error("No payment reference received from Paystack");
-      }
-
-      if (paymentData.data?.access_code && paymentData.data?.reference) {
-        // Import and use PaystackPop for modal experience
-        const { PaystackPaymentService } = await import(
-          "@/services/paystackPaymentService"
-        );
-
-        // Create order in database first so it appears in purchase history
-        // Validate required data before creating order
-        if (
-          !userData.user.email ||
-          !orderSummary.book.seller_id ||
-          !orderSummary.book.id ||
-          !paymentData.data.reference
-        ) {
-          throw new Error("Missing required order data");
-        }
-
-        const { data: createdOrder, error: orderError } = await supabase
-          .from("orders")
-          .insert([
-            {
-              // Required fields matching actual schema
-              buyer_email: userData.user.email,
-              seller_id: orderSummary.book.seller_id,
-              amount: Math.round(orderSummary.total_price * 100), // Total amount in kobo
-              status: "pending",
-              paystack_ref: paymentData.data.reference,
-
-              // Order items as JSONB array
-              items: [
-                {
-                  type: "book",
-                  book_id: orderSummary.book.id,
-                  book_title: orderSummary.book.title,
-                  price: Math.round(orderSummary.book_price * 100), // Book price in kobo
-                  quantity: 1,
-                  condition: orderSummary.book.condition,
-                  seller_id: orderSummary.book.seller_id,
-                },
-              ],
-
-              // Shipping address as JSONB
-              shipping_address: orderSummary.buyer_address,
-
-              // Delivery data as JSONB
-              delivery_data: {
-                delivery_method: orderSummary.delivery.service_name,
-                delivery_price: Math.round(orderSummary.delivery_price * 100), // In kobo
-                courier: orderSummary.delivery.courier,
-                estimated_days: orderSummary.delivery.estimated_days,
-                pickup_address: orderSummary.seller_address,
-                delivery_quote: orderSummary.delivery,
-              },
-
-              // Additional metadata
-              metadata: {
-                buyer_id: userId,
-                order_data: orderData,
-                platform_fee: Math.round(orderSummary.book_price * 0.1 * 100), // 10% platform fee in kobo
-                seller_amount: Math.round(orderSummary.book_price * 0.9 * 100), // 90% to seller in kobo
-                original_total: orderSummary.total_price, // Keep original prices for reference
-                original_book_price: orderSummary.book_price,
-                original_delivery_price: orderSummary.delivery_price,
-              },
-            },
-          ])
-          .select()
-          .single();
-
-        if (orderError) {
-          let errorMessage = "Unknown database error";
-          if (orderError.message) {
-            errorMessage = orderError.message;
-          } else if (orderError.details) {
-            errorMessage = orderError.details;
-          }
-
-          // Add more context for common errors
-          if (orderError.code === "23505") {
-            errorMessage = `Duplicate order reference: ${errorMessage}`;
-          } else if (orderError.code === "23502") {
-            errorMessage = `Missing required field: ${errorMessage}`;
-          } else if (orderError.code === "23503") {
-            errorMessage = `Invalid reference (foreign key): ${errorMessage}`;
-          }
-
-          throw new Error(`Failed to create order: ${errorMessage}`);
-        }
-
-        try {
-          const result = await PaystackPaymentService.initializePayment({
-            email: userData.user.email,
-            amount: orderSummary.total_price * 100,
-            reference: paymentData.data.reference,
-            metadata: {
-              order_id: createdOrder.id,
-              order_data: orderData,
-              book_title: orderSummary.book.title,
-              delivery_method: orderSummary.delivery.service_name,
-              buyer_id: userId,
-            },
-          });
-
-          if (result.cancelled) {
-            toast.warning("Payment cancelled");
-            setProcessing(false);
-            return;
-          }
-
-          // Extract book item data for processing
-          const bookItem = createdOrder.items[0]; // Get the book item
-
-          // Update order status to paid
-          await supabase
-            .from("orders")
-            .update({
-              status: "paid",
-              paid_at: new Date().toISOString(),
-              metadata: {
-                ...createdOrder.metadata,
-                paystack_data: result,
-              },
-            })
-            .eq("id", createdOrder.id);
-
-          // Create order confirmation data using the database order
-          const orderConfirmation = {
-            order_id: createdOrder.id,
-            payment_reference: result.reference,
-            book_id: bookItem.book_id,
-            seller_id: createdOrder.seller_id,
-            buyer_id: createdOrder.metadata.buyer_id,
-            book_title: bookItem.book_title,
-            book_price: bookItem.price / 100, // Convert back from kobo to rands
-            delivery_method: createdOrder.delivery_data.delivery_method,
-            delivery_price: createdOrder.delivery_data.delivery_price / 100, // Convert back from kobo
-            platform_fee: 20,
-            total_paid: createdOrder.amount / 100, // Convert back from kobo
-            created_at: createdOrder.created_at,
-            status: "paid",
-          };
-
-          // Call the success handler to show Step4Confirmation
-          onPaymentSuccess(orderConfirmation);
-          toast.success("Payment completed successfully! 🎉");
-        } catch (paymentError) {
-          // Clean up pending order if payment failed/cancelled
-          await supabase
-            .from("orders")
-            .update({
-              status: "cancelled",
-              metadata: {
-                ...createdOrder.metadata,
-                cancelled_at: new Date().toISOString(),
-                cancellation_reason: "payment_failed",
-                error: paymentError.message,
-              },
-            })
-            .eq("id", createdOrder.id);
-
-          let errorMessage = "Payment failed";
-          if (paymentError.message?.includes("cancelled")) {
-            errorMessage = "Payment cancelled";
-            toast.warning(errorMessage);
-          } else if (
-            paymentError.message?.includes("popup") ||
-            paymentError.message?.includes("blocked")
-          ) {
-            errorMessage =
-              "Payment popup was blocked. Please allow popups and try again.";
-            toast.error(errorMessage);
-          } else if (paymentError.message?.includes("library not available")) {
-            errorMessage =
-              "Payment system not available. Please refresh the page and try again.";
-            toast.error(errorMessage);
-          } else {
-            errorMessage = paymentError.message || "Payment failed";
-            toast.error(errorMessage);
-          }
-
-          onPaymentError(errorMessage);
-          setProcessing(false);
-        }
-      } else {
-        throw new Error("No payment access code received from Paystack");
-      }
-    } catch (err) {
-      let errorMessage = "Payment failed";
-      if (err instanceof Error) {
-        errorMessage = err.message;
-      } else if (typeof err === "string") {
-        errorMessage = err;
-      } else {
-        errorMessage = `Payment error: ${JSON.stringify(err)}`;
-      }
-
-      setError(errorMessage);
-      onPaymentError(errorMessage);
-
-      // Show user-friendly error message
-      if (errorMessage.includes("temporarily unavailable")) {
-        toast.error(
-          "Payment service is temporarily unavailable. Please try again in a moment.",
-        );
-      } else if (errorMessage.includes("Missing required fields")) {
-        toast.error(
-          "Payment setup error. Please refresh the page and try again.",
-        );
-      } else {
-        const safeErrorMessage = typeof errorMessage === 'string' ? errorMessage : String(errorMessage || 'Unknown error');
-        const finalSafeMessage = safeErrorMessage === '[object Object]' ? 'Payment processing failed' : safeErrorMessage;
-        toast.error(`Payment failed: ${finalSafeMessage}`);
-      }
-    } finally {
-      setProcessing(false);
-    }
-  };
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -1287,16 +581,22 @@ Time: ${new Date().toISOString()}
 
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between items-center pt-6">
-        <Button variant="outline" onClick={onBack} disabled={processing}>
+      <div className="flex gap-3 pt-6 border-t">
+        <Button
+          variant="outline"
+          onClick={onBack}
+          disabled={processing}
+          className="py-2 px-4"
+        >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
+          <span className="hidden sm:inline">Back</span>
+          <span className="sm:hidden">←</span>
         </Button>
 
         <Button
           onClick={handleBobPayPayment}
           disabled={processing}
-          className="w-full px-8 py-3 text-lg"
+          className="flex-1 py-3 text-base font-semibold bg-green-600 hover:bg-green-700"
         >
           {processing ? (
             <>

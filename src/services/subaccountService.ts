@@ -1,5 +1,4 @@
 import { supabase } from "@/integrations/supabase/client";
-import { PAYSTACK_CONFIG } from "@/config/paystack";
 
 export interface SubaccountData {
   business_name: string;
@@ -22,7 +21,7 @@ export interface SellerSubaccount {
 
 export class SubaccountService {
   /**
-   * Create a Paystack subaccount for a seller
+   * Create a subaccount for a seller
    */
   static async createSubaccount(
     sellerId: string,
@@ -33,9 +32,6 @@ export class SubaccountService {
     error?: string;
   }> {
     try {
-      // In a real implementation, this would call Paystack API to create subaccount
-      // For now, we'll simulate this process and store the data in our database
-
       // Note: Banking details must be encrypted before storing
       // This method is deprecated - use BankingDetailsForm and BankingEncryptionService instead
       const { data, error } = await supabase

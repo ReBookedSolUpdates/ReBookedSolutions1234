@@ -141,7 +141,7 @@ const SaleSuccessPopup = ({
   const handleViewSale = () => {
     handleClose();
     if (saleId) {
-      navigate("/activity");
+      navigate("/profile", { state: { tab: "orders" } });
     }
   };
 

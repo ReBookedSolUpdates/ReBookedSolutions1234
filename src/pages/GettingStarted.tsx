@@ -128,7 +128,7 @@ const GettingStarted = () => {
                   </div>
                   <span className="font-semibold text-base">Pay</span>
                 </div>
-                <p className="text-gray-600 text-sm">Secure checkout with Paystack</p>
+                <p className="text-gray-600 text-sm">Secure checkout with BobPay</p>
               </div>
               <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-blue-50 to-white p-4 hover:shadow-md transition">
                 <div className="flex items-center gap-3 text-gray-900 mb-2">
@@ -380,7 +380,7 @@ const GettingStarted = () => {
                     </h3>
                     <ul className="list-disc pl-6 space-y-1 text-gray-700 text-sm">
                       <li>Valid email address for order updates and receipts.</li>
-                      <li>Secure payment method (processed by Paystack).</li>
+                      <li>Secure payment method (processed by BobPay).</li>
                     </ul>
                   </div>
                   <div className="rounded-lg border border-gray-200 p-4 bg-white/60">
@@ -407,7 +407,7 @@ const GettingStarted = () => {
                         Use filters to find the right edition and condition.
                       </TimelineStep>
                       <TimelineStep n={2} title="Click Buy Now and complete secure payment.">
-                        Payments are processed by Paystack.
+                        Payments are processed by BobPay.
                       </TimelineStep>
                       <TimelineStep n={3} title="Wait for seller confirmation (within 48 hours).">
                         You’ll be notified via email and notifications.

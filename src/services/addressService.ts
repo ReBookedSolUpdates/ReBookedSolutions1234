@@ -3,6 +3,15 @@ import { updateAddressValidation } from "./addressValidationService";
 import { safeLogError } from "@/utils/errorHandling";
 import { safeLogError as safelog, formatSupabaseError } from "@/utils/safeErrorLogger";
 import { getSafeErrorMessage } from "@/utils/errorMessageUtils";
+import {
+  normalizeAddressFields,
+  validateAddressStructure,
+  normalizeProvinceName,
+  normalizeProvinceCode,
+  CanonicalAddress,
+  prepareForStorage,
+  prepareAddressForEncryption,
+} from "@/utils/addressNormalizationUtils";
 
 interface Address {
   complex?: string;
@@ -72,52 +81,172 @@ export const saveUserAddresses = async (
   addressesSame: boolean,
 ) => {
   try {
-    // First validate addresses (keep existing validation)
-    const result = await updateAddressValidation(
-      userId,
-      pickupAddress,
-      shippingAddress,
-      addressesSame,
-    );
+    // Check if pickup address is intentionally being deleted (all fields empty)
+    const isPickupDeleted =
+      pickupAddress &&
+      !pickupAddress.street &&
+      !pickupAddress.streetAddress &&
+      !pickupAddress.street_address &&
+      !pickupAddress.city &&
+      !pickupAddress.province &&
+      !pickupAddress.postalCode &&
+      !pickupAddress.postal_code;
+
+    // Check if shipping address is intentionally being deleted (all fields empty)
+    const isShippingDeleted =
+      shippingAddress &&
+      !shippingAddress.street &&
+      !shippingAddress.streetAddress &&
+      !shippingAddress.street_address &&
+      !shippingAddress.city &&
+      !shippingAddress.province &&
+      !shippingAddress.postalCode &&
+      !shippingAddress.postal_code;
+
+    // Validate address structure before encryption (skip if being deleted)
+    if (!isPickupDeleted) {
+      const pickupErrors = validateAddressStructure(pickupAddress);
+      if (pickupErrors.length > 0) {
+        throw new Error(`Pickup address invalid: ${pickupErrors.join("; ")}`);
+      }
+    }
+
+    if (!addressesSame && !isShippingDeleted) {
+      const shippingErrors = validateAddressStructure(shippingAddress);
+      if (shippingErrors.length > 0) {
+        throw new Error(`Shipping address invalid: ${shippingErrors.join("; ")}`);
+      }
+    }
+
+    // Normalize addresses to ensure consistency
+    // If pickup address is being deleted, use empty object for normalization
+    let normalizedPickup = isPickupDeleted
+      ? { country: "South Africa" } as CanonicalAddress
+      : normalizeAddressFields(pickupAddress);
+
+    if (!isPickupDeleted && !normalizedPickup) {
+      throw new Error("Failed to normalize pickup address");
+    }
+
+    let normalizedShipping = normalizedPickup;
+    if (!addressesSame) {
+      // If shipping address is being deleted, use empty object for normalization
+      normalizedShipping = isShippingDeleted
+        ? { country: "South Africa" } as CanonicalAddress
+        : normalizeAddressFields(shippingAddress);
+      if (!isShippingDeleted && !normalizedShipping) {
+        throw new Error("Failed to normalize shipping address");
+      }
+    }
+
+    // First validate addresses (keep existing validation) - skip validation if pickup is deleted
+    let result: any = { canListBooks: false };
+    if (!isPickupDeleted) {
+      result = await updateAddressValidation(
+        userId,
+        normalizedPickup,
+        normalizedShipping,
+        addressesSame,
+      );
+    }
 
     let encryptionResults = {
       pickup: false,
       shipping: false
     };
 
-    // Try to encrypt and save pickup address
-    try {
-      const pickupResult = await encryptAddress(pickupAddress, {
-        save: {
-          table: 'profiles',
-          target_id: userId,
-          address_type: 'pickup'
-        }
-      });
-
-      if (pickupResult && pickupResult.success) {
-        encryptionResults.pickup = true;
-      }
-    } catch (encryptError) {
-      // Encryption error
-    }
-
-    // Try to encrypt and save shipping address (if different)
-    if (!addressesSame) {
+    // Try to encrypt and save pickup address (use comprehensive encryption preparation)
+    // Skip encryption if address is being deleted
+    if (!isPickupDeleted) {
       try {
-        const shippingResult = await encryptAddress(shippingAddress, {
+        const pickupForEncryption = prepareAddressForEncryption(normalizedPickup);
+        const pickupResult = await encryptAddress(pickupForEncryption, {
           save: {
             table: 'profiles',
             target_id: userId,
-            address_type: 'shipping'
+            address_type: 'pickup'
           }
         });
 
-        if (shippingResult && shippingResult.success) {
-          encryptionResults.shipping = true;
+        // EXPLICIT ERROR CHECK: Encryption must succeed
+        if (!pickupResult || !pickupResult.success) {
+          throw new Error('Encryption service returned failure for pickup address');
         }
+
+        encryptionResults.pickup = true;
       } catch (encryptError) {
-        // Encryption error
+        // Provide meaningful error to user
+        const errorMsg = encryptError instanceof Error ? encryptError.message : 'Failed to encrypt pickup address';
+        safeLogError('Pickup address encryption failed', encryptError);
+        throw new Error(`Failed to save pickup address: ${errorMsg}. Please check your internet connection and try again.`);
+      }
+    } else {
+      // If deleting the pickup address, clear the encrypted fields from database
+      try {
+        const { error: deleteError } = await supabase
+          .from("profiles")
+          .update({
+            pickup_address_encrypted: null,
+            pickup_address_iv: null
+          })
+          .eq("id", userId);
+
+        if (deleteError) {
+          throw deleteError;
+        }
+        encryptionResults.pickup = true;
+      } catch (deletionError) {
+        const errorMsg = deletionError instanceof Error ? deletionError.message : 'Unknown error';
+        safeLogError('Pickup address deletion failed', deletionError);
+        throw new Error(`Failed to delete pickup address: ${errorMsg}`);
+      }
+    }
+
+    // Try to encrypt and save shipping address (if different, use comprehensive encryption preparation)
+    if (!addressesSame) {
+      // If deleting the shipping address, clear the encrypted fields from database
+      if (isShippingDeleted) {
+        try {
+          const { error: deleteError } = await supabase
+            .from("profiles")
+            .update({
+              shipping_address_encrypted: null,
+              shipping_address_iv: null
+            })
+            .eq("id", userId);
+
+          if (deleteError) {
+            throw deleteError;
+          }
+          encryptionResults.shipping = true;
+        } catch (deletionError) {
+          const errorMsg = deletionError instanceof Error ? deletionError.message : 'Unknown error';
+          safeLogError('Shipping address deletion failed', deletionError);
+          throw new Error(`Failed to delete shipping address: ${errorMsg}`);
+        }
+      } else {
+        try {
+          const shippingForEncryption = prepareAddressForEncryption(normalizedShipping);
+          const shippingResult = await encryptAddress(shippingForEncryption, {
+            save: {
+              table: 'profiles',
+              target_id: userId,
+              address_type: 'shipping'
+            }
+          });
+
+          // EXPLICIT ERROR CHECK: Encryption must succeed
+          if (!shippingResult || !shippingResult.success) {
+            throw new Error('Encryption service returned failure for shipping address');
+          }
+
+          encryptionResults.shipping = true;
+        } catch (encryptError) {
+          // Provide meaningful error to user
+          const errorMsg = encryptError instanceof Error ? encryptError.message : 'Failed to encrypt shipping address';
+          safeLogError('Shipping address encryption failed', encryptError);
+          throw new Error(`Failed to save shipping address: ${errorMsg}. Please check your internet connection and try again.`);
+        }
       }
     } else {
       // If addresses are the same, mark shipping encryption as successful if pickup succeeded
@@ -127,17 +256,14 @@ export const saveUserAddresses = async (
     // Only update encryption status and addresses_same flag - no plaintext storage
     const updateData: any = {
       addresses_same: addressesSame,
+      encryption_status: 'encrypted', // Will be updated if any encryption failed
     };
 
-    // Check encryption results and fail if encryption didn't work
+    // Check encryption results and throw explicit error if any failed
     if (!encryptionResults.pickup) {
-      updateData.encryption_status = 'failed';
       throw new Error("Failed to encrypt pickup address. Please try again.");
     } else if (!addressesSame && !encryptionResults.shipping) {
-      updateData.encryption_status = 'failed';
       throw new Error("Failed to encrypt shipping address. Please try again.");
-    } else {
-      updateData.encryption_status = 'encrypted';
     }
 
     const { error } = await supabase
@@ -147,7 +273,33 @@ export const saveUserAddresses = async (
 
     if (error) {
       safeLogError("Error updating profile metadata", error);
-      throw error;
+      throw new Error(`Failed to update profile: ${error.message}`);
+    }
+
+    // VERIFICATION: Re-query to confirm data was saved
+    try {
+      const { data: verifyData, error: verifyError } = await supabase
+        .from("profiles")
+        .select("pickup_address_encrypted, shipping_address_encrypted, addresses_same, encryption_status")
+        .eq("id", userId)
+        .single();
+
+      if (verifyError || !verifyData) {
+        throw new Error('Failed to verify address save');
+      }
+
+      // Verify the encrypted fields are set (unless being deleted)
+      if (!isPickupDeleted && !verifyData.pickup_address_encrypted) {
+        throw new Error('Pickup address failed to save to database. Please try again.');
+      }
+
+      if (!addressesSame && !verifyData.shipping_address_encrypted) {
+        throw new Error('Shipping address failed to save to database. Please try again.');
+      }
+    } catch (verifyError) {
+      const errorMsg = verifyError instanceof Error ? verifyError.message : 'Unknown verification error';
+      safeLogError("Address save verification failed", verifyError);
+      throw new Error(`Address verification failed: ${errorMsg}`);
     }
 
     return {
@@ -219,24 +371,9 @@ export const getSellerPickupAddress = async (sellerId: string) => {
 
 export const getUserAddresses = async (userId: string) => {
   try {
-    const mapToAddress = (raw: any) => {
-      if (!raw) return null;
-      return {
-        // normalize common variants
-        street: raw.street ?? raw.streetAddress ?? raw.line1 ?? "",
-        city: raw.city ?? "",
-        province: raw.province ?? raw.state ?? "",
-        postalCode: raw.postalCode ?? raw.postal_code ?? raw.zip ?? "",
-        country: raw.country ?? "South Africa",
-        streetAddress: raw.streetAddress ?? raw.street ?? undefined,
-        instructions: raw.instructions ?? raw.additional_info ?? undefined,
-        additional_info: raw.additional_info ?? undefined,
-      } as any;
-    };
-
     // Decrypt pickup address directly via edge function
-    let pickupAddress: any = null;
-    let shippingAddress: any = null;
+    let pickupAddress: CanonicalAddress | null = null;
+    let shippingAddress: CanonicalAddress | null = null;
 
     try {
       const pickup = await decryptAddress({
@@ -244,7 +381,7 @@ export const getUserAddresses = async (userId: string) => {
         target_id: userId,
         address_type: 'pickup'
       });
-      pickupAddress = mapToAddress(pickup);
+      pickupAddress = normalizeAddressFields(pickup);
     } catch (error) {
       // Failed to get pickup address
     }
@@ -256,7 +393,7 @@ export const getUserAddresses = async (userId: string) => {
         target_id: userId,
         address_type: 'shipping'
       });
-      shippingAddress = mapToAddress(shipping);
+      shippingAddress = normalizeAddressFields(shipping);
     } catch (error) {
       // Failed to get shipping address
     }
@@ -311,23 +448,28 @@ export const updateBooksPickupAddress = async (
   newPickupAddress: any,
 ): Promise<{ success: boolean; updatedCount: number; error?: string }> => {
   try {
-    // Extract province from the new pickup address
-    let province = null;
-    if (newPickupAddress?.province) {
-      province = newPickupAddress.province;
-    } else if (typeof newPickupAddress === "string") {
-      // Fallback for string-based addresses
-      const addressStr = newPickupAddress.toLowerCase();
-      if (addressStr.includes("western cape")) province = "Western Cape";
-      else if (addressStr.includes("gauteng")) province = "Gauteng";
-      else if (addressStr.includes("kwazulu")) province = "KwaZulu-Natal";
-      else if (addressStr.includes("eastern cape")) province = "Eastern Cape";
-      else if (addressStr.includes("free state")) province = "Free State";
-      else if (addressStr.includes("limpopo")) province = "Limpopo";
-      else if (addressStr.includes("mpumalanga")) province = "Mpumalanga";
-      else if (addressStr.includes("northern cape")) province = "Northern Cape";
-      else if (addressStr.includes("north west")) province = "North West";
+    // Validate and normalize address before encryption
+    const validationErrors = validateAddressStructure(newPickupAddress);
+    if (validationErrors.length > 0) {
+      return {
+        success: false,
+        updatedCount: 0,
+        error: validationErrors.join("; "),
+      };
     }
+
+    // Normalize address to ensure consistency
+    const normalizedAddress = normalizeAddressFields(newPickupAddress);
+    if (!normalizedAddress) {
+      return {
+        success: false,
+        updatedCount: 0,
+        error: "Invalid address structure",
+      };
+    }
+
+    // Extract province (now guaranteed to be valid)
+    const province = normalizedAddress.province;
 
     // Get all user's books
     const { data: books, error: fetchError } = await supabase
@@ -350,9 +492,10 @@ export const updateBooksPickupAddress = async (
       };
     }
 
-    // Encrypt address for each book
-    const encryptPromises = books.map(book => 
-      encryptAddress(newPickupAddress, {
+    // Encrypt address for each book (use comprehensive encryption preparation)
+    const addressForEncryption = prepareAddressForEncryption(normalizedAddress);
+    const encryptPromises = books.map(book =>
+      encryptAddress(addressForEncryption, {
         save: {
           table: 'books',
           target_id: book.id,

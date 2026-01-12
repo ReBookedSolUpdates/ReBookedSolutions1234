@@ -212,8 +212,7 @@ const BankingProfileTab = () => {
             <Shield className="h-4 w-4" />
             <AlertDescription>
               Banking information is required to list books for sale. Your
-              information is stored securely and encrypted. This integrates with
-              Paystack for secure payment processing.
+              information is stored securely and encrypted for safe payment processing.
             </AlertDescription>
           </Alert>
 

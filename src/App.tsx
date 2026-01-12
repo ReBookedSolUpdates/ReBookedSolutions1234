@@ -30,6 +30,7 @@ import Checkout from "./pages/Checkout";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
 import CheckoutPending from "./pages/CheckoutPending";
 import CheckoutCancel from "./pages/CheckoutCancel";
+import CheckoutEmailTest from "./pages/CheckoutEmailTest";
 
 
 // Auth Pages
@@ -58,7 +59,6 @@ import GettingStarted from "./pages/GettingStarted";
 import NotificationsNew from "./pages/NotificationsNew";
 import ClearNotifications from "./pages/ClearNotifications";
 import RestoreBooks from "./pages/RestoreBooks";
-import ActivityLog from "./pages/ActivityLog";
 import BankingSetup from "./pages/BankingSetup";
 import UserProfile from "./pages/UserProfile";
 import Transparency from "./pages/Transparency";
@@ -209,6 +209,14 @@ function App() {
                         element={<CheckoutCancel />}
                       />
                       <Route
+                        path="/checkout/email-test"
+                        element={
+                          <ProtectedRoute>
+                            <CheckoutEmailTest />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
                         path="/notifications"
                         element={
                           <ProtectedRoute>
@@ -229,14 +237,6 @@ function App() {
                         element={
                           <ProtectedRoute>
                             <RestoreBooks />
-                          </ProtectedRoute>
-                        }
-                      />
-                                                                  <Route
-                        path="/activity"
-                        element={
-                          <ProtectedRoute>
-                            <ActivityLog />
                           </ProtectedRoute>
                         }
                       />

@@ -59,11 +59,11 @@ const CommitTab = () => {
 
           <div className="space-y-4">
             <Button
-              onClick={() => navigate("/activity")}
+              onClick={() => navigate("/profile", { state: { tab: "orders" } })}
               className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold px-8 py-3 text-lg shadow-lg hover:shadow-xl transition-all"
             >
               <Activity className="h-5 w-5 mr-2" />
-              Go to Activity Center
+              View My Orders
               <ExternalLink className="h-4 w-4 ml-2" />
             </Button>
 

@@ -35,6 +35,8 @@ export const BookTypeSection = ({
 
   const conditions = ["New", "Good", "Better", "Average", "Below Average"];
 
+  const curricula = ["CAPS", "Cambridge", "IEB"];
+
   const grades = [
     "N/A",
     "Grade 1",
@@ -114,8 +116,8 @@ export const BookTypeSection = ({
             <SelectValue placeholder="Select a category" />
           </SelectTrigger>
           <SelectContent>
-            {categories.map((category) => (
-              <SelectItem key={category} value={category}>
+            {categories.map((category, index) => (
+              <SelectItem key={`category-${index}`} value={category}>
                 {category}
               </SelectItem>
             ))}
@@ -138,8 +140,8 @@ export const BookTypeSection = ({
             <SelectValue placeholder="Select condition" />
           </SelectTrigger>
           <SelectContent>
-            {conditions.map((condition) => (
-              <SelectItem key={condition} value={condition}>
+            {conditions.map((condition, index) => (
+              <SelectItem key={`condition-${index}`} value={condition}>
                 {condition}
               </SelectItem>
             ))}
@@ -149,6 +151,29 @@ export const BookTypeSection = ({
           <p className="text-sm text-red-500 mt-1">{errors.condition}</p>
         )}
       </div>
+
+      {bookType === "school" && (
+        <div>
+          <Label htmlFor="curriculum" className="text-base font-medium">
+            Curriculum <span className="text-gray-400">(Optional)</span>
+          </Label>
+          <Select
+            value={(formData as any).curriculum || ""}
+            onValueChange={(value) => onSelectChange("curriculum", value || undefined)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select curriculum (if applicable)" />
+            </SelectTrigger>
+            <SelectContent>
+            {curricula.map((curriculum, index) => (
+              <SelectItem key={`curriculum-${index}`} value={curriculum}>
+                {curriculum}
+              </SelectItem>
+            ))}
+          </SelectContent>
+          </Select>
+        </div>
+      )}
 
       {bookType === "school" ? (
         <div>
@@ -163,8 +188,8 @@ export const BookTypeSection = ({
               <SelectValue placeholder="Select a grade" />
             </SelectTrigger>
             <SelectContent>
-              {grades.map((grade) => (
-                <SelectItem key={grade} value={grade}>
+              {grades.map((grade, index) => (
+                <SelectItem key={`grade-${index}`} value={grade}>
                   {grade}
                 </SelectItem>
               ))}
@@ -189,8 +214,8 @@ export const BookTypeSection = ({
                 <SelectValue placeholder="Select university year" />
               </SelectTrigger>
               <SelectContent>
-                {UNIVERSITY_YEARS.map((year) => (
-                  <SelectItem key={year} value={year}>
+                {UNIVERSITY_YEARS.map((year, index) => (
+                  <SelectItem key={`year-${index}`} value={year}>
                     {year}
                   </SelectItem>
                 ))}
@@ -214,8 +239,8 @@ export const BookTypeSection = ({
                 <SelectValue placeholder="Select university (optional)" />
               </SelectTrigger>
               <SelectContent>
-                {SOUTH_AFRICAN_UNIVERSITIES_SIMPLE.map((university) => (
-                  <SelectItem key={university.id} value={university.id}>
+                {SOUTH_AFRICAN_UNIVERSITIES_SIMPLE.map((university, index) => (
+                  <SelectItem key={`university-${index}`} value={university.id}>
                     {university.abbreviation} - {university.name}
                   </SelectItem>
                 ))}
@@ -236,11 +261,11 @@ export const BookTypeSection = ({
               <SelectValue placeholder="Select a genre" />
             </SelectTrigger>
             <SelectContent>
-              {Object.entries(GENRE_CATEGORIES).map(([category, genres]) => (
-                <SelectGroup key={category}>
+              {Object.entries(GENRE_CATEGORIES).map(([category, genres], catIndex) => (
+                <SelectGroup key={`genre-group-${catIndex}`}>
                   <SelectLabel>{category}</SelectLabel>
-                  {genres.map((genre) => (
-                    <SelectItem key={genre} value={genre}>
+                  {genres.map((genre, genreIndex) => (
+                    <SelectItem key={`genre-${catIndex}-${genreIndex}`} value={genre}>
                       {genre}
                     </SelectItem>
                   ))}

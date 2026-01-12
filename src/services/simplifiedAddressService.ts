@@ -1,6 +1,14 @@
 import { supabase } from "@/integrations/supabase/client";
 import { CheckoutAddress } from "@/types/checkout";
 import { getProvinceFromLocker } from "@/utils/provinceExtractorUtils";
+import {
+  normalizeAddressFields,
+  validateAddressStructure,
+  prepareForStorage,
+  prepareAddressForEncryption,
+  canonicalToCamelCase,
+  CanonicalAddress,
+} from "@/utils/addressNormalizationUtils";
 
 interface SimpleAddress {
   streetAddress: string;
@@ -155,12 +163,18 @@ const encryptAddress = async (address: SimpleAddress, options?: { save?: { table
     });
 
     if (error) {
-      return null;
+      throw new Error(`Encryption service error: ${error.message || 'Unknown error'}`);
+    }
+
+    if (!data || !data.success) {
+      throw new Error('Encryption service returned failure');
     }
 
     return data as any;
   } catch (error) {
-    return null;
+    // Re-throw with context
+    const errorMsg = error instanceof Error ? error.message : 'Unknown encryption error';
+    throw new Error(`Address encryption failed: ${errorMsg}`);
   }
 };
 
@@ -179,29 +193,34 @@ export const getSellerDeliveryAddress = async (
     });
 
     if (decryptedAddress) {
-      const address = {
-        street: decryptedAddress.streetAddress || decryptedAddress.street || "",
-        city: decryptedAddress.city || "",
-        province: decryptedAddress.province || "",
-        postal_code: decryptedAddress.postalCode || decryptedAddress.postal_code || "",
-        country: "South Africa",
-      };
-      return address;
+      // Normalize the decrypted address to ensure consistency
+      const normalized = normalizeAddressFields(decryptedAddress);
+      if (normalized) {
+        const address: CheckoutAddress = {
+          street: normalized.street,
+          city: normalized.city,
+          province: normalized.province,
+          postal_code: normalized.postalCode,
+          country: normalized.country || "South Africa",
+        };
+        return address;
+      }
     }
-
 
     try {
       const { getSellerPickupAddress } = await import("@/services/addressService");
       const fallbackAddress = await getSellerPickupAddress(sellerId);
       if (fallbackAddress) {
-        const mappedAddress = {
-          street: fallbackAddress.streetAddress || fallbackAddress.street || fallbackAddress.line1 || "",
-          city: fallbackAddress.city || "",
-          province: fallbackAddress.province || fallbackAddress.state || "",
-          postal_code: fallbackAddress.postalCode || fallbackAddress.postal_code || fallbackAddress.zip || "",
-          country: "South Africa",
-        };
-        if (mappedAddress.street && mappedAddress.city && mappedAddress.province && mappedAddress.postal_code) {
+        // Normalize fallback address
+        const normalized = normalizeAddressFields(fallbackAddress);
+        if (normalized) {
+          const mappedAddress: CheckoutAddress = {
+            street: normalized.street,
+            city: normalized.city,
+            province: normalized.province,
+            postal_code: normalized.postalCode,
+            country: normalized.country || "South Africa",
+          };
           return mappedAddress;
         }
       }
@@ -241,40 +260,70 @@ export const saveSimpleUserAddresses = async (
   addressesAreSame: boolean = false,
 ) => {
   try {
+    // Validate pickup address
+    const pickupErrors = validateAddressStructure(pickupAddress);
+    if (pickupErrors.length > 0) {
+      throw new Error(`Pickup address invalid: ${pickupErrors.join("; ")}`);
+    }
+
+    // Normalize pickup address
+    const normalizedPickup = normalizeAddressFields(pickupAddress);
+    if (!normalizedPickup) {
+      throw new Error("Failed to normalize pickup address");
+    }
+
+    // Validate and normalize shipping address (if different)
+    let normalizedShipping = normalizedPickup;
+    if (shippingAddress && !addressesAreSame) {
+      const shippingErrors = validateAddressStructure(shippingAddress);
+      if (shippingErrors.length > 0) {
+        throw new Error(`Shipping address invalid: ${shippingErrors.join("; ")}`);
+      }
+
+      const normalized = normalizeAddressFields(shippingAddress);
+      if (!normalized) {
+        throw new Error("Failed to normalize shipping address");
+      }
+      normalizedShipping = normalized;
+    }
+
     let pickupEncrypted = false;
     let shippingEncrypted = false;
 
-    if (pickupAddress) {
+    if (normalizedPickup) {
       try {
-        const result = await encryptAddress(pickupAddress, {
+        const pickupForEncryption = prepareAddressForEncryption(normalizedPickup);
+        const result = await encryptAddress(pickupForEncryption as SimpleAddress, {
           save: { table: 'profiles', target_id: userId, address_type: 'pickup' }
         });
         if (result && (result as any).success) {
           pickupEncrypted = true;
+        } else {
+          throw new Error("Encryption service returned invalid response");
         }
       } catch (encryptError) {
+        const errorMsg = encryptError instanceof Error ? encryptError.message : 'Unknown error';
+        throw new Error(`Failed to save pickup address: ${errorMsg}`);
       }
     }
 
-    if (shippingAddress && !addressesAreSame) {
+    if (normalizedShipping && !addressesAreSame) {
       try {
-        const result = await encryptAddress(shippingAddress, {
+        const shippingForEncryption = prepareAddressForEncryption(normalizedShipping);
+        const result = await encryptAddress(shippingForEncryption as SimpleAddress, {
           save: { table: 'profiles', target_id: userId, address_type: 'shipping' }
         });
         if (result && (result as any).success) {
           shippingEncrypted = true;
+        } else {
+          throw new Error("Encryption service returned invalid response");
         }
       } catch (encryptError) {
+        const errorMsg = encryptError instanceof Error ? encryptError.message : 'Unknown error';
+        throw new Error(`Failed to save shipping address: ${errorMsg}`);
       }
     } else {
       shippingEncrypted = pickupEncrypted;
-    }
-
-    if (pickupAddress && !pickupEncrypted) {
-      throw new Error("Failed to encrypt pickup address. Address not saved for security reasons.");
-    }
-    if (shippingAddress && !addressesAreSame && !shippingEncrypted) {
-      throw new Error("Failed to encrypt shipping address. Address not saved for security reasons.");
     }
 
     const { error } = await supabase
@@ -286,7 +335,31 @@ export const saveSimpleUserAddresses = async (
       .eq("id", userId);
 
     if (error) {
-      throw error;
+      throw new Error(`Failed to update profile: ${error.message}`);
+    }
+
+    // VERIFICATION: Confirm data was saved
+    try {
+      const { data: verifyData, error: verifyError } = await supabase
+        .from("profiles")
+        .select("pickup_address_encrypted, shipping_address_encrypted")
+        .eq("id", userId)
+        .single();
+
+      if (verifyError || !verifyData) {
+        throw new Error('Failed to verify address save');
+      }
+
+      if (!verifyData.pickup_address_encrypted) {
+        throw new Error('Pickup address failed to save to database');
+      }
+
+      if (!addressesAreSame && !verifyData.shipping_address_encrypted) {
+        throw new Error('Shipping address failed to save to database');
+      }
+    } catch (verifyError) {
+      const errorMsg = verifyError instanceof Error ? verifyError.message : 'Unknown error';
+      throw new Error(`Address verification failed: ${errorMsg}`);
     }
 
     return { success: true };
@@ -300,12 +373,38 @@ export const saveOrderShippingAddress = async (
   shippingAddress: SimpleAddress
 ) => {
   try {
-    const result = await encryptAddress(shippingAddress, {
+    // Validate address structure
+    const errors = validateAddressStructure(shippingAddress);
+    if (errors.length > 0) {
+      throw new Error(`Invalid shipping address: ${errors.join("; ")}`);
+    }
+
+    // Normalize address
+    const normalized = normalizeAddressFields(shippingAddress);
+    if (!normalized) {
+      throw new Error("Failed to normalize shipping address");
+    }
+
+    // Prepare for comprehensive encryption
+    const addressForEncryption = prepareAddressForEncryption(normalized);
+
+    const result = await encryptAddress(addressForEncryption as SimpleAddress, {
       save: { table: 'orders', target_id: orderId, address_type: 'shipping' }
     });
 
     if (!result || !(result as any).success) {
       throw new Error("Failed to encrypt shipping address for order");
+    }
+
+    // VERIFICATION: Confirm data was saved
+    const { data: verifyData, error: verifyError } = await supabase
+      .from("orders")
+      .select("shipping_address_encrypted")
+      .eq("id", orderId)
+      .single();
+
+    if (verifyError || !verifyData?.shipping_address_encrypted) {
+      throw new Error("Shipping address failed to save to database. Please try again.");
     }
 
     return { success: true };

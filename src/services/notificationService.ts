@@ -239,9 +239,34 @@ export class NotificationService {
   }
 
   /**
-   * Create order confirmation notification
+   * Create order confirmation notification with deduplication
+   * Prevents duplicate notifications for the same order within a short time window (60 seconds)
    */
   static async createOrderConfirmation(userId: string, orderId: string, bookTitle: string, isForSeller = false) {
+    try {
+      // Check for duplicate notifications created in the last 60 seconds
+      const sixtySecondsAgo = new Date(Date.now() - 60 * 1000).toISOString();
+      const notificationType = isForSeller ? 'info' : 'success';
+      const orderIdInMessage = `Order ID: ${orderId}`;
+
+      const { data: existingNotifications } = await supabase
+        .from('notifications')
+        .select('id, created_at')
+        .eq('user_id', userId)
+        .eq('type', notificationType)
+        .gt('created_at', sixtySecondsAgo)
+        .like('message', `%${orderId}%`)
+        .limit(1);
+
+      // If we found a recent notification for this order, skip creating a duplicate
+      if (existingNotifications && existingNotifications.length > 0) {
+        return true; // Return success to prevent errors, but skip creation
+      }
+    } catch (dedupeError) {
+      // If dedupe check fails, continue with notification creation
+      // (better to create a duplicate than to fail)
+    }
+
     if (isForSeller) {
       return this.createNotification({
         userId,

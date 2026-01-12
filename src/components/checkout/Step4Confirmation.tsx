@@ -99,72 +99,101 @@ const Step4Confirmation: React.FC<Step4ConfirmationProps> = ({
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-3xl mx-auto space-y-6 px-3 sm:px-0">
       {/* Success Header */}
-      <div className="text-center mb-8">
-        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <CheckCircle className="w-8 h-8 text-green-600" />
+      <div className="text-center mb-10">
+        <div className="w-20 h-20 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+          <CheckCircle className="w-10 h-10 text-green-600" />
         </div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Payment Successful!
+        <h1 className="text-4xl font-bold text-gray-900 mb-3">
+          Payment Successful! 🎉
         </h1>
-        <p className="text-gray-600">
-          Thank you for your purchase. Your order has been confirmed.
+        <p className="text-lg text-gray-600">
+          Thank you for your purchase. Your order has been confirmed and the seller has been notified.
         </p>
       </div>
 
       {/* Order Details Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Package className="w-5 h-5" />
+      <Card className="border-l-4 border-l-green-500 shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-xl">
+            <Package className="w-5 h-5 text-green-600" />
             Order Confirmation
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <p className="font-medium text-gray-600">Order ID</p>
-              <p className="font-mono">{orderData.order_id}</p>
+        <CardContent className="space-y-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="bg-gray-50 rounded-lg p-3">
+              <p className="text-xs font-semibold text-gray-600 uppercase">Order ID</p>
+              <p className="font-mono font-bold text-sm mt-1">{orderData.order_id}</p>
             </div>
-            <div>
-              <p className="font-medium text-gray-600">Payment Reference</p>
-              <p className="font-mono">{orderData.payment_reference}</p>
+            <div className="bg-gray-50 rounded-lg p-3">
+              <p className="text-xs font-semibold text-gray-600 uppercase">Payment Reference</p>
+              <p className="font-mono text-sm mt-1">{orderData.payment_reference}</p>
             </div>
-            <div>
-              <p className="font-medium text-gray-600">Order Date</p>
-              <p>{new Date(orderData.created_at).toLocaleDateString()}</p>
+            <div className="bg-gray-50 rounded-lg p-3">
+              <p className="text-xs font-semibold text-gray-600 uppercase">Order Date</p>
+              <p className="text-sm font-medium mt-1">{new Date(orderData.created_at).toLocaleDateString()}</p>
             </div>
-            <div>
-              <p className="font-medium text-gray-600">Status</p>
-              {getStatusBadge(orderData.status)}
+            <div className="bg-gray-50 rounded-lg p-3">
+              <p className="text-xs font-semibold text-gray-600 uppercase">Status</p>
+              <div className="mt-1">{getStatusBadge(orderData.status)}</div>
             </div>
           </div>
 
           <Separator />
 
-          {/* 📄 Receipt Data as Specified */}
+          {/* 📚 Book Details - Enhanced */}
           <div>
-            <h3 className="font-medium mb-2">📚 Book Details</h3>
-            <div className="bg-gray-50 rounded-lg p-3">
-              <p className="font-medium">{orderData.book_title}</p>
-              <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mt-2">
-                <span>Book ID: {orderData.book_id}</span>
-                <span>R{orderData.book_price.toFixed(2)}</span>
+            <h3 className="font-medium mb-2 flex items-center gap-2">
+              <Package className="w-4 h-4" />
+              📚 Book Details
+            </h3>
+            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200 space-y-3">
+              <div>
+                <p className="font-bold text-base text-gray-900">{orderData.book_title}</p>
+              </div>
+              {orderData.book_author && (
+                <p className="text-sm text-gray-700">
+                  <span className="font-semibold">Author:</span> {orderData.book_author}
+                </p>
+              )}
+              {orderData.book_condition && (
+                <p className="text-sm text-gray-700">
+                  <span className="font-semibold">Condition:</span> {orderData.book_condition}
+                </p>
+              )}
+              {orderData.book_description && (
+                <p className="text-sm text-gray-600">
+                  <span className="font-semibold">Description:</span> {orderData.book_description.substring(0, 150)}{orderData.book_description.length > 150 ? '...' : ''}
+                </p>
+              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div className="bg-white rounded p-2">
+                  <p className="text-xs text-gray-600 font-semibold uppercase">Book ID</p>
+                  <p className="font-mono text-sm text-gray-800 mt-1">{orderData.book_id}</p>
+                </div>
+                <div className="bg-white rounded p-2">
+                  <p className="text-xs text-gray-600 font-semibold uppercase">Price</p>
+                  <p className="text-base font-bold text-green-600 mt-1">R{orderData.book_price.toFixed(2)}</p>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* 👤 Seller ID */}
+          {/* 👤 Seller Information */}
           <div>
-            <h3 className="font-medium mb-2">👤 Seller Information</h3>
-            <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-sm font-mono">
-                Seller ID: {orderData.seller_id}
-              </p>
-              <p className="text-sm text-gray-600 mt-1">
-                The seller has been notified and will prepare your book for
-                shipment.
+            <h3 className="font-medium mb-2 text-sm uppercase text-gray-700">👤 Seller Information</h3>
+            <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+              {orderData.seller_name && (
+                <p className="text-base font-semibold text-gray-900 mb-2">
+                  {orderData.seller_name}
+                </p>
+              )}
+              <p className="text-xs font-semibold text-gray-600 uppercase">Seller ID</p>
+              <p className="text-sm font-mono mb-3">{orderData.seller_id}</p>
+              <p className="text-sm text-gray-600">
+                The seller has been notified and will prepare your book for shipment.
               </p>
             </div>
           </div>
@@ -270,13 +299,13 @@ const Step4Confirmation: React.FC<Step4ConfirmationProps> = ({
       </Card>
 
       {/* Action Buttons */}
-      <div className="space-y-4">
-        <div className="flex gap-4">
+      <div className="space-y-3 pt-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Button
             onClick={downloadReceipt}
             disabled={isDownloading}
             variant="outline"
-            className="flex-1"
+            className="py-3 font-semibold"
           >
             {isDownloading ? (
               <>
@@ -286,17 +315,17 @@ const Step4Confirmation: React.FC<Step4ConfirmationProps> = ({
             ) : (
               <>
                 <Download className="w-4 h-4 mr-2" />
-                Download Receipt (PNG)
+                Download Receipt
               </>
             )}
           </Button>
-          <Button onClick={onViewOrders} variant="outline" className="flex-1">
+          <Button onClick={onViewOrders} variant="outline" className="py-3 font-semibold">
             <Eye className="w-4 h-4 mr-2" />
             View My Orders
           </Button>
         </div>
 
-        <Button onClick={onContinueShopping} className="w-full" size="lg">
+        <Button onClick={onContinueShopping} className="w-full py-3 text-base font-semibold bg-blue-600 hover:bg-blue-700" size="lg">
           <ShoppingBag className="w-5 h-5 mr-2" />
           Continue Shopping
         </Button>
@@ -394,6 +423,21 @@ const Step4Confirmation: React.FC<Step4ConfirmationProps> = ({
               <p style={{ margin: "0 0 10px 0", fontSize: "15px", fontWeight: "bold" }}>
                 {orderData.book_title}
               </p>
+              {orderData.book_author && (
+                <p style={{ margin: "0 0 5px 0", fontSize: "13px", color: "#4e7a63" }}>
+                  Author: {orderData.book_author}
+                </p>
+              )}
+              {orderData.book_condition && (
+                <p style={{ margin: "0 0 5px 0", fontSize: "13px", color: "#4e7a63" }}>
+                  Condition: {orderData.book_condition}
+                </p>
+              )}
+              {orderData.book_description && (
+                <p style={{ margin: "0 0 10px 0", fontSize: "12px", color: "#4e7a63" }}>
+                  {orderData.book_description.substring(0, 150)}{orderData.book_description.length > 150 ? '...' : ''}
+                </p>
+              )}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px", fontSize: "13px" }}>
                 <p style={{ margin: "0", color: "#4e7a63" }}>
                   Book ID: {orderData.book_id}

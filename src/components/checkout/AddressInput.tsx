@@ -15,6 +15,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MapPin, Save } from "lucide-react";
 import { CheckoutAddress } from "@/types/checkout";
 import { fetchSuggestions, fetchAddressDetails, type Suggestion } from "@/services/addressAutocompleteService";
+import {
+  validateAddressStructure,
+  normalizeAddressFields,
+  normalizeProvinceName,
+} from "@/utils/addressNormalizationUtils";
 
 interface AddressInputProps {
   initialAddress?: Partial<CheckoutAddress>;
@@ -103,11 +108,14 @@ const AddressInput: React.FC<AddressInputProps> = ({
       const details = await fetchAddressDetails(placeId);
 
       if (details) {
+        // Normalize province from API response
+        const normalizedProvince = normalizeProvinceName(details.province || '') || details.province || '';
+
         // Use the parsed components directly from the API response
         setAddress({
           street: details.street_address || '',
           city: details.city || '',
-          province: details.province || '',
+          province: normalizedProvince,
           postal_code: details.postal_code || '',
           country: details.country || 'South Africa',
           additional_info: address.additional_info,
@@ -137,25 +145,19 @@ const AddressInput: React.FC<AddressInputProps> = ({
   }, [showDropdown]);
 
   const validateAddress = (): boolean => {
+    // Use centralized validation utility
+    const validationErrors = validateAddressStructure(address);
+
+    // Convert validation errors to field-specific error map
     const newErrors: Record<string, string> = {};
-
-    if (!address.street.trim()) {
-      newErrors.street = "Street address is required";
-    }
-
-    if (!address.city.trim()) {
-      newErrors.city = "City is required";
-    }
-
-    if (!address.province.trim()) {
-      newErrors.province = "Province is required";
-    }
-
-    if (!address.postal_code.trim()) {
-      newErrors.postal_code = "Postal code is required";
-    } else if (!/^\d{4}$/.test(address.postal_code.trim())) {
-      newErrors.postal_code = "Postal code must be 4 digits";
-    }
+    validationErrors.forEach((error) => {
+      // Map error messages to field names
+      if (error.includes("Street")) newErrors.street = error;
+      else if (error.includes("City")) newErrors.city = error;
+      else if (error.includes("province")) newErrors.province = error;
+      else if (error.includes("Postal")) newErrors.postal_code = error;
+      else newErrors.general = error;
+    });
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -168,13 +170,21 @@ const AddressInput: React.FC<AddressInputProps> = ({
       return;
     }
 
-    const cleanAddress = {
-      street: address.street.trim(),
-      city: address.city.trim(),
-      province: address.province.trim(),
-      postal_code: address.postal_code.trim(),
-      country: "South Africa",
-      additional_info: address.additional_info?.trim() || "",
+    // Normalize address to ensure consistency
+    const normalized = normalizeAddressFields(address);
+    if (!normalized) {
+      setErrors({ general: "Failed to normalize address. Please check all fields." });
+      return;
+    }
+
+    // Convert normalized address to CheckoutAddress format
+    const cleanAddress: CheckoutAddress = {
+      street: normalized.street,
+      city: normalized.city,
+      province: normalized.province,
+      postal_code: normalized.postalCode,
+      country: normalized.country || "South Africa",
+      additional_info: normalized.additionalInfo || "",
     };
 
     onAddressSubmit(cleanAddress);

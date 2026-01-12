@@ -1,5 +1,11 @@
 import { supabase } from '@/lib/supabase';
 import { AddressData } from '@/hooks/useAddressFallback';
+import {
+  validateAddressStructure,
+  normalizeAddressFields,
+  normalizeProvinceName,
+  normalizeProvinceCode,
+} from '@/utils/addressNormalizationUtils';
 
 export interface StoredAddress {
   id: string;
@@ -30,29 +36,44 @@ class FallbackAddressService {
     isPrimary: boolean = false
   ): Promise<{ success: boolean; address?: StoredAddress; error?: string }> {
     try {
+      // Validate address structure
+      const validationResult = this.validateAddressData(addressData);
+      if (!validationResult.isValid) {
+        return { success: false, error: validationResult.errors.join('; ') };
+      }
+
+      // Normalize province to ensure consistency
+      const normalizedData = { ...addressData };
+      if (normalizedData.province) {
+        const normalizedProvince = normalizeProvinceName(normalizedData.province);
+        if (normalizedProvince) {
+          normalizedData.province = normalizedProvince;
+        }
+      }
+
       // Prepare the data structure for dual storage
-      const addressRecord = {
+      const addressRecord: any = {
         user_id: userId,
         type,
         is_primary: isPrimary,
-        selected_method: addressData.source,
+        selected_method: normalizedData.source,
         metadata: {
-          confidence_level: this.calculateConfidenceLevel(addressData),
+          confidence_level: this.calculateConfidenceLevel(normalizedData),
           validation_attempts: 1,
           last_validated: new Date().toISOString(),
-          fallback_reason: addressData.source === 'manual_entry' ? 'google_maps_unavailable' : undefined,
+          fallback_reason: normalizedData.source === 'manual_entry' ? 'google_maps_unavailable' : undefined,
         },
       };
 
       // Store based on source
-      if (addressData.source === 'google_maps') {
+      if (normalizedData.source === 'google_maps') {
         Object.assign(addressRecord, {
-          google_maps_data: addressData,
-          manual_entry_data: this.convertToManualFormat(addressData), // Also store as manual for fallback
+          google_maps_data: normalizedData,
+          manual_entry_data: this.convertToManualFormat(normalizedData), // Also store as manual for fallback
         });
       } else {
         Object.assign(addressRecord, {
-          manual_entry_data: addressData,
+          manual_entry_data: normalizedData,
           google_maps_data: null, // No Google Maps data available
         });
       }
@@ -91,22 +112,37 @@ class FallbackAddressService {
     userId: string
   ): Promise<{ success: boolean; address?: StoredAddress; error?: string }> {
     try {
+      // Validate address structure
+      const validationResult = this.validateAddressData(addressData);
+      if (!validationResult.isValid) {
+        return { success: false, error: validationResult.errors.join('; ') };
+      }
+
+      // Normalize province to ensure consistency
+      const normalizedData = { ...addressData };
+      if (normalizedData.province) {
+        const normalizedProvince = normalizeProvinceName(normalizedData.province);
+        if (normalizedProvince) {
+          normalizedData.province = normalizedProvince;
+        }
+      }
+
       const updateData: any = {
-        selected_method: addressData.source,
+        selected_method: normalizedData.source,
         updated_at: new Date().toISOString(),
         metadata: {
-          confidence_level: this.calculateConfidenceLevel(addressData),
+          confidence_level: this.calculateConfidenceLevel(normalizedData),
           last_validated: new Date().toISOString(),
-          fallback_reason: addressData.source === 'manual_entry' ? 'google_maps_unavailable' : undefined,
+          fallback_reason: normalizedData.source === 'manual_entry' ? 'google_maps_unavailable' : undefined,
         },
       };
 
       // Update the appropriate data field
-      if (addressData.source === 'google_maps') {
-        updateData.google_maps_data = addressData;
-        updateData.manual_entry_data = this.convertToManualFormat(addressData);
+      if (normalizedData.source === 'google_maps') {
+        updateData.google_maps_data = normalizedData;
+        updateData.manual_entry_data = this.convertToManualFormat(normalizedData);
       } else {
-        updateData.manual_entry_data = addressData;
+        updateData.manual_entry_data = normalizedData;
       }
 
       const { data, error } = await supabase
@@ -254,18 +290,8 @@ class FallbackAddressService {
    * Validate and clean address data
    */
   validateAddressData(address: Partial<AddressData>): { isValid: boolean; errors: string[] } {
-    const errors: string[] = [];
-    
-    if (!address.street?.trim()) errors.push('Street address is required');
-    if (!address.city?.trim()) errors.push('City is required');
-    if (!address.province?.trim()) errors.push('Province is required');
-    if (!address.postalCode?.trim()) errors.push('Postal code is required');
-    
-    // Validate postal code format (basic South African postal code validation)
-    if (address.postalCode && !/^\d{4}$/.test(address.postalCode.trim())) {
-      errors.push('Postal code must be 4 digits');
-    }
-
+    // Use the centralized validation utility
+    const errors = validateAddressStructure(address);
     return {
       isValid: errors.length === 0,
       errors
@@ -306,11 +332,9 @@ class FallbackAddressService {
     manualData?: AddressData
   ): AddressData | null {
     if (!googleData && !manualData) return null;
-    
+
     // Prefer Google Maps data for accuracy, fall back to manual
-    const baseData = googleData || manualData!;
-    
-    return {
+    const mergedData = {
       formattedAddress: googleData?.formattedAddress || manualData?.formattedAddress || '',
       street: googleData?.street || manualData?.street || '',
       city: googleData?.city || manualData?.city || '',
@@ -322,6 +346,16 @@ class FallbackAddressService {
       source: googleData ? 'google_maps' : 'manual_entry',
       timestamp: new Date().toISOString(),
     };
+
+    // Normalize province to ensure consistency
+    if (mergedData.province) {
+      const normalizedProvince = normalizeProvinceName(mergedData.province);
+      if (normalizedProvince) {
+        mergedData.province = normalizedProvince;
+      }
+    }
+
+    return mergedData;
   }
 }
 

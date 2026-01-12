@@ -1,4 +1,4 @@
-import { EMAIL_STYLES, EMAIL_FOOTER } from "@/utils/emailStyles";
+import { EMAIL_STYLES, EMAIL_FOOTER } from "@/email-templates/styles";
 
 export interface SellerCreditNotificationData {
   sellerName: string;

@@ -57,7 +57,10 @@ export const initializeBobPayCheckout = async (
       selected_service_code: orderSummary.delivery.service_level_code,
       selected_courier_name: orderSummary.delivery.provider_name || orderSummary.delivery.courier,
       selected_service_name: orderSummary.delivery.service_name,
-      selected_shipping_cost: orderSummary.delivery.price,
+      // Convert delivery price from Rands to cents for backend (backend expects cents/kobo)
+      selected_shipping_cost: Math.round(orderSummary.delivery.price * 100),
+      // Add human-readable delivery method for display
+      delivery_method: orderSummary.delivery_method === "locker" ? "BobGo Locker" : "Home Delivery",
     };
 
     const { data: createData, error: createErr } = await supabase.functions.invoke(

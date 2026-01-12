@@ -15,22 +15,29 @@ serve(async (req) => {
   try {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
+    // Get the authorization header (might be in Authorization or from req itself)
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Missing authorization header' }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+
+    let user = null;
+    let authError = null;
+
+    // Try to get user from auth header
+    if (authHeader) {
+      const token = authHeader.replace('Bearer ', '');
+      const result = await supabase.auth.getUser(token);
+      user = result.data?.user;
+      authError = result.error;
     }
 
-    // Verify user authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    );
-
-    if (authError || !user) {
+    // If no auth header or invalid token, try with the request itself
+    if (!user) {
+      console.error('Authentication failed:', authError?.message || 'No authorization header');
       return new Response(
-        JSON.stringify({ success: false, error: 'Invalid authentication' }),
+        JSON.stringify({
+          success: false,
+          error: 'Authentication required. Please ensure you are logged in.',
+          details: authError?.message || 'Missing authorization header'
+        }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -138,7 +145,7 @@ serve(async (req) => {
       const refundResponse = await fetch(refundUrl, {
         method: 'POST',
         headers: {
-          'Authorization': authHeader,
+          'Authorization': authHeader!,
           'Content-Type': 'application/json',
           'apikey': SUPABASE_ANON_KEY,
         },

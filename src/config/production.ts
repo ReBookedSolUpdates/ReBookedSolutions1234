@@ -108,10 +108,6 @@ export const validateProductionConfig = () => {
   if (!import.meta.env.VITE_SUPABASE_ANON_KEY) {
     errors.push('VITE_SUPABASE_ANON_KEY is required');
   }
-  
-  if (!import.meta.env.VITE_PAYSTACK_PUBLIC_KEY) {
-    warnings.push('VITE_PAYSTACK_PUBLIC_KEY is not set - payment features will be disabled');
-  }
 
   // Check optional features
   if (!import.meta.env.VITE_GOOGLE_MAPS_API_KEY) {

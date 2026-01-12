@@ -309,17 +309,17 @@ Deno.serve(async (req) => {
         message: `You have received a new order. Please commit within 48 hours.`,
       });
 
-      // Queue emails for buyer and seller
+      // Send emails directly to buyer and seller
       const buyerEmail = buyerProfile?.email || orders.buyer_email;
       const buyerName = buyerProfile?.full_name || buyerProfile?.name || 'Buyer';
       const sellerEmail = sellerProfile?.email;
       const sellerName = sellerProfile?.full_name || sellerProfile?.name || 'Seller';
 
+      const supabaseUrl = Deno.env.get('SUPABASE_URL');
+      const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
       if (buyerEmail) {
-        await supabaseClient.from('mail_queue').insert({
-          to_email: buyerEmail,
-          subject: '📚 Payment Confirmed - Waiting for Seller Response',
-          html_content: `
+        const buyerEmailHtml = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <div style="background-color: #00b894; color: white; padding: 20px; text-align: center;">
                 <h1 style="margin: 0;">📚 Payment Confirmed!</h1>
@@ -358,17 +358,30 @@ Deno.serve(async (req) => {
                 <p>For assistance: <a href="mailto:support@rebookedsolutions.co.za">support@rebookedsolutions.co.za</a></p>
               </div>
             </div>
-          `,
-          priority: 'high',
-          email_type: 'buyer_payment_confirmed',
-        });
+          `;
+
+        // Send buyer email directly
+        try {
+          await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${supabaseServiceKey}`,
+            },
+            body: JSON.stringify({
+              to: buyerEmail,
+              subject: '📚 Payment Confirmed - Waiting for Seller Response',
+              html: buyerEmailHtml,
+            }),
+          });
+        } catch (emailError) {
+          // Log email send failure but continue processing
+          console.error('Failed to send buyer email:', emailError);
+        }
       }
 
       if (sellerEmail) {
-        await supabaseClient.from('mail_queue').insert({
-          to_email: sellerEmail,
-          subject: '🚨 NEW SALE - Confirm Your Book Sale (48hr deadline)',
-          html_content: `
+        const sellerEmailHtml = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <div style="background-color: #e74c3c; color: white; padding: 20px; text-align: center;">
                 <h1 style="margin: 0;">🚨 New Book Sale - Action Required!</h1>
@@ -406,10 +419,26 @@ Deno.serve(async (req) => {
                 <p>For assistance: <a href="mailto:support@rebookedsolutions.co.za">support@rebookedsolutions.co.za</a></p>
               </div>
             </div>
-          `,
-          priority: 'urgent',
-          email_type: 'seller_pending_commit',
-        });
+          `;
+
+        // Send seller email directly
+        try {
+          await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${supabaseServiceKey}`,
+            },
+            body: JSON.stringify({
+              to: sellerEmail,
+              subject: '🚨 NEW SALE - Confirm Your Book Sale (48hr deadline)',
+              html: sellerEmailHtml,
+            }),
+          });
+        } catch (emailError) {
+          // Log email send failure but continue processing
+          console.error('Failed to send seller email:', emailError);
+        }
       }
     } else if (webhookData.status === 'failed' || webhookData.status === 'cancelled') {
       await supabaseClient

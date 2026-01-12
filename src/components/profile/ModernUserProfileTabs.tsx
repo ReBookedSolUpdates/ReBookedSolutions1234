@@ -345,13 +345,6 @@ const ModernUserProfileTabs = ({
                           onClick={() => navigate("/create-listing")}
                           color="blue"
                         />
-                        <QuickActionCard
-                          icon={Activity}
-                          title="View Activity"
-                          description="Check sales & purchases"
-                          onClick={() => navigate("/activity")}
-                          color="green"
-                        />
                       </div>
                     </div>
                   )}

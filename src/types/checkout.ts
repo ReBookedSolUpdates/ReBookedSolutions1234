@@ -18,6 +18,8 @@ export interface CheckoutBook {
   condition: string;
   isbn?: string;
   image_url?: string;
+  description?: string;
+  category?: string;
   seller_id: string;
   seller_name?: string;
   seller_subaccount_code?: string;
@@ -65,8 +67,13 @@ export interface OrderConfirmation {
   payment_reference: string;
   book_id: string;
   seller_id: string;
+  seller_name?: string;
   buyer_id: string;
+  buyer_name?: string;
   book_title: string;
+  book_author?: string;
+  book_description?: string;
+  book_condition?: string;
   book_price: number;
   delivery_method: string;
   delivery_price: number;

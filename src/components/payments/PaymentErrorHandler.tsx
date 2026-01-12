@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 
 export interface PaymentError {
-  type: "network" | "validation" | "paystack" | "server" | "auth" | "unknown";
+  type: "network" | "validation" | "server" | "auth" | "unknown";
   code?: string;
   message: string;
   details?: any;
@@ -58,17 +58,6 @@ export const PaymentErrorHandler: React.FC<PaymentErrorHandlerProps> = ({
           icon: <CreditCard className="h-4 w-4" />,
           variant: "destructive" as const,
           actions: ["back"],
-        };
-
-      case "paystack":
-        return {
-          title: "Payment Processing Error",
-          description:
-            error.message ||
-            "Payment could not be processed. Please try a different payment method.",
-          icon: <AlertTriangle className="h-4 w-4" />,
-          variant: "destructive" as const,
-          actions: error.retryable ? ["retry", "support"] : ["support"],
         };
 
       case "server":
@@ -175,13 +164,6 @@ Time: ${new Date().toISOString()}
 
         {/* Additional help text */}
         <div className="text-sm text-gray-600 space-y-2">
-          {errorObj.type === "paystack" && (
-            <p>
-              💡 <strong>Tip:</strong> If you're using a debit card, ensure you
-              have sufficient funds and that online payments are enabled.
-            </p>
-          )}
-
           {errorObj.type === "network" && (
             <p>
               💡 <strong>Tip:</strong> Try switching to a different network
@@ -275,21 +257,6 @@ export const classifyPaymentError = (error: any): PaymentError => {
       type: "validation",
       message: errorMessage,
       retryable: false,
-      details: error,
-    };
-  }
-
-  // Paystack specific errors
-  if (
-    errorLower.includes("paystack") ||
-    errorLower.includes("payment declined") ||
-    errorLower.includes("insufficient funds") ||
-    errorLower.includes("card")
-  ) {
-    return {
-      type: "paystack",
-      message: errorMessage,
-      retryable: true,
       details: error,
     };
   }
