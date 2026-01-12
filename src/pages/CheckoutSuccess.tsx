@@ -152,8 +152,18 @@ const CheckoutSuccess: React.FC = () => {
 
       // Order found
 
-      // Trigger post-payment actions as a fallback (webhook may have already done this)
-      await handlePostPaymentActions(order);
+      // Check if order processing is still pending (webhook may not have fired yet)
+      if (order.payment_status === "pending" && order.status === "pending") {
+        // Wait a bit for webhook to process, then retry
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        return fetchOrderData(); // Retry fetching
+      }
+
+      // Only trigger post-payment actions if order is still pending (webhook might not have fired)
+      // This is now a FALLBACK mechanism only
+      if (order.payment_status === "pending" || order.status === "pending") {
+        await handlePostPaymentActions(order);
+      }
 
       // Log that user visited the success page
       if (order.buyer_id) {
