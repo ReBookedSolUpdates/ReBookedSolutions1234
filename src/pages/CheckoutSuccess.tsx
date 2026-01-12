@@ -14,6 +14,8 @@ const CheckoutSuccess: React.FC = () => {
   const [orderData, setOrderData] = useState<OrderConfirmation | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
 
   const reference = searchParams.get("reference");
 
