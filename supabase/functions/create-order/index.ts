@@ -343,7 +343,8 @@ serve(async (req) => {
     const sellerEmail = seller.email || '';
     const buyerPhone = buyer.phone_number || '';
     const sellerPhone = seller.phone_number || '';
-    const pickupAddress = seller.pickup_address_encrypted || '';
+    // CRITICAL: Use seller's pickup address for door pickups, empty for locker pickups
+    const pickupAddress = pickupType === 'door' ? seller.pickup_address_encrypted : '';
 
     // Create order with locker support
     const orderData = {
