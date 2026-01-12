@@ -94,7 +94,6 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
   };
 
   const handleCouponRemove = () => {
-    console.log('[PAYMENT] Coupon removed');
     setAppliedCoupon(null);
     if (onCouponChange) {
       onCouponChange(null);
