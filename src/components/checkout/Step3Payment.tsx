@@ -87,11 +87,6 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
   const totalWithCoupon = calculateTotalWithCoupon();
 
   const handleCouponApply = (coupon: AppliedCoupon) => {
-    console.log('[PAYMENT] Coupon applied:', {
-      code: coupon.code,
-      discountAmount: coupon.discountAmount,
-      discountType: coupon.discountType,
-    });
     setAppliedCoupon(coupon);
     if (onCouponChange) {
       onCouponChange(coupon);
@@ -99,7 +94,6 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
   };
 
   const handleCouponRemove = () => {
-    console.log('[PAYMENT] Coupon removed');
     setAppliedCoupon(null);
     if (onCouponChange) {
       onCouponChange(null);
@@ -110,37 +104,25 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
   React.useEffect(() => {
     const fetchUserEmail = async () => {
       try {
-        console.log('[PAYMENT] Fetching user email...');
         const email = await getUserEmail();
-        console.log('[PAYMENT] User email fetched:', email);
         setUserEmail(email);
       } catch (err) {
-        console.error('[PAYMENT] Error fetching user email:', err);
+        // Error fetching user email
       }
     };
     fetchUserEmail();
   }, []);
 
   const handleBobPayPayment = async () => {
-    console.log('[PAYMENT] Starting BobPay payment process...', {
-      userId,
-      bookId: orderSummary.book.id,
-      totalAmount: orderSummary.total_price,
-    });
-
     setProcessing(true);
     setError(null);
     try {
       // Use cached user from AuthContext instead of calling supabase.auth.getUser() again
       if (!authUser || !authUser.email) {
-        console.error('[PAYMENT] User authentication error');
         throw new Error("User authentication error");
       }
 
-      console.log('[PAYMENT] User authenticated:', authUser.email);
-
       const customPaymentId = `ORDER-${Date.now()}-${userId}`;
-      console.log('[PAYMENT] Generated payment reference:', customPaymentId);
 
       // Check for duplicate order submission (idempotency)
       const cachedOrderId = getCachedOrderId(customPaymentId);
@@ -151,7 +133,6 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
 
       // Validate pickup setup based on delivery method
       const pickupType = orderSummary.delivery_method === "locker" ? "locker" : "door";
-      console.log('[PAYMENT] Validating pickup setup:', { pickupType, deliveryMethod: orderSummary.delivery_method });
 
       const pickupErrors = validatePickupSetup(
         pickupType,
@@ -159,16 +140,12 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
         orderSummary.delivery_method === "door" ? orderSummary.seller_address : null
       );
       if (pickupErrors.length > 0) {
-        console.error('[PAYMENT] Pickup validation failed:', pickupErrors);
         throw new Error(`Pickup validation failed: ${pickupErrors.join("; ")}`);
       }
 
-      console.log('[PAYMENT] Pickup validation passed');
       const baseUrl = window.location.origin;
-      console.log('[PAYMENT] Base URL:', baseUrl);
 
       // Step 1: Fetch buyer and seller profiles for denormalized data (in parallel)
-      console.log('[PAYMENT] Fetching buyer and seller profiles...');
       const [buyerProfileResult, sellerProfileResult] = await Promise.allSettled([
         supabase
           .from("profiles")
@@ -182,25 +159,16 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
           .single(),
       ]);
 
-      console.log('[PAYMENT] Profile fetch results:', {
-        buyerStatus: buyerProfileResult.status,
-        sellerStatus: sellerProfileResult.status,
-      });
-
       const buyerProfile = buyerProfileResult.status === 'fulfilled' ? buyerProfileResult.value.data : null;
       const sellerProfile = sellerProfileResult.status === 'fulfilled' ? sellerProfileResult.value.data : null;
 
       if (!buyerProfile) {
-        console.error('[PAYMENT] Buyer profile not found');
         throw new Error("Failed to fetch buyer profile");
       }
 
       if (!sellerProfile) {
-        console.error('[PAYMENT] Seller profile not found');
         throw new Error("Failed to fetch seller profile");
       }
-
-      console.log('[PAYMENT] Profiles loaded successfully');
 
       const buyerFullName = buyerProfile.full_name || buyerProfile.name || `${buyerProfile.first_name || ''} ${buyerProfile.last_name || ''}`.trim() || 'Buyer';
       const sellerFullName = sellerProfile.full_name || sellerProfile.name || `${sellerProfile.first_name || ''} ${sellerProfile.last_name || ''}`.trim() || 'Seller';
@@ -210,16 +178,12 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
       const deliveryLockerData = orderSummary.delivery_method === "locker" ? orderSummary.selected_locker : null;
       const deliveryLockerLocationId = orderSummary.delivery_method === "locker" ? orderSummary.selected_locker?.id : null;
 
-      console.log('[PAYMENT] Delivery type:', { deliveryType, hasLockerData: !!deliveryLockerData });
-
       // Step 2: Prepare and encrypt the shipping address (only for door deliveries)
       let shipping_address_encrypted = "";
       if (deliveryType === "door") {
-        console.log('[PAYMENT] Encrypting shipping address...');
         try {
           // Use comprehensive address preparation that preserves all fields
           const shippingObject = prepareAddressForEncryption(orderSummary.buyer_address);
-          console.log('[PAYMENT] Address prepared for encryption');
 
           const { data: encResult, error: encError } = await supabase.functions.invoke(
             'encrypt-address',
@@ -227,14 +191,11 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
           );
 
           if (encError || !encResult?.success || !encResult?.data) {
-            console.error('[PAYMENT] Address encryption failed:', encError);
             throw new Error(encError?.message || 'Failed to encrypt shipping address');
           }
 
           shipping_address_encrypted = JSON.stringify(encResult.data);
-          console.log('[PAYMENT] Address encrypted successfully');
         } catch (addrError) {
-          console.error('[PAYMENT] Error encrypting address:', addrError);
           throw new Error(
             addrError instanceof Error
               ? addrError.message
@@ -244,16 +205,9 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
       }
 
       // Step 3: Create the order (before payment)
-      console.log('[PAYMENT] Creating order...');
-
       // Normalize locker data if present
       const normalizedLockerData = deliveryLockerData ? normalizeLockerData(deliveryLockerData) : null;
       const normalizedLockerLocationId = normalizedLockerData?.location_id || null;
-
-      console.log('[PAYMENT] Locker data normalized:', {
-        hasLockerData: !!normalizedLockerData,
-        providerId: normalizedLockerData?.provider_slug,
-      });
 
       // Step 3.1: Call create-order edge function for atomic order creation with idempotency
       // This is the ONLY place orders should be created - the edge function handles idempotency checks
@@ -269,24 +223,22 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
         selected_service_code: orderSummary.delivery.service_level_code || "",
         selected_courier_name: orderSummary.delivery.provider_name || orderSummary.delivery.courier,
         selected_service_name: orderSummary.delivery.service_name,
-        // Convert delivery_price from Rands to cents for backend (backend expects cents/kobo)
+        // Delivery price in cents (kobo) for backend consistency
         selected_shipping_cost: Math.round(orderSummary.delivery_price * 100),
         delivery_type: deliveryType,
-        // Add human-readable delivery method for display (e.g., "Home Delivery", "BobGo Locker")
+        // Human-readable delivery method for display: "Home Delivery" or "BobGo Locker"
         delivery_method: orderSummary.delivery_method === "locker" ? "BobGo Locker" : "Home Delivery",
         delivery_locker_data: normalizedLockerData,
         delivery_locker_location_id: normalizedLockerLocationId,
         delivery_locker_provider_slug: normalizedLockerData?.provider_slug,
       };
 
-      console.log('[PAYMENT] Calling create-order function...');
       const { data: createOrderResult, error: createOrderError } = await supabase.functions.invoke(
         'create-order',
         { body: createOrderPayload }
       );
 
       if (createOrderError || !createOrderResult?.success) {
-        console.error('[PAYMENT] Order creation failed:', { error: createOrderError, result: createOrderResult });
         throw new Error(
           createOrderError?.message || createOrderResult?.error || 'Failed to create order'
         );
@@ -294,34 +246,24 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
 
       const createdOrder = createOrderResult.order;
       if (!createdOrder?.id) {
-        console.error('[PAYMENT] No order ID returned from create-order');
         throw new Error('No order ID returned from create-order function');
       }
-
-      console.log('[PAYMENT] Order created successfully:', { orderId: createdOrder.id });
 
       // Register order creation for idempotency tracking
       registerOrderCreation(customPaymentId, createdOrder.id);
 
       // Step 3.5: Process affiliate earning if seller was referred
-      console.log('[PAYMENT] Processing affiliate earning (fire and forget)...');
       supabase.functions.invoke('process-affiliate-earning', {
         body: {
           book_id: orderSummary.book.id,
           order_id: createdOrder.id,
           seller_id: orderSummary.book.seller_id,
         },
-      }).then(() => {
-        console.log('[PAYMENT] Affiliate earning processed');
-      }).catch((affiliateErr) => {
-        console.warn('[PAYMENT] Error processing affiliate earning:', affiliateErr);
+      }).catch(() => {
+        // Affiliate earning processing error - non-blocking
       });
 
       // Step 4: Initialize BobPay payment with the order_id
-      console.log('[PAYMENT] Initializing BobPay payment...', {
-        orderId: createdOrder.id,
-        amount: orderSummary.total_price,
-      });
 
       const paymentRequest = {
         order_id: createdOrder.id,
@@ -338,14 +280,12 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
         buyer_id: userId,
       };
 
-      console.log('[PAYMENT] Payment request prepared, calling bobpay-initialize-payment...');
       const { data: bobpayResult, error: bobpayError } = await supabase.functions.invoke(
         "bobpay-initialize-payment",
         { body: paymentRequest }
       );
 
       if (bobpayError || !bobpayResult?.success) {
-        console.error('[PAYMENT] BobPay initialization failed:', { error: bobpayError, result: bobpayResult });
         throw new Error(
           bobpayError?.message || bobpayResult?.error || "Failed to initialize BobPay payment"
         );
@@ -353,18 +293,15 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
 
       const paymentUrl = bobpayResult.data?.payment_url;
       if (!paymentUrl) {
-        console.error('[PAYMENT] No payment URL received from BobPay');
         throw new Error("No payment URL received from BobPay");
       }
 
-      console.log('[PAYMENT] Payment URL received, redirecting...');
       toast.success("Redirecting to payment page...");
 
       // Open payment page in the same tab
       window.location.href = paymentUrl;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Payment initialization failed";
-      console.error('[PAYMENT] Payment error:', errorMessage, err);
       const classifiedError = classifyPaymentError(errorMessage);
       setError(classifiedError);
       onPaymentError(errorMessage);
@@ -377,10 +314,7 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
     }
   };
 
-
-
   const handleRetryPayment = () => {
-    console.log('[PAYMENT] Retrying payment, retry count:', retryCount + 1);
     setError(null);
     setRetryCount((prev) => prev + 1);
 
@@ -393,7 +327,6 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
   };
 
   const handleContactSupport = () => {
-    console.log('[PAYMENT] Opening support email form');
     const subject = "Payment Issue - ReBooked Solutions";
     const body = `
 I'm experiencing payment issues:

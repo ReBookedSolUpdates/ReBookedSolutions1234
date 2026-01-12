@@ -71,10 +71,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   }, [book.id, user?.id]);
 
   const initializeCheckout = async () => {
-    console.log('[CHECKOUT_FLOW] Initializing checkout', { userId: user?.id, bookId: book.id });
-
     if (!user?.id) {
-      console.error('[CHECKOUT_FLOW] No user ID found');
       setCheckoutState((prev) => ({
         ...prev,
         error: "Please log in to continue",
@@ -86,11 +83,9 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
     let bookData = null; // Declare outside try block to prevent undefined error in catch
 
     try {
-      console.log('[CHECKOUT_FLOW] Setting loading state...');
       setCheckoutState((prev) => ({ ...prev, loading: true, error: null }));
 
       // Get fresh book data with seller information from books table
-      console.log('[CHECKOUT_FLOW] Fetching book data from database...');
       const { data, error: bookError } = await supabase
         .from("books")
         .select("*")
@@ -105,20 +100,11 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       }
 
       if (!bookData) {
-        console.error('[CHECKOUT_FLOW] No book data returned');
         throw new Error("Failed to load book details");
       }
 
-      console.log('[CHECKOUT_FLOW] Book data retrieved:', {
-        id: bookData.id,
-        title: bookData.title,
-        seller_id: bookData.seller_id,
-        subaccount_code: bookData.seller_subaccount_code,
-      });
-
       // Explicit type guard to ensure bookData is not null
       if (!bookData.id || !bookData.seller_id) {
-        console.error('[CHECKOUT_FLOW] Missing required fields:', { id: bookData.id, seller_id: bookData.seller_id });
         throw new Error("Invalid book data - missing required fields");
       }
 
@@ -128,11 +114,8 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       }
 
       if (typeof bookData.seller_id !== 'string' || bookData.seller_id.length < 10) {
-        console.error('[CHECKOUT_FLOW] Invalid seller_id format:', { seller_id: bookData.seller_id, type: typeof bookData.seller_id });
         throw new Error(`Invalid seller_id format: ${bookData.seller_id} (type: ${typeof bookData.seller_id})`);
       }
-
-      console.log('[CHECKOUT_FLOW] Seller validation passed');
 
       // Initialize variables for seller data
       let sellerProfile = null;
@@ -143,7 +126,6 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
 
       // OPTIMIZATION: Parallelize independent seller data fetches using Promise.allSettled
       // These calls don't depend on each other, so we fetch them concurrently
-      console.log('[CHECKOUT_FLOW] Fetching seller data in parallel...');
       const [
         sellerProfileResult,
         subaccountResult,
