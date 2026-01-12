@@ -149,11 +149,12 @@ const CheckoutSuccess: React.FC = () => {
 
       if (orderError || !order) {
         setError("Order not found. Please check your reference number. Your payment may still be processing.");
-        // Give user a longer time to see the error
+        setLoading(false);
         return;
       }
 
-      // Order found
+      // Order found - handle payment confirmation flow
+      let finalOrder = order;
 
       // Check if order processing is still pending (webhook may not have fired yet)
       if (order.payment_status === "pending" && order.status === "pending") {
@@ -163,55 +164,77 @@ const CheckoutSuccess: React.FC = () => {
         if (retryCount < 3) {
           await new Promise(resolve => setTimeout(resolve, 2000));
           setRetryCount(prev => prev + 1);
-          return fetchOrderData(); // Retry fetching
+          setLoading(false);
+          // The useEffect will trigger again with updated retryCount
+          return;
         } else {
           // Fallback: trigger post-payment actions if webhook hasn't fired
           setIsConfirmingPayment(false);
           await handlePostPaymentActions(order);
-          // Refetch order after actions
-          return fetchOrderData();
+
+          // Refetch order after post-payment actions
+          const { data: updatedOrder, error: refetchError } = await supabase
+            .from("orders")
+            .select("*")
+            .eq("payment_reference", cleanReference)
+            .maybeSingle();
+
+          if (refetchError || !updatedOrder) {
+            throw new Error("Failed to retrieve updated order data");
+          }
+          finalOrder = updatedOrder;
         }
       }
 
       // Only trigger post-payment actions if order is still pending (webhook might not have fired)
-      // This is now a FALLBACK mechanism only
-      if (order.payment_status === "pending" || order.status === "pending") {
+      if (finalOrder.payment_status === "pending" || finalOrder.status === "pending") {
         setIsConfirmingPayment(true);
-        await handlePostPaymentActions(order);
+        await handlePostPaymentActions(finalOrder);
+
+        // Refetch to get latest status
+        const { data: refreshedOrder, error: refreshError } = await supabase
+          .from("orders")
+          .select("*")
+          .eq("payment_reference", cleanReference)
+          .maybeSingle();
+
+        if (!refreshError && refreshedOrder) {
+          finalOrder = refreshedOrder;
+        }
       }
 
       setIsConfirmingPayment(false);
 
       // Log that user visited the success page
-      if (order.buyer_id) {
+      if (finalOrder.buyer_id) {
         try {
           await supabase
             .from("activity_logs")
             .insert({
-              user_id: order.buyer_id,
+              user_id: finalOrder.buyer_id,
               type: "purchase",
-              title: `Order Confirmation Viewed - ${order.items?.[0]?.book_title || 'Book'}`,
-              description: `Checkout completed for order #${order.id}`,
+              title: `Order Confirmation Viewed - ${finalOrder.items?.[0]?.book_title || 'Book'}`,
+              description: `Checkout completed for order #${finalOrder.id}`,
               metadata: {
-                order_id: order.id,
+                order_id: finalOrder.id,
                 payment_reference: cleanReference,
               },
             })
             .then(() => {})
             .catch(() => {});
         } catch (logError) {
-          // Activity logging failed
+          // Activity logging failed - continue anyway
         }
       }
 
       // Get the payment_reference from the order record
-      const paymentReference = order.payment_reference || cleanReference;
+      const paymentReference = finalOrder.payment_reference || cleanReference;
 
       // FETCH FRESH BOOK DATA from DB instead of relying on order.items
       const { data: freshBookData, error: bookFetchError } = await supabase
         .from('books')
         .select('id, title, author, price, condition, image_url, description')
-        .eq('id', order.book_id)
+        .eq('id', finalOrder.book_id)
         .single();
 
       if (bookFetchError || !freshBookData) {
@@ -219,34 +242,34 @@ const CheckoutSuccess: React.FC = () => {
       }
 
       // Extract delivery info from delivery_data - with fallback sources
-      const deliveryData = order.delivery_data || {};
+      const deliveryData = finalOrder.delivery_data || {};
 
       // Delivery price: use order.selected_shipping_cost (stored in cents/kobo)
-      const deliveryPrice = order.selected_shipping_cost || 0;
+      const deliveryPrice = finalOrder.selected_shipping_cost || 0;
 
       // Delivery method: use order denormalized field
-      const deliveryMethod = order.delivery_method || "Standard";
+      const deliveryMethod = finalOrder.delivery_method || "Standard";
 
       // Extract metadata (includes buyer_id and platform fee)
-      const metadata = order.metadata || {};
+      const metadata = finalOrder.metadata || {};
 
       // Seller name is already denormalized in order record
-      const sellerName = order.seller_full_name || "Seller";
+      const sellerName = finalOrder.seller_full_name || "Seller";
 
       // Validate critical order fields exist
-      if (!order.id || !order.buyer_id || !order.seller_id || !order.book_id) {
+      if (!finalOrder.id || !finalOrder.buyer_id || !finalOrder.seller_id || !finalOrder.book_id) {
         throw new Error('Incomplete order data. Please contact support.');
       }
 
       // Construct OrderConfirmation object from FRESH book data and order record
       // All prices are converted from kobo/cents to Rands for display
       const confirmation: OrderConfirmation = {
-        order_id: order.payment_reference || order.id,
+        order_id: finalOrder.payment_reference || finalOrder.id,
         payment_reference: paymentReference,
-        book_id: order.book_id,
-        seller_id: order.seller_id,
+        book_id: finalOrder.book_id,
+        seller_id: finalOrder.seller_id,
         seller_name: sellerName,
-        buyer_id: order.buyer_id,
+        buyer_id: finalOrder.buyer_id,
         book_title: freshBookData.title || "Book",
         book_author: freshBookData.author,
         book_description: freshBookData.description,
@@ -255,15 +278,16 @@ const CheckoutSuccess: React.FC = () => {
         delivery_method: deliveryMethod,
         delivery_price: deliveryPrice ? deliveryPrice / 100 : 0, // Convert from kobo to Rands
         platform_fee: metadata.platform_fee ? metadata.platform_fee / 100 : 20, // Default R20
-        total_paid: order.amount ? order.amount / 100 : 0, // Convert from kobo to Rands
-        created_at: order.created_at || new Date().toISOString(),
-        status: order.status || "pending",
+        total_paid: finalOrder.amount ? finalOrder.amount / 100 : 0, // Convert from kobo to Rands
+        created_at: finalOrder.created_at || new Date().toISOString(),
+        status: finalOrder.status || "pending",
       };
 
       setOrderData(confirmation);
+      setLoading(false);
     } catch (err) {
+      console.error("Checkout success error:", err);
       setError(err instanceof Error ? err.message : "Failed to load order");
-    } finally {
       setLoading(false);
     }
   };
