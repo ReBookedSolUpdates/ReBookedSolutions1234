@@ -84,6 +84,18 @@ const OrderActionsPanel: React.FC<OrderActionsPanelProps> = ({
   const handleBuyerCancel = async () => {
     setIsLoading(true);
     try {
+      // Verify user is authenticated
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        throw new Error("You must be logged in to cancel an order");
+      }
+
+      // Get current session to ensure auth token is available
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session?.access_token) {
+        throw new Error("Authentication session expired. Please log in again.");
+      }
+
       // Use the unified cancel-order-with-refund function for ALL orders (committed or pending)
       // This ensures both shipment cancellation AND refund are processed
       const { data, error } = await supabase.functions.invoke("cancel-order-with-refund", {
@@ -94,7 +106,8 @@ const OrderActionsPanel: React.FC<OrderActionsPanelProps> = ({
       });
 
       if (error) {
-        throw new Error(error.message || "Failed to cancel order");
+        console.error("Cancel order error:", error);
+        throw new Error(error.message || "Failed to send request to server");
       }
 
       if (!data) {
@@ -113,6 +126,7 @@ const OrderActionsPanel: React.FC<OrderActionsPanelProps> = ({
         onOrderUpdate();
       }, 500);
     } catch (error: any) {
+      console.error("Order cancellation error:", error);
       toast.error(error?.message || "Failed to cancel order. Please try again.");
     } finally {
       setIsLoading(false);
