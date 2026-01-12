@@ -205,16 +205,9 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
       }
 
       // Step 3: Create the order (before payment)
-      console.log('[PAYMENT] Creating order...');
-
       // Normalize locker data if present
       const normalizedLockerData = deliveryLockerData ? normalizeLockerData(deliveryLockerData) : null;
       const normalizedLockerLocationId = normalizedLockerData?.location_id || null;
-
-      console.log('[PAYMENT] Locker data normalized:', {
-        hasLockerData: !!normalizedLockerData,
-        providerId: normalizedLockerData?.provider_slug,
-      });
 
       // Step 3.1: Call create-order edge function for atomic order creation with idempotency
       // This is the ONLY place orders should be created - the edge function handles idempotency checks
