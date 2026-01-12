@@ -362,6 +362,30 @@ export class OrderCancellationService {
     reason?: string,
   ): Promise<CancellationResult> {
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      // Use the unified cancel-order-with-refund function for comprehensive cancellation handling
+      // This ensures both shipment cancellation AND refund are processed
+      const { data, error } = await supabase.functions.invoke('cancel-order-with-refund', {
+        body: {
+          order_id: orderId,
+          reason: reason || "Seller cancelled after missing pickup",
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (!data?.success) {
+        throw new Error(data?.error || "Cancellation failed");
+      }
+
+      // Fetch order details for notifications
       const { data: order, error: fetchError } = await supabase
         .from("orders")
         .select(
@@ -375,64 +399,30 @@ export class OrderCancellationService {
         .eq("id", orderId)
         .single();
 
-      if (fetchError || !order) {
-        throw new Error("Order not found");
-      }
+      if (!fetchError && order) {
+        // Send notifications
+        await this.notifyBuyerOfSellerCancellation(order, reason);
+        await this.notifySellerCancellationConfirmation(order);
 
-      // Cancel delivery
-      if (order.courier_booking_id) {
-        await this.cancelCourierBooking(
-          order.courier_service,
-          order.courier_booking_id,
+        // Check for repeated missed pickups and warn seller
+        await this.checkSellerReliability(order.seller_id);
+
+        // Log activity
+        await this.logCancellationActivity(
+          orderId,
+          "seller_cancelled_after_missed_pickup",
+          {
+            reason,
+            refund_amount: data.data?.refund_amount,
+          },
         );
       }
-
-      // Process full refund
-      const refundResult = await this.processRefund(
-        order.id,
-        order.total_amount,
-      );
-      if (!refundResult.success) {
-        throw new Error(`Refund failed: ${refundResult.error}`);
-      }
-
-      // Update order status
-      const { error: updateError } = await supabase
-        .from("orders")
-        .update({
-          status: "cancelled_by_seller_after_missed_pickup",
-          cancelled_at: new Date().toISOString(),
-          cancellation_reason:
-            reason || "Seller cancelled after missing pickup",
-        })
-        .eq("id", orderId);
-
-      if (updateError) {
-        throw new Error("Failed to update order status");
-      }
-
-      // Send notifications
-      await this.notifyBuyerOfSellerCancellation(order, reason);
-      await this.notifySellerCancellationConfirmation(order);
-
-      // Check for repeated missed pickups and warn seller
-      await this.checkSellerReliability(order.seller_id);
-
-      // Log activity
-      await this.logCancellationActivity(
-        orderId,
-        "seller_cancelled_after_missed_pickup",
-        {
-          reason,
-          refund_amount: order.total_amount,
-        },
-      );
 
       return {
         success: true,
         message:
           "Order cancelled. Buyer has been notified and will receive a full refund.",
-        refund_amount: order.total_amount,
+        refund_amount: data.data?.refund_amount,
       };
     } catch (error) {
       return {
