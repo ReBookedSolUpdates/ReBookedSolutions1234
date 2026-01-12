@@ -163,12 +163,18 @@ const encryptAddress = async (address: SimpleAddress, options?: { save?: { table
     });
 
     if (error) {
-      return null;
+      throw new Error(`Encryption service error: ${error.message || 'Unknown error'}`);
+    }
+
+    if (!data || !data.success) {
+      throw new Error('Encryption service returned failure');
     }
 
     return data as any;
   } catch (error) {
-    return null;
+    // Re-throw with context
+    const errorMsg = error instanceof Error ? error.message : 'Unknown encryption error';
+    throw new Error(`Address encryption failed: ${errorMsg}`);
   }
 };
 
