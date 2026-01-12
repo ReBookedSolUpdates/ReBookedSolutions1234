@@ -27,7 +27,7 @@ const CheckoutSuccess: React.FC = () => {
     }
 
     fetchOrderData();
-  }, [reference]);
+  }, [reference, retryCount]);
 
   /**
    * Handle post-payment actions: mark book as sold, send emails, create notifications
