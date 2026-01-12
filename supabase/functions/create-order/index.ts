@@ -283,6 +283,25 @@ serve(async (req) => {
       shippingAddressEncrypted = shippingAddressEncrypted || buyer.shipping_address_encrypted;
     }
 
+    // CRITICAL: Validate pickup address for door pickup
+    if (pickupType === 'door') {
+      const pickupAddressToUse = seller.pickup_address_encrypted;
+      if (!pickupAddressToUse) {
+        console.error("❌ Door pickup selected but seller has no pickup address");
+        // Rollback book marking
+        await supabase.from("books").update({
+          sold: false,
+          available_quantity: book.available_quantity,
+          sold_quantity: book.sold_quantity
+        }).eq("id", requestData.book_id);
+
+        return new Response(
+          JSON.stringify({ success: false, error: "Seller door pickup selected but seller has no pickup address configured" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
     // Validate we have required delivery information
     if (deliveryType === 'locker' && !deliveryLockerLocationId) {
       console.error("❌ Locker delivery selected but no locker location provided");
