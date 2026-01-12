@@ -233,14 +233,12 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
         delivery_locker_provider_slug: normalizedLockerData?.provider_slug,
       };
 
-      console.log('[PAYMENT] Calling create-order function...');
       const { data: createOrderResult, error: createOrderError } = await supabase.functions.invoke(
         'create-order',
         { body: createOrderPayload }
       );
 
       if (createOrderError || !createOrderResult?.success) {
-        console.error('[PAYMENT] Order creation failed:', { error: createOrderError, result: createOrderResult });
         throw new Error(
           createOrderError?.message || createOrderResult?.error || 'Failed to create order'
         );
@@ -248,11 +246,8 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
 
       const createdOrder = createOrderResult.order;
       if (!createdOrder?.id) {
-        console.error('[PAYMENT] No order ID returned from create-order');
         throw new Error('No order ID returned from create-order function');
       }
-
-      console.log('[PAYMENT] Order created successfully:', { orderId: createdOrder.id });
 
       // Register order creation for idempotency tracking
       registerOrderCreation(customPaymentId, createdOrder.id);
