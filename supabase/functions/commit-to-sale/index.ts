@@ -179,12 +179,23 @@ serve(async (req) => {
       items = [];
     }
 
-    // Determine pickup type
-    let pickupType = order.pickup_type || "door";
+    // CRITICAL: Determine pickup type based on order's saved pickup_type
+    // DO NOT default to "door" - if pickup_type is not set, that's an error condition
+    // Only override if seller explicitly provided new locker data during commit
+    let pickupType = order.pickup_type;
     const deliveryType = order.delivery_type || "door";
 
-    // If seller selected locker delivery method, override pickup_type
-    if (delivery_method === "locker" && locker_id) {
+    if (!pickupType) {
+      console.error("[commit-to-sale] Order has no pickup_type set - this order creation did not complete properly");
+      throw new Error("Order is missing pickup type configuration. Please contact support.");
+    }
+
+    // Only override pickup_type if seller explicitly provided locker data during commit
+    if (delivery_method === "locker" && locker_data && locker_data.id) {
+      console.log("[commit-to-sale] Seller provided explicit locker data during commit - updating pickup type to locker");
+      pickupType = "locker";
+    } else if (delivery_method === "locker" && locker_id && !pickupType.startsWith("locker")) {
+      console.log("[commit-to-sale] Seller provided locker_id - updating pickup type to locker");
       pickupType = "locker";
     }
 
