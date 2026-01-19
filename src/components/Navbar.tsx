@@ -12,9 +12,11 @@ import {
   UserPlus,
   Truck,
   MapPin,
+  ShoppingCart,
 } from "lucide-react";
 import CartButton from "./CartButton";
 import NotificationBadge from "./NotificationBadge";
+import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
 
 const Navbar = () => {
@@ -39,6 +41,10 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { getTotalItems, sellerCarts } = useCart();
+  const legacyItemCount = getTotalItems();
+  const sellerCartItemCount = sellerCarts.reduce((total, cart) => total + cart.items.length, 0);
+  const cartItemCount = legacyItemCount + sellerCartItemCount;
 
   // Define functions before any early returns to avoid hoisting issues
   const handleLogout = async () => {
@@ -299,6 +305,20 @@ const Navbar = () => {
 
               {isAuthenticated ? (
                 <>
+                  <Link
+                    to="/cart"
+                    className="flex items-center px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-book-600 rounded-md min-h-[44px] relative"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <ShoppingCart className="w-5 h-5 mr-3" />
+                    <span>Cart</span>
+                    {cartItemCount > 0 && (
+                      <span className="absolute right-3 bg-book-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        {cartItemCount}
+                      </span>
+                    )}
+                  </Link>
+
                   <Link
                     to="/notifications"
                     className="flex items-center px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-book-600 rounded-md min-h-[44px]"
