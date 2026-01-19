@@ -464,6 +464,12 @@ const Cart = () => {
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
+                        <span className="text-sm">ReBooked Solutions fee:</span>
+                        <span className="text-sm">
+                          R20.00
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
                         <span className="text-sm">Delivery fee:</span>
                         <span className="text-sm text-orange-600">
                           Calculated at checkout
@@ -475,7 +481,7 @@ const Cart = () => {
                           Current Total
                         </span>
                         <span className="text-base md:text-lg font-bold">
-                          R{(totalPrice + sellerCarts.reduce((sum, cart) => sum + cart.totalPrice, 0)).toFixed(2)}
+                          R{(totalPrice + sellerCarts.reduce((sum, cart) => sum + cart.totalPrice, 0) + 20).toFixed(2)}
                         </span>
                       </div>
                       <p className="text-xs text-gray-500 text-center">
