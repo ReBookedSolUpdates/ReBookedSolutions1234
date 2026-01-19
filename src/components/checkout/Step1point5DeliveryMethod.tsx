@@ -192,23 +192,23 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-4">
-      <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">
+    <div className="space-y-6 sm:space-y-8">
+      <div className="text-center mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
           Choose Delivery Method
         </h1>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm sm:text-base text-gray-600">
           Pick your preferred way to receive {bookTitle}
         </p>
       </div>
 
-      {/* Compact Delivery Method Cards */}
-      <div className="space-y-3">
-        {/* Locker Option - Compact */}
+      {/* Delivery Method Cards */}
+      <div className="space-y-4 sm:space-y-5">
+        {/* Locker Option */}
         <div
-          className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+          className={`p-5 sm:p-6 border-2 rounded-xl cursor-pointer transition-all shadow-sm hover:shadow-md ${
             deliveryMethod === "locker"
-              ? "bg-purple-50 border-purple-400"
+              ? "bg-purple-50 border-purple-400 shadow-md"
               : "bg-white border-gray-200 hover:border-purple-300"
           }`}
           onClick={() => handleSelectLockerMethod(savedLocker)}
@@ -222,29 +222,29 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
             }
           }}
         >
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 flex-shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center"
+          <div className="flex items-start gap-4">
+            <div className="mt-1 flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-row"
               style={deliveryMethod === "locker" ? { borderColor: "#a855f7", backgroundColor: "#a855f7" } : { borderColor: "#d1d5db" }}>
-              {deliveryMethod === "locker" && <div className="w-2 h-2 bg-white rounded-full"></div>}
+              {deliveryMethod === "locker" && <div className="w-2.5 h-2.5 bg-white rounded-full"></div>}
             </div>
             <div className="flex-1">
-              <div className="flex items-center gap-2 font-medium">
-                <MapPin className="w-4 h-4" />
-                <span className="text-sm">BobGo Locker</span>
-                {savedLocker && <Badge className="bg-green-100 text-green-800 text-xs">Saved</Badge>}
+              <div className="flex items-center gap-2 font-semibold mb-1">
+                <MapPin className="w-5 h-5 text-purple-600 flex-shrink-0" />
+                <span className="text-base sm:text-lg">BobGo Locker</span>
+                {savedLocker && <Badge className="bg-green-100 text-green-800 text-xs ml-auto">Saved</Badge>}
               </div>
-              <p className="text-xs text-gray-600 mt-1">
-                Pick up at a convenient locker location
+              <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
+                Pick up at a convenient locker location near you
               </p>
             </div>
           </div>
         </div>
 
-        {/* Home Delivery Option - Compact */}
+        {/* Home Delivery Option */}
         <div
-          className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+          className={`p-5 sm:p-6 border-2 rounded-xl cursor-pointer transition-all shadow-sm hover:shadow-md ${
             deliveryMethod === "home"
-              ? "bg-blue-50 border-blue-400"
+              ? "bg-blue-50 border-blue-400 shadow-md"
               : "bg-white border-gray-200 hover:border-blue-300"
           }`}
           onClick={() => {
@@ -262,18 +262,18 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
             }
           }}
         >
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 flex-shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center"
+          <div className="flex items-start gap-4">
+            <div className="mt-1 flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center"
               style={deliveryMethod === "home" ? { borderColor: "#3b82f6", backgroundColor: "#3b82f6" } : { borderColor: "#d1d5db" }}>
-              {deliveryMethod === "home" && <div className="w-2 h-2 bg-white rounded-full"></div>}
+              {deliveryMethod === "home" && <div className="w-2.5 h-2.5 bg-white rounded-full"></div>}
             </div>
             <div className="flex-1">
-              <div className="flex items-center gap-2 font-medium">
-                <Home className="w-4 h-4" />
-                <span className="text-sm">Home Delivery</span>
+              <div className="flex items-center gap-2 font-semibold mb-1">
+                <Home className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                <span className="text-base sm:text-lg">Home Delivery</span>
               </div>
-              <p className="text-xs text-gray-600 mt-1">
-                Courier delivers to your home
+              <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
+                Courier delivers directly to your home address
               </p>
             </div>
           </div>
