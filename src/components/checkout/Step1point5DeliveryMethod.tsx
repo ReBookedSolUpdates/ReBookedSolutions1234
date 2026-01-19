@@ -289,12 +289,12 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
               <div className="p-4 sm:p-5 bg-white border-2 border-green-200 rounded-lg shadow-sm">
                 <div className="flex items-start justify-between gap-3 mb-4">
                   <div className="flex-1">
-                    <p className="font-semibold text-sm sm:text-base flex items-center gap-2 text-gray-900 mb-1">
-                      <div className="p-1 bg-green-100 rounded-full">
+                    <div className="flex items-center gap-2 font-semibold text-sm sm:text-base text-gray-900 mb-1">
+                      <div className="p-1 bg-green-100 rounded-full flex-shrink-0">
                         <CheckCircle className="w-4 h-4 text-green-600" />
                       </div>
-                      {savedLocker.name}
-                    </p>
+                      <span>{savedLocker.name}</span>
+                    </div>
                     <p className="text-sm text-gray-600">
                       {savedLocker.address || savedLocker.full_address}
                     </p>
