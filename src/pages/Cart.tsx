@@ -437,6 +437,12 @@ const Cart = () => {
                           R{(totalPrice + sellerCarts.reduce((sum, cart) => sum + cart.totalPrice, 0)).toFixed(2)}
                         </span>
                       </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm">ReBooked Solutions fee:</span>
+                        <span className="text-sm font-medium">
+                          R20.00
+                        </span>
+                      </div>
                       <p className="text-xs text-gray-500 text-center">
                         Note: Each cart will have separate delivery fees
                       </p>
