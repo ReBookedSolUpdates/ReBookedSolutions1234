@@ -327,12 +327,12 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
             {/* Selected Different Locker */}
             {selectedLocker && savedLocker && selectedLocker.id !== savedLocker.id && (
               <div className="p-4 sm:p-5 bg-white border-2 border-blue-200 rounded-lg shadow-sm">
-                <p className="text-sm font-semibold text-gray-900 flex items-center gap-2 mb-3">
-                  <div className="p-1 bg-blue-100 rounded-full">
+                <div className="flex items-center gap-2 font-semibold text-sm text-gray-900 mb-3">
+                  <div className="p-1 bg-blue-100 rounded-full flex-shrink-0">
                     <CheckCircle className="w-4 h-4 text-blue-600" />
                   </div>
-                  {selectedLocker.name}
-                </p>
+                  <span>{selectedLocker.name}</span>
+                </div>
                 <Button
                   onClick={handleSaveLockerToProfile}
                   disabled={isSavingLocker}
