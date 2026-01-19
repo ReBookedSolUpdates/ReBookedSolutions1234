@@ -41,6 +41,10 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { getTotalItems, sellerCarts } = useCart();
+  const legacyItemCount = getTotalItems();
+  const sellerCartItemCount = sellerCarts.reduce((total, cart) => total + cart.items.length, 0);
+  const cartItemCount = legacyItemCount + sellerCartItemCount;
 
   // Define functions before any early returns to avoid hoisting issues
   const handleLogout = async () => {
