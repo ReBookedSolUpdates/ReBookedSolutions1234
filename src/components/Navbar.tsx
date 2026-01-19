@@ -12,9 +12,11 @@ import {
   UserPlus,
   Truck,
   MapPin,
+  ShoppingCart,
 } from "lucide-react";
 import CartButton from "./CartButton";
 import NotificationBadge from "./NotificationBadge";
+import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
 
 const Navbar = () => {
