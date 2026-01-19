@@ -827,23 +827,40 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   }
 
   return (
-    <div className={`min-h-screen bg-gray-50 py-4 sm:py-8 ${isMobile ? 'checkout-mobile' : ''}`}>
-      <div className={`max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 ${isMobile ? 'paystack-container-mobile' : ''}`}>
-        {/* Progress Bar */}
-        <div className="mb-6 sm:mb-8">
-          <div className="text-center mb-3 sm:mb-4">
-            <h1 className="text-lg sm:text-2xl font-bold text-gray-900 px-2">
+    <div className={`min-h-screen bg-white py-6 sm:py-10 ${isMobile ? 'checkout-mobile' : ''}`}>
+      <div className={`max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 ${isMobile ? 'paystack-container-mobile' : ''}`}>
+        {/* Progress Section */}
+        <div className="mb-8 sm:mb-10">
+          <div className="text-center mb-4 sm:mb-6">
+            <h1 className="text-xl sm:text-3xl font-bold text-gray-900">
               <span className="hidden sm:inline">Step {checkoutState.step.current}: {getStepTitle()}</span>
-              <span className="sm:hidden">{getStepTitle()}</span>
+              <span className="sm:hidden text-lg">{getStepTitle()}</span>
             </h1>
           </div>
-          <Progress value={getProgressValue()} className="h-2 mx-2 sm:mx-0" />
-          <div className="flex justify-between mt-2 text-xs sm:text-sm text-gray-500 px-2 sm:px-0">
-            <span className="text-center flex-1">Summary</span>
-            <span className="text-center flex-1">Method</span>
-            <span className="text-center flex-1">Options</span>
-            <span className="text-center flex-1">Payment</span>
-            <span className="text-center flex-1">Complete</span>
+          <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-5">
+            <Progress value={getProgressValue()} className="h-2.5" />
+            <div className="flex justify-between mt-4 text-xs sm:text-sm font-medium text-gray-600 gap-1">
+              <span className="text-center flex-1 px-1">
+                <span className="hidden sm:inline">Summary</span>
+                <span className="sm:hidden">Step 1</span>
+              </span>
+              <span className="text-center flex-1 px-1">
+                <span className="hidden sm:inline">Method</span>
+                <span className="sm:hidden">Step 2</span>
+              </span>
+              <span className="text-center flex-1 px-1">
+                <span className="hidden sm:inline">Options</span>
+                <span className="sm:hidden">Step 3</span>
+              </span>
+              <span className="text-center flex-1 px-1">
+                <span className="hidden sm:inline">Payment</span>
+                <span className="sm:hidden">Step 4</span>
+              </span>
+              <span className="text-center flex-1 px-1">
+                <span className="hidden sm:inline">Complete</span>
+                <span className="sm:hidden">Step 5</span>
+              </span>
+            </div>
           </div>
         </div>
 
