@@ -366,60 +366,63 @@ const Step2DeliveryOptions: React.FC<Step2DeliveryOptionsProps> = ({
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Available Shipping Options
+    <div className="space-y-6 sm:space-y-8">
+      <div className="text-center mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+          Shipping Options
         </h1>
-        <p className="text-gray-600">
-          Choose how you'd like to receive your book
+        <p className="text-sm sm:text-base text-gray-600">
+          Choose your preferred delivery method
         </p>
       </div>
 
       {/* Address Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MapPin className="w-5 h-5" />
-            Delivery Route
+      <Card className="border border-gray-200 shadow-md">
+        <CardHeader className="pb-4 border-b border-gray-100">
+          <CardTitle className="flex items-center gap-3">
+            <div className="p-2 bg-blue-50 rounded-lg">
+              <MapPin className="w-5 h-5 text-blue-600" />
+            </div>
+            Delivery To
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between mb-1">
-                <p className="text-sm font-medium text-gray-600">To (You)</p>
-                {onEditAddress && !preSelectedLocker && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={onEditAddress}
-                    className="h-6 px-2 text-xs text-blue-600 hover:text-blue-800"
-                  >
-                    <Edit3 className="w-3 h-3 mr-1" />
-                    Edit
-                  </Button>
+        <CardContent className="pt-6">
+          <div className="space-y-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1">
+                {preSelectedLocker ? (
+                  <div className="p-4 rounded-lg bg-purple-50 border border-purple-100">
+                    <p className="text-sm font-semibold text-purple-900 mb-1">
+                      📍 {preSelectedLocker.name}
+                    </p>
+                    <p className="text-sm text-purple-800">
+                      {preSelectedLocker.address || preSelectedLocker.full_address}
+                    </p>
+                    {preSelectedLocker.provider_slug && (
+                      <p className="text-xs text-purple-700 mt-2">
+                        Provider: {preSelectedLocker.pickup_point_provider_name || preSelectedLocker.provider_slug}
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-lg bg-blue-50 border border-blue-100">
+                    <p className="text-sm font-semibold text-gray-900 mb-1">Your Delivery Address</p>
+                    <p className="text-sm text-gray-700">
+                      {buyerAddress.street}, {buyerAddress.city},{" "}
+                      {buyerAddress.province} {buyerAddress.postal_code}
+                    </p>
+                  </div>
                 )}
               </div>
-            <div>
-              {preSelectedLocker ? (
-                <>
-                  <p className="text-sm font-semibold text-purple-700">
-                    📍 {preSelectedLocker.name}
-                  </p>
-                  <p className="text-xs text-gray-600">
-                    {preSelectedLocker.address || preSelectedLocker.full_address}
-                  </p>
-                  {preSelectedLocker.provider_slug && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Provider: {preSelectedLocker.pickup_point_provider_name || preSelectedLocker.provider_slug}
-                    </p>
-                  )}
-                </>
-              ) : (
-                <p className="text-sm">
-                  {buyerAddress.street}, {buyerAddress.city},{" "}
-                  {buyerAddress.province} {buyerAddress.postal_code}
-                </p>
+              {onEditAddress && !preSelectedLocker && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onEditAddress}
+                  className="mt-1 text-blue-600 border-blue-200 hover:bg-blue-50"
+                >
+                  <Edit3 className="w-4 h-4" />
+                </Button>
               )}
             </div>
           </div>
