@@ -137,59 +137,59 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
             {isCartCheckout ? `Books in Your Order (${cartData.items.length})` : 'Book Details'}
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="pt-6 space-y-5">
           {isCartCheckout && cartData ? (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {cartData.items.map((item: any, index: number) => (
-                <div key={item.id || index} className={`flex gap-4 p-3 rounded-lg bg-gray-50 ${index > 0 ? '' : ''}`}>
-                  <div className="w-16 h-22 flex-shrink-0">
+                <div key={item.id || index} className="flex gap-4 p-4 rounded-lg bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-colors">
+                  <div className="w-16 h-24 flex-shrink-0">
                     <img
                       src={item.imageUrl || item.image_url || "/placeholder.svg"}
                       alt={item.title || "Book cover"}
-                      className="w-full h-full object-cover rounded border"
+                      className="w-full h-full object-cover rounded-md border border-gray-200"
                       onError={(e) => {
                         e.currentTarget.src = "/placeholder.svg";
                       }}
                     />
                   </div>
-                  <div className="flex-1 flex flex-col justify-between">
+                  <div className="flex-1 flex flex-col justify-between py-1">
                     <div>
-                      <h3 className="font-semibold text-sm sm:text-base text-gray-900">{item.title}</h3>
-                      <p className="text-xs sm:text-sm text-gray-600">by {item.author}</p>
+                      <h3 className="font-semibold text-sm sm:text-base text-gray-900 line-clamp-2">{item.title}</h3>
+                      <p className="text-xs sm:text-sm text-gray-600 mt-1">by {item.author}</p>
                     </div>
-                    <p className="text-base sm:text-lg font-bold text-green-600">
+                    <p className="text-base sm:text-lg font-bold text-green-600 mt-2">
                       R{item.price.toFixed(2)}
                     </p>
                   </div>
                 </div>
               ))}
-              <div className="border-t pt-4 mt-2">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="font-semibold text-gray-900">Total ({cartData.items.length} items):</span>
-                  <span className="text-xl font-bold text-green-600">
+              <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mt-4">
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold text-gray-900 text-sm sm:text-base">Total ({cartData.items.length} items):</span>
+                  <span className="text-xl sm:text-2xl font-bold text-green-600">
                     R{cartData.totalPrice.toFixed(2)}
                   </span>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="space-y-4">
-              <div className="flex gap-4 bg-gray-50 rounded-lg p-4">
+            <div className="space-y-5">
+              <div className="flex gap-4 p-4 rounded-lg bg-gray-50 border border-gray-100">
                 <div className="w-20 h-28 flex-shrink-0">
                   <img
                     src={book.image_url || book.imageUrl || "/placeholder.svg"}
                     alt={book.title || "Book cover"}
-                    className="w-full h-full object-cover rounded border bg-gray-100"
+                    className="w-full h-full object-cover rounded-md border border-gray-200 bg-gray-100"
                     onError={(e) => {
                       e.currentTarget.src = "/placeholder.svg";
                     }}
                   />
                 </div>
-                <div className="flex-1 flex flex-col justify-between">
+                <div className="flex-1 flex flex-col justify-between py-1">
                   <div>
-                    <h3 className="font-semibold text-base sm:text-lg text-gray-900">{book.title}</h3>
+                    <h3 className="font-semibold text-base sm:text-lg text-gray-900 mb-1">{book.title}</h3>
                     <p className="text-sm text-gray-600 mb-3">by {book.author}</p>
-                    <div className="flex gap-2 flex-wrap mb-2">
+                    <div className="flex gap-2 flex-wrap">
                       <Badge variant="outline" className="text-xs">{book.condition}</Badge>
                       {book.category && (
                         <Badge className="text-xs bg-blue-100 text-blue-800 border-blue-200">{book.category}</Badge>
@@ -201,7 +201,7 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
                       )}
                     </div>
                   </div>
-                  <p className="text-lg sm:text-2xl font-bold text-green-600">
+                  <p className="text-lg sm:text-2xl font-bold text-green-600 mt-2">
                     R{book.price.toFixed(2)}
                   </p>
                 </div>
@@ -209,8 +209,8 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
 
               {/* Book Description */}
               {book.description && (
-                <div className="bg-white rounded-lg p-4 border border-gray-200">
-                  <h4 className="font-semibold text-sm text-gray-900 mb-2">About This Book</h4>
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                  <h4 className="font-semibold text-sm sm:text-base text-gray-900 mb-2">About This Book</h4>
                   <p className="text-sm text-gray-700 line-clamp-3 leading-relaxed">
                     {book.description}
                   </p>
