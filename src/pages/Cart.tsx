@@ -370,12 +370,6 @@ const Cart = () => {
                         R{cart.totalPrice.toFixed(2)}
                       </span>
                     </div>
-                    <div className="text-xs text-gray-600 mt-1">
-                      • Seller receives: R{(cart.totalPrice * 0.9).toFixed(2)} (90%)
-                    </div>
-                    <div className="text-xs text-gray-600">
-                      • Platform fee: R{(cart.totalPrice * 0.1).toFixed(2)} (10%)
-                    </div>
                     <div className="text-xs text-orange-600 mt-2">
                       📦 Delivery charges will be calculated at checkout
                     </div>
