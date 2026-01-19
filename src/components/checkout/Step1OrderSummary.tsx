@@ -222,43 +222,43 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
       </Card>
 
       {/* Seller Information Card */}
-      <Card className="border-l-4 border-l-green-500 shadow-sm">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-            <User className="w-5 h-5 text-green-600" />
+      <Card className="border border-gray-200 shadow-md hover:shadow-lg transition-shadow">
+        <CardHeader className="pb-4 border-b border-gray-100">
+          <CardTitle className="flex items-center gap-3 text-lg sm:text-xl text-gray-900">
+            <div className="p-2 bg-green-50 rounded-lg">
+              <User className="w-5 h-5 text-green-600" />
+            </div>
             Seller Information
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="bg-gray-50 rounded-lg p-4">
-              <p className="font-semibold text-gray-900 text-lg">
-                {isCartCheckout
-                  ? (sellerCartFullNames[cartData.sellerId] || cartData.sellerName)
-                  : (sellerFullName || book.seller_name)
-                }
-              </p>
-              <p className="text-sm text-gray-600 mt-1">
-                ID: <span className="font-mono text-gray-700">{isCartCheckout ? cartData.sellerId : book.seller_id}</span>
-              </p>
-              {isCartCheckout && (
-                <div className="flex items-center gap-1 text-sm text-green-700 font-medium mt-2">
-                  <CheckCircle className="w-4 h-4" />
-                  All {cartData.items.length} books from this seller
-                </div>
-              )}
-            </div>
+        <CardContent className="pt-6">
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-4 sm:p-5 border border-green-100">
+            <p className="font-semibold text-gray-900 text-base sm:text-lg mb-2">
+              {isCartCheckout
+                ? (sellerCartFullNames[cartData.sellerId] || cartData.sellerName)
+                : (sellerFullName || book.seller_name)
+              }
+            </p>
+            <p className="text-sm text-gray-600">
+              ID: <span className="font-mono text-xs sm:text-sm text-gray-700 bg-white px-2 py-1 rounded">{isCartCheckout ? cartData.sellerId : book.seller_id}</span>
+            </p>
+            {isCartCheckout && (
+              <div className="flex items-center gap-2 text-sm text-green-700 font-medium mt-3 pt-3 border-t border-green-100">
+                <CheckCircle className="w-4 h-4 flex-shrink-0" />
+                All {cartData.items.length} books from this seller
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
 
       {/* Action Buttons */}
-      <div className="flex gap-3 pt-8 border-t">
+      <div className="flex gap-3 pt-6 border-t mt-8">
         <Button
           onClick={onCancel}
           variant="outline"
           disabled={loading}
-          className="flex-1 px-6 py-3 text-base"
+          className="flex-1 px-6 py-3 sm:py-4 text-base font-medium border-2"
         >
           <X className="w-4 h-4 mr-2" />
           Cancel
@@ -267,7 +267,7 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
         <Button
           onClick={onNext}
           disabled={loading}
-          className="flex-1 px-8 py-3 text-base font-semibold bg-blue-600 hover:bg-blue-700"
+          className="flex-1 px-8 py-3 sm:py-4 text-base font-semibold bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg transition-all"
           size="lg"
         >
           {loading ? (
