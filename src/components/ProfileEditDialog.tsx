@@ -21,7 +21,7 @@ interface ProfileEditDialogProps {
 }
 
 const ProfileEditDialog = ({ isOpen, onClose }: ProfileEditDialogProps) => {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
