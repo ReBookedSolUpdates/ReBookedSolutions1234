@@ -18,6 +18,7 @@ import {
 import { fetchSuggestions, fetchAddressDetails, type Suggestion } from "@/services/addressAutocompleteService";
 import { getBobGoLocations, type BobGoLocation } from "@/services/bobgoLocationsService";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 interface BobGoLockerSelectorProps {
@@ -35,6 +36,7 @@ const BobGoLockerSelector: React.FC<BobGoLockerSelectorProps> = ({
   description = "Find and select a nearby locker location",
   showCardLayout = true,
 }) => {
+  const { refreshProfile } = useAuth();
   const [searchInput, setSearchInput] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -155,10 +157,8 @@ const BobGoLockerSelector: React.FC<BobGoLockerSelectorProps> = ({
         description: `${location.name} is now saved to your profile`,
       });
 
-      // Reload page after successful save
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
+      // Refresh profile in context instead of reloading page
+      await refreshProfile();
     } catch (error) {
       toast.error("Failed to save locker to profile");
     } finally {

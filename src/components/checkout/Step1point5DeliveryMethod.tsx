@@ -192,23 +192,23 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-4">
-      <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">
+    <div className="space-y-6 sm:space-y-8">
+      <div className="text-center mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
           Choose Delivery Method
         </h1>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm sm:text-base text-gray-600">
           Pick your preferred way to receive {bookTitle}
         </p>
       </div>
 
-      {/* Compact Delivery Method Cards */}
-      <div className="space-y-3">
-        {/* Locker Option - Compact */}
+      {/* Delivery Method Cards */}
+      <div className="space-y-4 sm:space-y-5">
+        {/* Locker Option */}
         <div
-          className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+          className={`p-5 sm:p-6 border-2 rounded-xl cursor-pointer transition-all shadow-sm hover:shadow-md ${
             deliveryMethod === "locker"
-              ? "bg-purple-50 border-purple-400"
+              ? "bg-purple-50 border-purple-400 shadow-md"
               : "bg-white border-gray-200 hover:border-purple-300"
           }`}
           onClick={() => handleSelectLockerMethod(savedLocker)}
@@ -222,29 +222,29 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
             }
           }}
         >
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 flex-shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center"
+          <div className="flex items-start gap-4">
+            <div className="mt-1 flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-row"
               style={deliveryMethod === "locker" ? { borderColor: "#a855f7", backgroundColor: "#a855f7" } : { borderColor: "#d1d5db" }}>
-              {deliveryMethod === "locker" && <div className="w-2 h-2 bg-white rounded-full"></div>}
+              {deliveryMethod === "locker" && <div className="w-2.5 h-2.5 bg-white rounded-full"></div>}
             </div>
             <div className="flex-1">
-              <div className="flex items-center gap-2 font-medium">
-                <MapPin className="w-4 h-4" />
-                <span className="text-sm">BobGo Locker</span>
-                {savedLocker && <Badge className="bg-green-100 text-green-800 text-xs">Saved</Badge>}
+              <div className="flex items-center gap-2 font-semibold mb-1">
+                <MapPin className="w-5 h-5 text-purple-600 flex-shrink-0" />
+                <span className="text-base sm:text-lg">BobGo Locker</span>
+                {savedLocker && <Badge className="bg-green-100 text-green-800 text-xs ml-auto">Saved</Badge>}
               </div>
-              <p className="text-xs text-gray-600 mt-1">
-                Pick up at a convenient locker location
+              <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
+                Pick up at a convenient locker location near you
               </p>
             </div>
           </div>
         </div>
 
-        {/* Home Delivery Option - Compact */}
+        {/* Home Delivery Option */}
         <div
-          className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+          className={`p-5 sm:p-6 border-2 rounded-xl cursor-pointer transition-all shadow-sm hover:shadow-md ${
             deliveryMethod === "home"
-              ? "bg-blue-50 border-blue-400"
+              ? "bg-blue-50 border-blue-400 shadow-md"
               : "bg-white border-gray-200 hover:border-blue-300"
           }`}
           onClick={() => {
@@ -262,38 +262,40 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
             }
           }}
         >
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 flex-shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center"
+          <div className="flex items-start gap-4">
+            <div className="mt-1 flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center"
               style={deliveryMethod === "home" ? { borderColor: "#3b82f6", backgroundColor: "#3b82f6" } : { borderColor: "#d1d5db" }}>
-              {deliveryMethod === "home" && <div className="w-2 h-2 bg-white rounded-full"></div>}
+              {deliveryMethod === "home" && <div className="w-2.5 h-2.5 bg-white rounded-full"></div>}
             </div>
             <div className="flex-1">
-              <div className="flex items-center gap-2 font-medium">
-                <Home className="w-4 h-4" />
-                <span className="text-sm">Home Delivery</span>
+              <div className="flex items-center gap-2 font-semibold mb-1">
+                <Home className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                <span className="text-base sm:text-lg">Home Delivery</span>
               </div>
-              <p className="text-xs text-gray-600 mt-1">
-                Courier delivers to your home
+              <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
+                Courier delivers directly to your home address
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Locker Selection - Compact Version */}
+      {/* Locker Selection Section */}
       {deliveryMethod === "locker" && (
-        <Card className="border-purple-100 bg-purple-50">
-          <CardContent className="p-4 space-y-3">
+        <Card className="border border-purple-200 bg-purple-50 shadow-md">
+          <CardContent className="p-5 sm:p-6 space-y-5">
             {/* Saved Locker Display */}
             {savedLocker && !wantToChangeLocker && (
-              <div className="p-3 bg-white border border-green-200 rounded-md">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="font-medium text-sm flex items-center gap-1.5 text-gray-900">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                      {savedLocker.name}
-                    </p>
-                    <p className="text-xs text-gray-600 mt-1">
+              <div className="p-4 sm:p-5 bg-white border-2 border-green-200 rounded-lg shadow-sm">
+                <div className="flex items-start justify-between gap-3 mb-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 font-semibold text-sm sm:text-base text-gray-900 mb-1">
+                      <div className="p-1 bg-green-100 rounded-full flex-shrink-0">
+                        <CheckCircle className="w-4 h-4 text-green-600" />
+                      </div>
+                      <span>{savedLocker.name}</span>
+                    </div>
+                    <p className="text-sm text-gray-600">
                       {savedLocker.address || savedLocker.full_address}
                     </p>
                   </div>
@@ -302,9 +304,9 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
                   variant="outline"
                   size="sm"
                   onClick={() => setWantToChangeLocker(true)}
-                  className="mt-3 w-full text-xs h-8"
+                  className="w-full border-2 py-2 text-sm font-medium"
                 >
-                  Change
+                  Change Locker
                 </Button>
               </div>
             )}
@@ -324,27 +326,28 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
 
             {/* Selected Different Locker */}
             {selectedLocker && savedLocker && selectedLocker.id !== savedLocker.id && (
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
-                <p className="text-xs font-medium text-blue-900 flex items-center gap-1">
-                  <CheckCircle className="w-3 h-3" />
-                  {selectedLocker.name}
-                </p>
+              <div className="p-4 sm:p-5 bg-white border-2 border-blue-200 rounded-lg shadow-sm">
+                <div className="flex items-center gap-2 font-semibold text-sm text-gray-900 mb-3">
+                  <div className="p-1 bg-blue-100 rounded-full flex-shrink-0">
+                    <CheckCircle className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <span>{selectedLocker.name}</span>
+                </div>
                 <Button
                   onClick={handleSaveLockerToProfile}
                   disabled={isSavingLocker}
                   size="sm"
-                  variant="outline"
-                  className="mt-2 w-full text-xs h-8"
+                  className="w-full bg-blue-600 hover:bg-blue-700 py-2 text-sm font-medium"
                 >
                   {isSavingLocker ? (
                     <>
-                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                      Saving
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Saving Locker...
                     </>
                   ) : (
                     <>
-                      <Save className="w-3 h-3 mr-1" />
-                      Save
+                      <Save className="w-4 h-4 mr-2" />
+                      Save to Profile
                     </>
                   )}
                 </Button>
@@ -355,36 +358,37 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
       )}
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between items-center gap-3 pt-6 border-t">
+      <div className="flex gap-3 pt-6 sm:pt-8 border-t mt-8">
         <Button
           variant="outline"
           onClick={onBack}
-          className="py-2 px-4"
+          className="px-5 py-3 sm:py-4 text-base font-medium border-2"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           <span className="hidden sm:inline">Back</span>
-          <span className="sm:hidden">←</span>
+          <span className="sm:hidden">Back</span>
         </Button>
 
-        <div className="flex gap-2">
+        <div className="flex gap-3 flex-1">
           {onCancel && (
             <Button
-              variant="ghost"
+              variant="outline"
               onClick={onCancel}
-              className="py-2 px-4"
+              className="px-5 py-3 sm:py-4 text-base font-medium border-2"
             >
               <X className="w-4 h-4 mr-2" />
-              Cancel
+              <span className="hidden sm:inline">Cancel</span>
+              <span className="sm:hidden">Cancel</span>
             </Button>
           )}
 
           <Button
             onClick={handleProceed}
             disabled={loading || (deliveryMethod === "locker" && !selectedLocker && !(savedLocker && !wantToChangeLocker))}
-            className="py-2 px-4 bg-blue-600 hover:bg-blue-700"
+            className="flex-1 px-6 py-3 sm:py-4 text-base font-semibold bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg transition-all"
           >
             Next
-            <ArrowRight className="w-4 h-4 ml-2" />
+            <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
         </div>
       </div>

@@ -366,151 +366,161 @@ const Step2DeliveryOptions: React.FC<Step2DeliveryOptionsProps> = ({
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Available Shipping Options
+    <div className="space-y-6 sm:space-y-8">
+      <div className="text-center mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+          Shipping Options
         </h1>
-        <p className="text-gray-600">
-          Choose how you'd like to receive your book
+        <p className="text-sm sm:text-base text-gray-600">
+          Choose your preferred delivery method
         </p>
       </div>
 
       {/* Address Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MapPin className="w-5 h-5" />
-            Delivery Route
+      <Card className="border border-gray-200 shadow-md">
+        <CardHeader className="pb-4 border-b border-gray-100">
+          <CardTitle className="flex items-center gap-3">
+            <div className="p-2 bg-blue-50 rounded-lg">
+              <MapPin className="w-5 h-5 text-blue-600" />
+            </div>
+            Delivery To
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between mb-1">
-                <p className="text-sm font-medium text-gray-600">To (You)</p>
-                {onEditAddress && !preSelectedLocker && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={onEditAddress}
-                    className="h-6 px-2 text-xs text-blue-600 hover:text-blue-800"
-                  >
-                    <Edit3 className="w-3 h-3 mr-1" />
-                    Edit
-                  </Button>
+        <CardContent className="pt-6">
+          <div className="space-y-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1">
+                {preSelectedLocker ? (
+                  <div className="p-4 rounded-lg bg-purple-50 border border-purple-100">
+                    <p className="text-sm font-semibold text-purple-900 mb-1">
+                      📍 {preSelectedLocker.name}
+                    </p>
+                    <p className="text-sm text-purple-800">
+                      {preSelectedLocker.address || preSelectedLocker.full_address}
+                    </p>
+                    {preSelectedLocker.provider_slug && (
+                      <p className="text-xs text-purple-700 mt-2">
+                        Provider: {preSelectedLocker.pickup_point_provider_name || preSelectedLocker.provider_slug}
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-lg bg-blue-50 border border-blue-100">
+                    <p className="text-sm font-semibold text-gray-900 mb-1">Your Delivery Address</p>
+                    <p className="text-sm text-gray-700">
+                      {buyerAddress.street}, {buyerAddress.city},{" "}
+                      {buyerAddress.province} {buyerAddress.postal_code}
+                    </p>
+                  </div>
                 )}
               </div>
-            <div>
-              {preSelectedLocker ? (
-                <>
-                  <p className="text-sm font-semibold text-purple-700">
-                    📍 {preSelectedLocker.name}
-                  </p>
-                  <p className="text-xs text-gray-600">
-                    {preSelectedLocker.address || preSelectedLocker.full_address}
-                  </p>
-                  {preSelectedLocker.provider_slug && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Provider: {preSelectedLocker.pickup_point_provider_name || preSelectedLocker.provider_slug}
-                    </p>
-                  )}
-                </>
-              ) : (
-                <p className="text-sm">
-                  {buyerAddress.street}, {buyerAddress.city},{" "}
-                  {buyerAddress.province} {buyerAddress.postal_code}
-                </p>
+              {onEditAddress && !preSelectedLocker && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onEditAddress}
+                  className="mt-1 text-blue-600 border-blue-200 hover:bg-blue-50"
+                >
+                  <Edit3 className="w-4 h-4" />
+                </Button>
               )}
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Delivery Options grouped by courier (clean accordion) */}
-      <Accordion type="multiple" className="space-y-4">
-        {Object.entries(
-          quotes.reduce<Record<string, UnifiedQuote[]>>((acc, q) => {
-            const key = q.provider_name || "Unknown";
-            (acc[key] ||= []).push(q);
-            return acc;
-          }, {})
-        ).map(([courier, items]) => (
-          <AccordionItem key={courier} value={courier} className="rounded-lg border bg-white">
-            <AccordionTrigger className="px-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-md bg-gray-100"><Truck className="w-5 h-5 text-gray-700" /></div>
-                <span className="text-base font-semibold text-gray-900">{courier}</span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="divide-y">
-                {items.map((q, idx) => {
-                  let zoneType: "local" | "provincial" | "national" | "locker" = "national";
-                  if (sellerAddress && buyerAddress) {
-                    zoneType = buyerAddress.province === sellerAddress.province
-                      ? buyerAddress.city === sellerAddress.city
-                        ? "local"
-                        : "provincial"
-                      : "national";
-                  } else if (!sellerAddress && sellerLockerData) {
-                    zoneType = "locker";
-                  }
+      {/* Delivery Options grouped by courier */}
+      <div>
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Available Services</h2>
+        <Accordion type="multiple" className="space-y-3">
+          {Object.entries(
+            quotes.reduce<Record<string, UnifiedQuote[]>>((acc, q) => {
+              const key = q.provider_name || "Unknown";
+              (acc[key] ||= []).push(q);
+              return acc;
+            }, {})
+          ).map(([courier, items]) => (
+            <AccordionItem key={courier} value={courier} className="rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow">
+              <AccordionTrigger className="px-5 sm:px-6 py-4 hover:bg-gray-50">
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="p-2 rounded-lg bg-blue-50">
+                    <Truck className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <span className="text-base sm:text-lg font-semibold text-gray-900">{courier}</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="pt-0">
+                <div className="divide-y">
+                  {items.map((q, idx) => {
+                    let zoneType: "local" | "provincial" | "national" | "locker" = "national";
+                    if (sellerAddress && buyerAddress) {
+                      zoneType = buyerAddress.province === sellerAddress.province
+                        ? buyerAddress.city === sellerAddress.city
+                          ? "local"
+                          : "provincial"
+                        : "national";
+                    } else if (!sellerAddress && sellerLockerData) {
+                      zoneType = "locker";
+                    }
 
-                  const option: DeliveryOption = {
-                    courier: "bobgo",
-                    service_name: q.service_name,
-                    price: q.cost + 15,
-                    estimated_days: typeof q.transit_days === "number" ? q.transit_days : 3,
-                    description: `${courier}`,
-                    zone_type: zoneType,
-                    provider_name: q.provider_name,
-                    provider_slug: q.provider_slug,
-                    service_level_code: q.service_level_code,
-                  };
-                  const isSelected = !!localSelectedDelivery &&
-                    localSelectedDelivery.service_name === option.service_name &&
-                    localSelectedDelivery.price === option.price;
-                  return (
-                    <div
-                      key={idx}
-                      className={`flex items-center justify-between gap-4 p-4 transition-colors ${
-                        isSelected ? "bg-blue-50" : "hover:bg-gray-50"
-                      }`}
-                      onClick={() => { setLocalSelectedDelivery(option); onSelectDelivery(option); }}
-                    >
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                          <span className="font-medium text-gray-900 truncate">{q.service_name}</span>
-                          <span className="text-gray-700">— R{(q.cost + 15).toFixed(2)}</span>
-                        </div>
-                        <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-gray-500">
-                          <span className="inline-flex items-center gap-1">
-                            <Clock className="w-3.5 h-3.5" />
-                            {option.estimated_days} day{option.estimated_days > 1 ? "s" : ""}
-                          </span>
-                          {q.collection_cutoff && (
-                            <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-gray-700">Cut-off: {q.collection_cutoff}</span>
-                          )}
-                        </div>
-                      </div>
-                      <button
-                        className={`shrink-0 inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium transition-colors border ${
-                          isSelected
-                            ? "bg-blue-600 text-white border-blue-600"
-                            : "bg-white text-gray-900 border-gray-300 hover:bg-gray-100"
+                    const option: DeliveryOption = {
+                      courier: "bobgo",
+                      service_name: q.service_name,
+                      price: q.cost + 15,
+                      estimated_days: typeof q.transit_days === "number" ? q.transit_days : 3,
+                      description: `${courier}`,
+                      zone_type: zoneType,
+                      provider_name: q.provider_name,
+                      provider_slug: q.provider_slug,
+                      service_level_code: q.service_level_code,
+                    };
+                    const isSelected = !!localSelectedDelivery &&
+                      localSelectedDelivery.service_name === option.service_name &&
+                      localSelectedDelivery.price === option.price;
+                    return (
+                      <div
+                        key={idx}
+                        className={`flex items-center justify-between gap-4 p-4 sm:p-5 transition-colors cursor-pointer ${
+                          isSelected ? "bg-blue-50" : "hover:bg-gray-50"
                         }`}
-                        onClick={(e) => { e.stopPropagation(); onSelectDelivery(option); }}
+                        onClick={() => { setLocalSelectedDelivery(option); onSelectDelivery(option); }}
                       >
-                        {isSelected ? "Selected" : "Select"}
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        ))}
-      </Accordion>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-2">
+                            <span className="font-semibold text-gray-900">{q.service_name}</span>
+                            <span className="text-lg font-bold text-green-600">R{(q.cost + 15).toFixed(2)}</span>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-3 text-xs sm:text-sm text-gray-600">
+                            <span className="inline-flex items-center gap-1">
+                              <Clock className="w-4 h-4" />
+                              {option.estimated_days} day{option.estimated_days > 1 ? "s" : ""}
+                            </span>
+                            {q.collection_cutoff && (
+                              <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1 text-amber-800 font-medium">
+                                Cut-off: {q.collection_cutoff}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          className={`shrink-0 inline-flex items-center rounded-lg px-4 py-2 text-sm font-semibold transition-all border-2 whitespace-nowrap ${
+                            isSelected
+                              ? "bg-blue-600 text-white border-blue-600 shadow-md"
+                              : "bg-white text-gray-900 border-gray-300 hover:border-blue-400 hover:bg-blue-50"
+                          }`}
+                          onClick={(e) => { e.stopPropagation(); onSelectDelivery(option); }}
+                        >
+                          {isSelected ? "✓ Selected" : "Select"}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      </div>
 
       {/* Disclaimer about same-day delivery */}
       <Alert className="bg-amber-50 border-amber-200">

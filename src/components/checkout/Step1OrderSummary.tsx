@@ -116,12 +116,9 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
   const isCartCheckout = cartData && cartData.items && cartData.items.length >= 1;
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 px-3 sm:px-0">
-      <div className="text-center mb-6 sm:mb-10">
-        <div className="inline-block px-3 py-1 bg-blue-100 rounded-full mb-3">
-          <span className="text-sm font-medium text-blue-700">Step 1 of 4</span>
-        </div>
-        <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-2">Order Summary</h1>
+    <div className="space-y-6 sm:space-y-8">
+      <div className="text-center mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Order Summary</h1>
         <p className="text-sm sm:text-base text-gray-600">
           {isCartCheckout
             ? `Review your ${cartData.items.length} books from ${cartData.sellerName}`
@@ -131,66 +128,68 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
       </div>
 
       {/* Book Details Card */}
-      <Card className="border-l-4 border-l-blue-500 shadow-sm">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-            <Package className="w-5 h-5 text-blue-600" />
+      <Card className="border border-gray-200 shadow-md hover:shadow-lg transition-shadow">
+        <CardHeader className="pb-4 border-b border-gray-100">
+          <CardTitle className="flex items-center gap-3 text-lg sm:text-xl text-gray-900">
+            <div className="p-2 bg-blue-50 rounded-lg">
+              <Package className="w-5 h-5 text-blue-600" />
+            </div>
             {isCartCheckout ? `Books in Your Order (${cartData.items.length})` : 'Book Details'}
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="pt-6 space-y-5">
           {isCartCheckout && cartData ? (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {cartData.items.map((item: any, index: number) => (
-                <div key={item.id || index} className={`flex gap-4 p-3 rounded-lg bg-gray-50 ${index > 0 ? '' : ''}`}>
-                  <div className="w-16 h-22 flex-shrink-0">
+                <div key={item.id || index} className="flex gap-4 p-4 rounded-lg bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-colors">
+                  <div className="w-16 h-24 flex-shrink-0">
                     <img
                       src={item.imageUrl || item.image_url || "/placeholder.svg"}
                       alt={item.title || "Book cover"}
-                      className="w-full h-full object-cover rounded border"
+                      className="w-full h-full object-cover rounded-md border border-gray-200"
                       onError={(e) => {
                         e.currentTarget.src = "/placeholder.svg";
                       }}
                     />
                   </div>
-                  <div className="flex-1 flex flex-col justify-between">
+                  <div className="flex-1 flex flex-col justify-between py-1">
                     <div>
-                      <h3 className="font-semibold text-sm sm:text-base text-gray-900">{item.title}</h3>
-                      <p className="text-xs sm:text-sm text-gray-600">by {item.author}</p>
+                      <h3 className="font-semibold text-sm sm:text-base text-gray-900 line-clamp-2">{item.title}</h3>
+                      <p className="text-xs sm:text-sm text-gray-600 mt-1">by {item.author}</p>
                     </div>
-                    <p className="text-base sm:text-lg font-bold text-green-600">
+                    <p className="text-base sm:text-lg font-bold text-green-600 mt-2">
                       R{item.price.toFixed(2)}
                     </p>
                   </div>
                 </div>
               ))}
-              <div className="border-t pt-4 mt-2">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="font-semibold text-gray-900">Total ({cartData.items.length} items):</span>
-                  <span className="text-xl font-bold text-green-600">
+              <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mt-4">
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold text-gray-900 text-sm sm:text-base">Total ({cartData.items.length} items):</span>
+                  <span className="text-xl sm:text-2xl font-bold text-green-600">
                     R{cartData.totalPrice.toFixed(2)}
                   </span>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="space-y-4">
-              <div className="flex gap-4 bg-gray-50 rounded-lg p-4">
+            <div className="space-y-5">
+              <div className="flex gap-4 p-4 rounded-lg bg-gray-50 border border-gray-100">
                 <div className="w-20 h-28 flex-shrink-0">
                   <img
                     src={book.image_url || book.imageUrl || "/placeholder.svg"}
                     alt={book.title || "Book cover"}
-                    className="w-full h-full object-cover rounded border bg-gray-100"
+                    className="w-full h-full object-cover rounded-md border border-gray-200 bg-gray-100"
                     onError={(e) => {
                       e.currentTarget.src = "/placeholder.svg";
                     }}
                   />
                 </div>
-                <div className="flex-1 flex flex-col justify-between">
+                <div className="flex-1 flex flex-col justify-between py-1">
                   <div>
-                    <h3 className="font-semibold text-base sm:text-lg text-gray-900">{book.title}</h3>
+                    <h3 className="font-semibold text-base sm:text-lg text-gray-900 mb-1">{book.title}</h3>
                     <p className="text-sm text-gray-600 mb-3">by {book.author}</p>
-                    <div className="flex gap-2 flex-wrap mb-2">
+                    <div className="flex gap-2 flex-wrap">
                       <Badge variant="outline" className="text-xs">{book.condition}</Badge>
                       {book.category && (
                         <Badge className="text-xs bg-blue-100 text-blue-800 border-blue-200">{book.category}</Badge>
@@ -202,7 +201,7 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
                       )}
                     </div>
                   </div>
-                  <p className="text-lg sm:text-2xl font-bold text-green-600">
+                  <p className="text-lg sm:text-2xl font-bold text-green-600 mt-2">
                     R{book.price.toFixed(2)}
                   </p>
                 </div>
@@ -210,8 +209,8 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
 
               {/* Book Description */}
               {book.description && (
-                <div className="bg-white rounded-lg p-4 border border-gray-200">
-                  <h4 className="font-semibold text-sm text-gray-900 mb-2">About This Book</h4>
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                  <h4 className="font-semibold text-sm sm:text-base text-gray-900 mb-2">About This Book</h4>
                   <p className="text-sm text-gray-700 line-clamp-3 leading-relaxed">
                     {book.description}
                   </p>
@@ -223,43 +222,43 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
       </Card>
 
       {/* Seller Information Card */}
-      <Card className="border-l-4 border-l-green-500 shadow-sm">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-            <User className="w-5 h-5 text-green-600" />
+      <Card className="border border-gray-200 shadow-md hover:shadow-lg transition-shadow">
+        <CardHeader className="pb-4 border-b border-gray-100">
+          <CardTitle className="flex items-center gap-3 text-lg sm:text-xl text-gray-900">
+            <div className="p-2 bg-green-50 rounded-lg">
+              <User className="w-5 h-5 text-green-600" />
+            </div>
             Seller Information
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="bg-gray-50 rounded-lg p-4">
-              <p className="font-semibold text-gray-900 text-lg">
-                {isCartCheckout
-                  ? (sellerCartFullNames[cartData.sellerId] || cartData.sellerName)
-                  : (sellerFullName || book.seller_name)
-                }
-              </p>
-              <p className="text-sm text-gray-600 mt-1">
-                ID: <span className="font-mono text-gray-700">{isCartCheckout ? cartData.sellerId : book.seller_id}</span>
-              </p>
-              {isCartCheckout && (
-                <div className="flex items-center gap-1 text-sm text-green-700 font-medium mt-2">
-                  <CheckCircle className="w-4 h-4" />
-                  All {cartData.items.length} books from this seller
-                </div>
-              )}
-            </div>
+        <CardContent className="pt-6">
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-4 sm:p-5 border border-green-100">
+            <p className="font-semibold text-gray-900 text-base sm:text-lg mb-2">
+              {isCartCheckout
+                ? (sellerCartFullNames[cartData.sellerId] || cartData.sellerName)
+                : (sellerFullName || book.seller_name)
+              }
+            </p>
+            <p className="text-sm text-gray-600">
+              ID: <span className="font-mono text-xs sm:text-sm text-gray-700 bg-white px-2 py-1 rounded">{isCartCheckout ? cartData.sellerId : book.seller_id}</span>
+            </p>
+            {isCartCheckout && (
+              <div className="flex items-center gap-2 text-sm text-green-700 font-medium mt-3 pt-3 border-t border-green-100">
+                <CheckCircle className="w-4 h-4 flex-shrink-0" />
+                All {cartData.items.length} books from this seller
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
 
       {/* Action Buttons */}
-      <div className="flex gap-3 pt-8 border-t">
+      <div className="flex gap-3 pt-6 border-t mt-8">
         <Button
           onClick={onCancel}
           variant="outline"
           disabled={loading}
-          className="flex-1 px-6 py-3 text-base"
+          className="flex-1 px-6 py-3 sm:py-4 text-base font-medium border-2"
         >
           <X className="w-4 h-4 mr-2" />
           Cancel
@@ -268,7 +267,7 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
         <Button
           onClick={onNext}
           disabled={loading}
-          className="flex-1 px-8 py-3 text-base font-semibold bg-blue-600 hover:bg-blue-700"
+          className="flex-1 px-8 py-3 sm:py-4 text-base font-semibold bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg transition-all"
           size="lg"
         >
           {loading ? (

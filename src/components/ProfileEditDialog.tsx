@@ -21,7 +21,7 @@ interface ProfileEditDialogProps {
 }
 
 const ProfileEditDialog = ({ isOpen, onClose }: ProfileEditDialogProps) => {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -66,7 +66,7 @@ const ProfileEditDialog = ({ isOpen, onClose }: ProfileEditDialogProps) => {
         return;
       }
 
-      toast.success("Profile updated successfully! Refreshing...");
+      toast.success("Profile updated successfully!");
 
       // Log profile update activity
       try {
@@ -74,12 +74,9 @@ const ProfileEditDialog = ({ isOpen, onClose }: ProfileEditDialogProps) => {
       } catch (activityError) {
       }
 
+      // Refresh profile in context instead of reloading page
+      await refreshProfile();
       onClose();
-
-      // Force refresh to update the auth context with new profile data
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
     } catch (error) {
       toast.error("Failed to update profile");
     } finally {
