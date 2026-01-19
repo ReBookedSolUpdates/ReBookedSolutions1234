@@ -306,6 +306,20 @@ const Navbar = () => {
               {isAuthenticated ? (
                 <>
                   <Link
+                    to="/cart"
+                    className="flex items-center px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-book-600 rounded-md min-h-[44px] relative"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <ShoppingCart className="w-5 h-5 mr-3" />
+                    <span>Cart</span>
+                    {cartItemCount > 0 && (
+                      <span className="absolute right-3 bg-book-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        {cartItemCount}
+                      </span>
+                    )}
+                  </Link>
+
+                  <Link
                     to="/notifications"
                     className="flex items-center px-4 py-3 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-book-600 rounded-md min-h-[44px]"
                     onClick={() => setIsMenuOpen(false)}
