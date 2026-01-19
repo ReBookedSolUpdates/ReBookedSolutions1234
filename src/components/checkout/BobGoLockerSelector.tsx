@@ -36,6 +36,7 @@ const BobGoLockerSelector: React.FC<BobGoLockerSelectorProps> = ({
   description = "Find and select a nearby locker location",
   showCardLayout = true,
 }) => {
+  const { refreshProfile } = useAuth();
   const [searchInput, setSearchInput] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
