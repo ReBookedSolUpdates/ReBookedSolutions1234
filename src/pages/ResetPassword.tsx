@@ -26,11 +26,6 @@ const ResetPassword = () => {
         const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
 
         if (sessionData.session) {
-          console.log("✅ Valid session found - user can reset password");
-          console.log("📋 Session details:", {
-            user: sessionData.session.user?.email,
-            expiresAt: sessionData.session.expires_at,
-          });
           setIsValidSession(true);
           return;
         }
