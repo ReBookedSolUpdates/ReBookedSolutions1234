@@ -124,15 +124,9 @@ const Checkout: React.FC = () => {
         },
       };
 
-      console.log('[CHECKOUT] Checkout book created:', {
-        id: checkoutBook.id,
-        title: checkoutBook.title,
-        price: checkoutBook.price
-      });
       setBook(checkoutBook);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : String(err);
-      console.error('[CHECKOUT] Error loading cart data:', errorMsg, err);
       setError("Failed to load cart data. Please try again.");
     } finally {
       setLoading(false);
