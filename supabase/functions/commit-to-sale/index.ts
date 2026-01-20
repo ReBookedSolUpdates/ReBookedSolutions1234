@@ -13,7 +13,6 @@ serve(async (req) => {
   try {
     // Validate environment configuration
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-      console.error("[commit-to-sale] Missing Supabase configuration");
       return new Response(
         JSON.stringify({
           success: false,
