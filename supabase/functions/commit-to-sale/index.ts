@@ -126,7 +126,6 @@ serve(async (req) => {
     // CRITICAL: Verify seller is committing to their own order
     // This is the RLS equivalent check for service role operations
     if (order.seller_id !== user.id) {
-      console.error(
         `[commit-to-sale] Unauthorized: User ${user.id} is not seller ${order.seller_id}`
       );
       return new Response(
@@ -346,7 +345,6 @@ serve(async (req) => {
               pickupAddress = profilePickupResp.data.data;
             }
           } catch (e) {
-            console.warn(
               "[commit-to-sale] Failed to decrypt seller profile pickup address:",
               e
             );
@@ -444,7 +442,6 @@ serve(async (req) => {
             shippingAddress = profileShippingResp.data.data;
           }
         } catch (e) {
-          console.warn(
             "[commit-to-sale] Failed to decrypt buyer profile shipping address:",
             e
           );
@@ -479,7 +476,6 @@ serve(async (req) => {
             shippingAddress = profilePickupResp.data.data;
           }
         } catch (e) {
-          console.warn(
             "[commit-to-sale] Failed to decrypt seller pickup address as fallback:",
             e
           );
@@ -556,7 +552,6 @@ serve(async (req) => {
       throw new Error("No courier selected during checkout");
     }
 
-    console.log(
       `[commit-to-sale] Using buyer's selected courier: ${order.selected_courier_name} - ${order.selected_service_name}`
     );
 
