@@ -417,8 +417,6 @@ Deno.serve(async (req: Request) => {
             if (!sellerBooks || sellerBooks.length === 0) {
               throw new Error('Unauthorized access to profile data')
             }
-
-            console.log(`[decrypt-address] Allowing checkout access to seller ${id} pickup address`)
           } else {
             throw new Error('Unauthorized access to profile data')
           }
