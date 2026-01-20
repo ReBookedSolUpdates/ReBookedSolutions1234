@@ -435,8 +435,7 @@ Deno.serve(async (req) => {
             }),
           });
         } catch (emailError) {
-          // Log email send failure but continue processing
-          console.error('Failed to send seller email:', emailError);
+          // Email send failure - continue processing
         }
       }
     } else if (webhookData.status === 'failed' || webhookData.status === 'cancelled') {
