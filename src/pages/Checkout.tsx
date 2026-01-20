@@ -27,7 +27,6 @@ const Checkout: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('[CHECKOUT] Component mounted', { id, pathname: location.pathname });
     // Reset state when component mounts/changes
     setBook(null);
     setCartData(null);
@@ -35,23 +34,19 @@ const Checkout: React.FC = () => {
 
     // Handle cart checkout vs single book checkout
     const isCartCheckout = location.pathname === '/checkout-cart' || id === "cart";
-    console.log('[CHECKOUT] Is cart checkout:', isCartCheckout);
 
     if (isCartCheckout) {
       const timestamp = searchParams.get('t');
-      console.log('[CHECKOUT] Loading cart data, timestamp:', timestamp);
       loadCartData();
       return;
     }
 
     if (!id) {
-      console.error('[CHECKOUT] No book ID provided');
       setError("No book ID provided");
       setLoading(false);
       return;
     }
 
-    console.log('[CHECKOUT] Loading single book:', id);
     loadBookData();
   }, [id, navigate, searchParams]);
 
