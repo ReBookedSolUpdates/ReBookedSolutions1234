@@ -10,8 +10,6 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  console.log("[commit-to-sale] Function invoked");
-
   try {
     // Validate environment configuration
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
