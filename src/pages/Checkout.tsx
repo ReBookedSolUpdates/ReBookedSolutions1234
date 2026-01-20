@@ -162,26 +162,15 @@ const Checkout: React.FC = () => {
         .single();
 
       if (bookError) {
-        console.error('[CHECKOUT] Error fetching book:', bookError);
         throw new Error(`Failed to load book details: ${bookError.message}`);
       }
 
       if (!bookData) {
-        console.error('[CHECKOUT] Book not found for ID:', cleanBookId);
         throw new Error("Book not found");
       }
 
-      console.log('[CHECKOUT] Book data fetched:', {
-        id: bookData.id,
-        title: bookData.title,
-        price: bookData.price,
-        seller_id: bookData.seller_id,
-        availability: bookData.availability,
-      });
-
       // Validate essential book data fields
       if (!bookData.id || !bookData.seller_id) {
-        console.error('[CHECKOUT] Missing required fields:', { id: bookData.id, seller_id: bookData.seller_id });
         throw new Error("Invalid book data - missing required fields");
       }
 
@@ -190,14 +179,12 @@ const Checkout: React.FC = () => {
         bookData.availability === "unavailable" ||
         bookData.availability === "sold"
       ) {
-        console.warn('[CHECKOUT] Book not available:', { availability: bookData.availability });
         throw new Error(
           `This book is not available for purchase (status: ${bookData.availability})`,
         );
       }
 
       // Get seller information separately
-      console.log('[CHECKOUT] Fetching seller information for:', bookData.seller_id);
       let sellerData = null;
       if (bookData.seller_id) {
         const { data: seller, error: sellerError } = await supabase
@@ -207,12 +194,9 @@ const Checkout: React.FC = () => {
           .maybeSingle();
 
         if (sellerError) {
-          console.warn('[CHECKOUT] Error fetching seller:', sellerError);
+          // Continue without seller data
         } else if (seller) {
-          console.log('[CHECKOUT] Seller data fetched:', { id: seller.id, name: seller.name });
           sellerData = seller;
-        } else {
-          console.warn('[CHECKOUT] No seller data found');
         }
       }
 
