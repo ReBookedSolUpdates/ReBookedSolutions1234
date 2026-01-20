@@ -127,7 +127,6 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
       // Check for duplicate order submission (idempotency)
       const cachedOrderId = getCachedOrderId(customPaymentId);
       if (cachedOrderId) {
-        console.warn('[PAYMENT] Duplicate order submission detected:', cachedOrderId);
         throw new Error(`Order already being processed. Order ID: ${cachedOrderId}. Please wait and check your account.`);
       }
 
@@ -322,7 +321,6 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
     setRetryCount((prev) => prev + 1);
 
     if (retryCount >= 2) {
-      console.warn('[PAYMENT] Multiple payment attempts detected');
       toast.warning(
         "Multiple payment attempts detected. Please contact support if issues persist.",
       );

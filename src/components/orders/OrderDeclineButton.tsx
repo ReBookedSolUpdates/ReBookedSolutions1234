@@ -234,7 +234,6 @@ const OrderDeclineButton: React.FC<OrderDeclineButtonProps> = ({
           });
         }
       } catch (emailError) {
-        console.error("Email sending failed:", emailError);
         toast.warning("Order declined, but we couldn't send notification emails. We'll retry shortly.", {
           duration: 7000,
         });

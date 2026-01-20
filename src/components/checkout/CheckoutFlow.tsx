@@ -95,7 +95,6 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       bookData = data; // Assign to outer scope variable
 
       if (bookError) {
-        console.error('[CHECKOUT_FLOW] Book fetch error:', bookError);
         throw new Error("Failed to load book details");
       }
 
@@ -154,7 +153,6 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
           .maybeSingle(),
       ]);
 
-      console.log('[CHECKOUT_FLOW] Seller data fetch results:', {
         profileStatus: sellerProfileResult.status,
         subaccountStatus: subaccountResult.status,
         addressStatus: sellerAddressResult.status,
@@ -164,38 +162,32 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       // Process seller profile result
       if (sellerProfileResult.status === 'fulfilled' && sellerProfileResult.value.data) {
         sellerProfile = sellerProfileResult.value.data;
-        console.log('[CHECKOUT_FLOW] Seller profile loaded:', { id: sellerProfile.id, name: sellerProfile.name });
       }
 
       // Process subaccount result (non-critical)
       if (subaccountResult.status === 'fulfilled' && subaccountResult.value.data?.subaccount_code) {
         sellerSubaccountCode = subaccountResult.value.data.subaccount_code;
-        console.log('[CHECKOUT_FLOW] Subaccount code loaded');
         // Update the book with the subaccount code for future purchases (fire-and-forget, non-blocking)
         supabase
           .from("books")
           .update({ seller_subaccount_code: sellerSubaccountCode })
           .eq("id", bookData.id)
           .catch((err) => {
-            console.warn('[CHECKOUT_FLOW] Failed to update book subaccount code:', err);
           }); // Silently ignore update errors
       }
 
       // Process seller address result
       if (sellerAddressResult.status === 'fulfilled') {
         sellerAddress = sellerAddressResult.value;
-        console.log('[CHECKOUT_FLOW] Seller address loaded:', {
           city: sellerAddress?.city,
           province: sellerAddress?.province,
         });
       } else if (sellerAddressResult.status === 'rejected') {
-        console.warn('[CHECKOUT_FLOW] Failed to load seller address:', sellerAddressResult.reason);
       }
 
       // Process seller locker preference result
       if (sellerProfileForLockerResult.status === 'fulfilled' && sellerProfileForLockerResult.value.data) {
         const profile = sellerProfileForLockerResult.value.data;
-        console.log('[CHECKOUT_FLOW] Seller locker preference loaded:', {
           preferredMethod: profile.preferred_pickup_method,
           hasLockerData: !!profile.preferred_delivery_locker_data,
         });
@@ -210,7 +202,6 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
           const lockerData = profile.preferred_delivery_locker_data as any;
           if (lockerData.id && lockerData.name && lockerData.provider_slug) {
             sellerLockerData = lockerData;
-            console.log('[CHECKOUT_FLOW] Seller locker data loaded:', { name: lockerData.name });
           }
         }
 
@@ -220,7 +211,6 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
           if (lockerData.id && lockerData.name && lockerData.provider_slug) {
             sellerLockerData = lockerData;
             sellerPreferredPickupMethod = "locker";
-            console.log('[CHECKOUT_FLOW] Using locker as fallback preference');
           }
         }
       }
@@ -228,7 +218,6 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       // Default to pickup method if we have an address, otherwise locker
       if (!sellerPreferredPickupMethod) {
         sellerPreferredPickupMethod = sellerAddress ? "pickup" : "locker";
-        console.log('[CHECKOUT_FLOW] Using default pickup method:', sellerPreferredPickupMethod);
       }
 
       if (!sellerAddress && !sellerLockerData) {
@@ -350,23 +339,18 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       };
 
       // Get buyer address (try multiple sources, prefer encrypted)
-      console.log('[CHECKOUT_FLOW] Fetching buyer address...');
       let buyerAddress: CheckoutAddress | null = null;
 
       // 1) Standard checkout data helper (encrypted + legacy JSONB fallback)
-      console.log('[CHECKOUT_FLOW] Attempting to load buyer address (method 1: checkout data)...');
       const buyerData = await getBuyerCheckoutData(user.id).catch((err) => {
-        console.warn('[CHECKOUT_FLOW] Error in getBuyerCheckoutData:', err);
         return null;
       });
       if (buyerData?.address) {
         buyerAddress = buyerData.address;
-        console.log('[CHECKOUT_FLOW] Buyer address found via method 1');
       }
 
       // 2) Direct encrypted fetch as a second attempt
       if (!buyerAddress) {
-        console.log('[CHECKOUT_FLOW] Attempting to load buyer address (method 2: simplified service)...');
         try {
           const { getSimpleUserAddresses } = await import("@/services/simplifiedAddressService");
           const addrData = await getSimpleUserAddresses(user.id);
@@ -379,16 +363,13 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
               postal_code: sa.postalCode || sa.postal_code,
               country: "South Africa",
             };
-            console.log('[CHECKOUT_FLOW] Buyer address found via method 2');
           }
         } catch (err) {
-          console.warn('[CHECKOUT_FLOW] Error in getSimpleUserAddresses:', err);
         }
       }
 
       // 3) Comprehensive address service as final fallback
       if (!buyerAddress) {
-        console.log('[CHECKOUT_FLOW] Attempting to load buyer address (method 3: comprehensive service)...');
         try {
           const { getUserAddresses } = await import("@/services/addressService");
           const full = await getUserAddresses(user.id);
@@ -401,27 +382,22 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
               postal_code: sa.postalCode || sa.postal_code,
               country: sa.country || "South Africa",
             } as CheckoutAddress;
-            console.log('[CHECKOUT_FLOW] Buyer address found via method 3');
           }
         } catch (err) {
-          console.warn('[CHECKOUT_FLOW] Error in getUserAddresses:', err);
         }
       }
 
       if (buyerAddress) {
-        console.log('[CHECKOUT_FLOW] Buyer address loaded:', {
           city: buyerAddress.city,
           province: buyerAddress.province,
         });
       } else {
-        console.log('[CHECKOUT_FLOW] No buyer address found, will require address entry');
       }
 
       // Determine available delivery methods and auto-select if only one exists
       const hasLockerOption = !!sellerLockerData;
       const hasHomeDeliveryOption = !!buyerAddress || !!sellerAddress;
 
-      console.log('[CHECKOUT_FLOW] Delivery options available:', {
         locker: hasLockerOption,
         homeDelivery: hasHomeDeliveryOption,
       });
@@ -437,7 +413,6 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         autoDeliveryMethod = "home";
       }
 
-      console.log('[CHECKOUT_FLOW] Checkout initialized successfully', {
         autoDeliveryMethod,
         hasBuyerAddress: !!buyerAddress,
         hasSellerAddress: !!sellerAddress,
@@ -456,7 +431,6 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       }));
 
       if (!buyerAddress && !autoDeliveryMethod) {
-        console.log('[CHECKOUT_FLOW] Prompting user to add delivery address');
         toast.info("Please add your delivery address to continue with checkout");
       }
     } catch (error) {
@@ -464,7 +438,6 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         error instanceof Error
           ? error.message
           : "Failed to initialize checkout";
-      console.error('[CHECKOUT_FLOW] Error initializing checkout:', errorMessage, error);
 
       setCheckoutState((prev) => ({
         ...prev,
@@ -474,7 +447,6 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
 
       // If this is the seller's own book, offer to go to profile
       if (bookData && user?.id === bookData.seller_id) {
-        console.log('[CHECKOUT_FLOW] Showing seller-specific error message');
         toast.error(errorMessage, {
           description: "Click here to update your pickup address",
           action: {
@@ -489,7 +461,6 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   };
 
   const goToStep = (step: 1 | 2 | 3 | 4 | 5) => {
-    console.log('[CHECKOUT_FLOW] Navigating to step:', step);
     // Always show all steps - no auto-skipping
     // Users should see the delivery method selection step
     setCheckoutState((prev) => ({
@@ -504,7 +475,6 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   };
 
   const handleDeliverySelection = (delivery: DeliveryOption) => {
-    console.log('[CHECKOUT_FLOW] Delivery selected:', {
       provider: delivery.provider,
       serviceType: delivery.service_type,
       price: delivery.price,
@@ -514,7 +484,6 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
     const isLockerDelivery = checkoutState.delivery_method === "locker" && checkoutState.selected_locker;
 
     if (!isLockerDelivery && !checkoutState.buyer_address) {
-      console.error('[CHECKOUT_FLOW] No buyer address set for home delivery');
       toast.error("Please set your delivery address first");
       return;
     }
@@ -540,7 +509,6 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         country: "South Africa",
         additional_info: `Pickup at: ${locker.name}`,
       };
-      console.log('[CHECKOUT_FLOW] Using locker as delivery address:', { locker: locker.name });
     }
 
     const bookPrice = checkoutState.book!.price;
@@ -564,7 +532,6 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       subtotal_before_discount: bookPrice,
     };
 
-    console.log('[CHECKOUT_FLOW] Order summary created:', {
       bookPrice: priceAfterDiscount,
       deliveryPrice: delivery.price,
       platformFee: PLATFORM_FEE,
@@ -582,7 +549,6 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   };
 
   const handlePaymentSuccess = async (orderData: OrderConfirmation) => {
-    console.log('[CHECKOUT_FLOW] Payment successful!', {
       orderId: orderData.orderId,
       totalAmount: orderData.totalAmount,
       status: orderData.status,
@@ -592,7 +558,6 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
 
     // Remove book from cart after successful purchase
     // This fixes the bug where books remain in cart after Buy Now purchase
-    console.log('[CHECKOUT_FLOW] Removing book from cart...');
     try {
       // Remove from legacy cart
       removeFromCart(book.id);
@@ -601,15 +566,12 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       if (book.seller?.id) {
         removeFromSellerCart(book.seller.id, book.id);
       }
-      console.log('[CHECKOUT_FLOW] Book removed from cart successfully');
     } catch (error) {
-      console.warn('[CHECKOUT_FLOW] Error removing book from cart:', error);
       // Don't block the checkout success flow if cart removal fails
     }
 
     // Email fallback system
     // Send purchase confirmation emails with multiple fallback layers
-    console.log('[CHECKOUT_FLOW] Sending purchase confirmation emails...');
     try {
       const purchaseEmailData = {
         orderId: orderData.orderId || book.id,
@@ -627,7 +589,6 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       // Use enhanced email service with guaranteed fallbacks
       const emailResult = await EnhancedPurchaseEmailService.sendPurchaseEmailsWithFallback(purchaseEmailData);
 
-      console.log('[CHECKOUT_FLOW] Email result:', {
         sellerEmailSent: emailResult.sellerEmailSent,
         buyerEmailSent: emailResult.buyerEmailSent,
       });
@@ -642,21 +603,18 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       }
 
     } catch (emailError) {
-      console.error('[CHECKOUT_FLOW] Error sending emails:', emailError);
       // Don't block checkout completion if emails fail
       toast.warning("Emails are being processed manually", {
         description: "Your purchase is complete but notifications may be delayed."
       });
     }
 
-    console.log('[CHECKOUT_FLOW] Moving to confirmation step');
     goToStep(5);
   };
 
   const handlePaymentError = (error: string) => {
     const errorMessage = typeof error === 'string' ? error : String(error || 'Unknown error');
     const safeMessage = errorMessage === '[object Object]' ? 'Payment processing failed' : errorMessage;
-    console.error('[CHECKOUT_FLOW] Payment error:', { rawError: error, safeMessage });
     toast.error(`Payment failed: ${safeMessage}`);
     setCheckoutState((prev) => ({
       ...prev,
@@ -678,7 +636,6 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   };
 
   const handleAddressSubmit = (address: CheckoutAddress) => {
-    console.log('[CHECKOUT_FLOW] Address submitted:', {
       city: address.city,
       province: address.province,
     });
@@ -690,10 +647,8 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   };
 
   const handleSaveAddressToProfile = async (address: CheckoutAddress) => {
-    console.log('[CHECKOUT_FLOW] Saving address to profile...');
 
     if (!user?.id) {
-      console.warn('[CHECKOUT_FLOW] No user ID for saving address');
       return;
     }
 
@@ -728,10 +683,8 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         false, // Addresses are different
       );
 
-      console.log('[CHECKOUT_FLOW] Address saved to profile successfully');
       toast.success("Address saved to your profile!");
     } catch (error) {
-      console.error('[CHECKOUT_FLOW] Error saving address to profile:', error);
       toast.error(
         "Failed to save address to profile, but proceeding with order",
       );
@@ -739,12 +692,10 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   };
 
   const handleEditAddress = () => {
-    console.log('[CHECKOUT_FLOW] Edit address mode enabled');
     setIsEditingAddress(true);
   };
 
   const handleAddressUpdate = (newAddress: CheckoutAddress) => {
-    console.log('[CHECKOUT_FLOW] Address updated:', {
       city: newAddress.city,
       province: newAddress.province,
     });

@@ -313,7 +313,6 @@ const EnhancedOrderCommitButton: React.FC<EnhancedOrderCommitButtonProps> = ({
           });
         }
       } catch (emailError) {
-        console.error("Email sending failed:", emailError);
         toast.warning("Order committed, but we couldn't send confirmation emails. We'll retry shortly.", {
           duration: 7000,
         });
