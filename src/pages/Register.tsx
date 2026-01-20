@@ -137,8 +137,7 @@ const Register = () => {
           ...(affiliateCode && { affiliateCode }),
         });
       } catch (webhookError) {
-        // Log but don't fail signup if webhook call fails
-        console.warn('Failed to send registration webhook:', webhookError);
+        // Webhook call failed - continue with signup
       }
 
       // Call Brevo to create contact after successful signup (non-blocking)
