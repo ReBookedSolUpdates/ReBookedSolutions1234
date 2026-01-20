@@ -67,57 +67,38 @@ const Checkout: React.FC = () => {
 
   const loadCartData = async () => {
     try {
-      console.log('[CHECKOUT] Starting loadCartData...');
       setLoading(true);
       setError(null);
 
       // Get cart data from localStorage - use the most recent one
       const cartDataStr = localStorage.getItem('checkoutCart');
-      console.log('[CHECKOUT] Cart data from localStorage:', cartDataStr ? 'Found' : 'Not found');
 
       if (!cartDataStr) {
-        console.error('[CHECKOUT] No cart data found in localStorage');
         setError("No cart data found. Please return to your cart and try again.");
         setLoading(false);
         return;
       }
 
       const parsedCartData: CartCheckoutData = JSON.parse(cartDataStr);
-      console.log('[CHECKOUT] Parsed cart data:', {
-        itemCount: parsedCartData.items?.length,
-        sellerId: parsedCartData.sellerId,
-        totalPrice: parsedCartData.totalPrice,
-        timestamp: new Date(parsedCartData.timestamp).toISOString(),
-      });
 
       // Validate cart data is recent (within 1 hour)
       const oneHourAgo = Date.now() - (60 * 60 * 1000);
       if (parsedCartData.timestamp < oneHourAgo) {
-        console.warn('[CHECKOUT] Cart session expired', {
-          cartTimestamp: new Date(parsedCartData.timestamp).toISOString(),
-          expiredAt: new Date(oneHourAgo).toISOString()
-        });
         setError("Cart session expired. Please return to your cart and try again.");
         setLoading(false);
         return;
       }
 
       if (!parsedCartData.items || parsedCartData.items.length === 0) {
-        console.error('[CHECKOUT] Cart is empty');
         setError("Cart is empty. Please add items to your cart.");
         setLoading(false);
         return;
       }
 
-      console.log('[CHECKOUT] Cart data validated successfully');
       setCartData(parsedCartData);
 
       // Create a CheckoutBook from the first cart item but with cart totals
       const firstItem = parsedCartData.items[0];
-      console.log('[CHECKOUT] Creating checkout book from first item:', {
-        bookId: firstItem.bookId,
-        title: firstItem.title,
-      });
 
       // Create a CheckoutBook that represents the entire cart
       const checkoutBook: CheckoutBook = {
