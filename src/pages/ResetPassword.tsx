@@ -42,18 +42,6 @@ const ResetPassword = () => {
         const error_description = searchParams.get("error_description") ||
                                  new URLSearchParams(window.location.hash.slice(1)).get("error_description");
 
-        console.log("Reset password params:", {
-          accessToken: !!accessToken,
-          refreshToken: !!refreshToken,
-          type,
-          error_code,
-          error_description,
-          urlSearchParams: Object.fromEntries(searchParams.entries()),
-          hashParams: Object.fromEntries(
-            new URLSearchParams(window.location.hash.slice(1)).entries()
-          ),
-        });
-
         // Check for errors in URL
         if (error_code || error_description) {
           toast.error(error_description || "Invalid or expired reset link");
