@@ -153,12 +153,6 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
           .maybeSingle(),
       ]);
 
-        profileStatus: sellerProfileResult.status,
-        subaccountStatus: subaccountResult.status,
-        addressStatus: sellerAddressResult.status,
-        lockerStatus: sellerProfileForLockerResult.status,
-      });
-
       // Process seller profile result
       if (sellerProfileResult.status === 'fulfilled' && sellerProfileResult.value.data) {
         sellerProfile = sellerProfileResult.value.data;
@@ -179,18 +173,12 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       // Process seller address result
       if (sellerAddressResult.status === 'fulfilled') {
         sellerAddress = sellerAddressResult.value;
-          city: sellerAddress?.city,
-          province: sellerAddress?.province,
-        });
       } else if (sellerAddressResult.status === 'rejected') {
       }
 
       // Process seller locker preference result
       if (sellerProfileForLockerResult.status === 'fulfilled' && sellerProfileForLockerResult.value.data) {
         const profile = sellerProfileForLockerResult.value.data;
-          preferredMethod: profile.preferred_pickup_method,
-          hasLockerData: !!profile.preferred_delivery_locker_data,
-        });
 
         // Load preferred pickup method
         if (profile.preferred_pickup_method) {
@@ -388,19 +376,12 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       }
 
       if (buyerAddress) {
-          city: buyerAddress.city,
-          province: buyerAddress.province,
-        });
       } else {
       }
 
       // Determine available delivery methods and auto-select if only one exists
       const hasLockerOption = !!sellerLockerData;
       const hasHomeDeliveryOption = !!buyerAddress || !!sellerAddress;
-
-        locker: hasLockerOption,
-        homeDelivery: hasHomeDeliveryOption,
-      });
 
       // Auto-select delivery method - default to locker when available
       let autoDeliveryMethod: "locker" | "home" | null = null;
@@ -412,12 +393,6 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         // Fall back to home delivery if locker is not available
         autoDeliveryMethod = "home";
       }
-
-        autoDeliveryMethod,
-        hasBuyerAddress: !!buyerAddress,
-        hasSellerAddress: !!sellerAddress,
-        hasSellerLocker: !!sellerLockerData,
-      });
 
       setCheckoutState((prev) => ({
         ...prev,
@@ -475,11 +450,6 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   };
 
   const handleDeliverySelection = (delivery: DeliveryOption) => {
-      provider: delivery.provider,
-      serviceType: delivery.service_type,
-      price: delivery.price,
-    });
-
     // For locker delivery, we need the locker; for home delivery, we need the buyer address
     const isLockerDelivery = checkoutState.delivery_method === "locker" && checkoutState.selected_locker;
 
@@ -532,13 +502,6 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       subtotal_before_discount: bookPrice,
     };
 
-      bookPrice: priceAfterDiscount,
-      deliveryPrice: delivery.price,
-      platformFee: PLATFORM_FEE,
-      totalPrice: orderSummary.total_price,
-      couponDiscount,
-    });
-
     setCheckoutState((prev) => ({
       ...prev,
       selected_delivery: delivery,
@@ -549,11 +512,6 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   };
 
   const handlePaymentSuccess = async (orderData: OrderConfirmation) => {
-      orderId: orderData.orderId,
-      totalAmount: orderData.totalAmount,
-      status: orderData.status,
-    });
-
     setOrderConfirmation(orderData);
 
     // Remove book from cart after successful purchase
@@ -588,10 +546,6 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
 
       // Use enhanced email service with guaranteed fallbacks
       const emailResult = await EnhancedPurchaseEmailService.sendPurchaseEmailsWithFallback(purchaseEmailData);
-
-        sellerEmailSent: emailResult.sellerEmailSent,
-        buyerEmailSent: emailResult.buyerEmailSent,
-      });
 
       // Show user feedback about email status
       if (emailResult.sellerEmailSent && emailResult.buyerEmailSent) {
@@ -636,9 +590,6 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   };
 
   const handleAddressSubmit = (address: CheckoutAddress) => {
-      city: address.city,
-      province: address.province,
-    });
     setCheckoutState((prev) => ({
       ...prev,
       buyer_address: address,
@@ -696,9 +647,6 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   };
 
   const handleAddressUpdate = (newAddress: CheckoutAddress) => {
-      city: newAddress.city,
-      province: newAddress.province,
-    });
     setCheckoutState(prev => ({
       ...prev,
       buyer_address: newAddress,
