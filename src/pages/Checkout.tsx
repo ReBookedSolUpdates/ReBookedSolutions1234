@@ -228,18 +228,10 @@ const Checkout: React.FC = () => {
         },
       };
 
-      console.log('[CHECKOUT] Checkout book created:', {
-        id: checkoutBook.id,
-        title: checkoutBook.title,
-        price: checkoutBook.price,
-        seller: checkoutBook.seller_name,
-      });
-
       setBook(checkoutBook);
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to load book";
-      console.error('[CHECKOUT] Error loading book:', errorMessage, err);
       setError(errorMessage);
     } finally {
       setLoading(false);
