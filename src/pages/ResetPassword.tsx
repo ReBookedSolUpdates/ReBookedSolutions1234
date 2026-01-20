@@ -71,14 +71,11 @@ const ResetPassword = () => {
         // (happens when tokens are in URL but not in search params due to some clients)
         const { data: retrySessionData } = await supabase.auth.getSession();
         if (retrySessionData.session) {
-          console.log("✅ Session found after retry - user can reset password");
           setIsValidSession(true);
           return;
         }
 
         // If we get here, no valid session found
-        console.log("❌ No valid session or reset tokens found");
-        console.log("📍 Current URL:", window.location.href);
 
         // If no reset tokens and no session, user likely accessed /reset-password directly
         toast.error("Please use the reset link from your email. If you don't have one, request a new password reset.");
