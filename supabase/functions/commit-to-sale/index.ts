@@ -31,7 +31,6 @@ serve(async (req) => {
     // Authenticate user from JWT token
     const authHeader = req.headers.get("Authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      console.error("[commit-to-sale] Missing or invalid authorization header");
       return new Response(
         JSON.stringify({
           success: false,
