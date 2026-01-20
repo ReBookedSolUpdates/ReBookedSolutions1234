@@ -375,8 +375,7 @@ Deno.serve(async (req) => {
             }),
           });
         } catch (emailError) {
-          // Log email send failure but continue processing
-          console.error('Failed to send buyer email:', emailError);
+          // Email send failure - continue processing
         }
       }
 
