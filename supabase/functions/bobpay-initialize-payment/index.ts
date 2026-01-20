@@ -91,12 +91,10 @@ Deno.serve(async (req) => {
 
     if (!bobpayResponse.ok) {
       const errorText = await bobpayResponse.text();
-      console.error('BobPay API error:', errorText);
       throw new Error(`BobPay API error: ${errorText}`);
     }
 
     const bobpayData = await bobpayResponse.json();
-    console.log('BobPay payment link created:', bobpayData);
 
     // Store transaction in database if order_id provided
     if (paymentData.order_id) {
