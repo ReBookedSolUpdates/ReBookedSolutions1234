@@ -135,7 +135,6 @@ const Checkout: React.FC = () => {
 
   const loadBookData = async () => {
     try {
-      console.log('[CHECKOUT] Starting loadBookData...', { id });
       setLoading(true);
       setError(null);
 
@@ -145,7 +144,6 @@ const Checkout: React.FC = () => {
 
       // Extract UUID part from book ID (remove any timestamp suffixes)
       const uuidPart = id.split('-').slice(0, 5).join('-');
-      console.log('[CHECKOUT] Extracted UUID from ID:', { original: id, extracted: uuidPart });
 
       // Validate UUID format
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -155,7 +153,6 @@ const Checkout: React.FC = () => {
 
       // Use the cleaned UUID for database query
       const cleanBookId = uuidPart;
-      console.log('[CHECKOUT] Querying book with ID:', cleanBookId);
 
       // Get book data first
       const { data: bookData, error: bookError } = await supabase
