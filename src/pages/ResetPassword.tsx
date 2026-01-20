@@ -51,21 +51,18 @@ const ResetPassword = () => {
         }
 
         if (accessToken && refreshToken && type === "recovery") {
-          console.log("🔐 Setting session with recovery tokens (token-based flow)");
           const { data, error } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
           });
 
           if (error) {
-            console.error("❌ Session error:", error.message || String(error));
             toast.error("Invalid or expired reset link");
             setIsValidSession(false);
             setTimeout(() => navigate("/forgot-password"), 3000);
             return;
           }
 
-          console.log("✅ Session set successfully:", data.user?.email);
           setIsValidSession(true);
           return;
         }
