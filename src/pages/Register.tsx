@@ -154,8 +154,7 @@ const Register = () => {
             }
           });
         } catch (brevoError) {
-          // Log but don't fail signup if Brevo contact creation fails
-          console.warn('Failed to create Brevo contact:', brevoError);
+          // Brevo contact creation failed - continue with signup
         }
       }
 
