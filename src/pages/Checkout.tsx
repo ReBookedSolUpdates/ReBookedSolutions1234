@@ -27,7 +27,6 @@ const Checkout: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('[CHECKOUT] Component mounted', { id, pathname: location.pathname });
     // Reset state when component mounts/changes
     setBook(null);
     setCartData(null);
@@ -35,23 +34,19 @@ const Checkout: React.FC = () => {
 
     // Handle cart checkout vs single book checkout
     const isCartCheckout = location.pathname === '/checkout-cart' || id === "cart";
-    console.log('[CHECKOUT] Is cart checkout:', isCartCheckout);
 
     if (isCartCheckout) {
       const timestamp = searchParams.get('t');
-      console.log('[CHECKOUT] Loading cart data, timestamp:', timestamp);
       loadCartData();
       return;
     }
 
     if (!id) {
-      console.error('[CHECKOUT] No book ID provided');
       setError("No book ID provided");
       setLoading(false);
       return;
     }
 
-    console.log('[CHECKOUT] Loading single book:', id);
     loadBookData();
   }, [id, navigate, searchParams]);
 
@@ -72,57 +67,38 @@ const Checkout: React.FC = () => {
 
   const loadCartData = async () => {
     try {
-      console.log('[CHECKOUT] Starting loadCartData...');
       setLoading(true);
       setError(null);
 
       // Get cart data from localStorage - use the most recent one
       const cartDataStr = localStorage.getItem('checkoutCart');
-      console.log('[CHECKOUT] Cart data from localStorage:', cartDataStr ? 'Found' : 'Not found');
 
       if (!cartDataStr) {
-        console.error('[CHECKOUT] No cart data found in localStorage');
         setError("No cart data found. Please return to your cart and try again.");
         setLoading(false);
         return;
       }
 
       const parsedCartData: CartCheckoutData = JSON.parse(cartDataStr);
-      console.log('[CHECKOUT] Parsed cart data:', {
-        itemCount: parsedCartData.items?.length,
-        sellerId: parsedCartData.sellerId,
-        totalPrice: parsedCartData.totalPrice,
-        timestamp: new Date(parsedCartData.timestamp).toISOString(),
-      });
 
       // Validate cart data is recent (within 1 hour)
       const oneHourAgo = Date.now() - (60 * 60 * 1000);
       if (parsedCartData.timestamp < oneHourAgo) {
-        console.warn('[CHECKOUT] Cart session expired', {
-          cartTimestamp: new Date(parsedCartData.timestamp).toISOString(),
-          expiredAt: new Date(oneHourAgo).toISOString()
-        });
         setError("Cart session expired. Please return to your cart and try again.");
         setLoading(false);
         return;
       }
 
       if (!parsedCartData.items || parsedCartData.items.length === 0) {
-        console.error('[CHECKOUT] Cart is empty');
         setError("Cart is empty. Please add items to your cart.");
         setLoading(false);
         return;
       }
 
-      console.log('[CHECKOUT] Cart data validated successfully');
       setCartData(parsedCartData);
 
       // Create a CheckoutBook from the first cart item but with cart totals
       const firstItem = parsedCartData.items[0];
-      console.log('[CHECKOUT] Creating checkout book from first item:', {
-        bookId: firstItem.bookId,
-        title: firstItem.title,
-      });
 
       // Create a CheckoutBook that represents the entire cart
       const checkoutBook: CheckoutBook = {
@@ -148,15 +124,9 @@ const Checkout: React.FC = () => {
         },
       };
 
-      console.log('[CHECKOUT] Checkout book created:', {
-        id: checkoutBook.id,
-        title: checkoutBook.title,
-        price: checkoutBook.price
-      });
       setBook(checkoutBook);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : String(err);
-      console.error('[CHECKOUT] Error loading cart data:', errorMsg, err);
       setError("Failed to load cart data. Please try again.");
     } finally {
       setLoading(false);
@@ -165,7 +135,6 @@ const Checkout: React.FC = () => {
 
   const loadBookData = async () => {
     try {
-      console.log('[CHECKOUT] Starting loadBookData...', { id });
       setLoading(true);
       setError(null);
 
@@ -175,7 +144,6 @@ const Checkout: React.FC = () => {
 
       // Extract UUID part from book ID (remove any timestamp suffixes)
       const uuidPart = id.split('-').slice(0, 5).join('-');
-      console.log('[CHECKOUT] Extracted UUID from ID:', { original: id, extracted: uuidPart });
 
       // Validate UUID format
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -185,7 +153,6 @@ const Checkout: React.FC = () => {
 
       // Use the cleaned UUID for database query
       const cleanBookId = uuidPart;
-      console.log('[CHECKOUT] Querying book with ID:', cleanBookId);
 
       // Get book data first
       const { data: bookData, error: bookError } = await supabase
@@ -195,26 +162,15 @@ const Checkout: React.FC = () => {
         .single();
 
       if (bookError) {
-        console.error('[CHECKOUT] Error fetching book:', bookError);
         throw new Error(`Failed to load book details: ${bookError.message}`);
       }
 
       if (!bookData) {
-        console.error('[CHECKOUT] Book not found for ID:', cleanBookId);
         throw new Error("Book not found");
       }
 
-      console.log('[CHECKOUT] Book data fetched:', {
-        id: bookData.id,
-        title: bookData.title,
-        price: bookData.price,
-        seller_id: bookData.seller_id,
-        availability: bookData.availability,
-      });
-
       // Validate essential book data fields
       if (!bookData.id || !bookData.seller_id) {
-        console.error('[CHECKOUT] Missing required fields:', { id: bookData.id, seller_id: bookData.seller_id });
         throw new Error("Invalid book data - missing required fields");
       }
 
@@ -223,14 +179,12 @@ const Checkout: React.FC = () => {
         bookData.availability === "unavailable" ||
         bookData.availability === "sold"
       ) {
-        console.warn('[CHECKOUT] Book not available:', { availability: bookData.availability });
         throw new Error(
           `This book is not available for purchase (status: ${bookData.availability})`,
         );
       }
 
       // Get seller information separately
-      console.log('[CHECKOUT] Fetching seller information for:', bookData.seller_id);
       let sellerData = null;
       if (bookData.seller_id) {
         const { data: seller, error: sellerError } = await supabase
@@ -240,12 +194,9 @@ const Checkout: React.FC = () => {
           .maybeSingle();
 
         if (sellerError) {
-          console.warn('[CHECKOUT] Error fetching seller:', sellerError);
+          // Continue without seller data
         } else if (seller) {
-          console.log('[CHECKOUT] Seller data fetched:', { id: seller.id, name: seller.name });
           sellerData = seller;
-        } else {
-          console.warn('[CHECKOUT] No seller data found');
         }
       }
 
@@ -277,18 +228,10 @@ const Checkout: React.FC = () => {
         },
       };
 
-      console.log('[CHECKOUT] Checkout book created:', {
-        id: checkoutBook.id,
-        title: checkoutBook.title,
-        price: checkoutBook.price,
-        seller: checkoutBook.seller_name,
-      });
-
       setBook(checkoutBook);
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to load book";
-      console.error('[CHECKOUT] Error loading book:', errorMessage, err);
       setError(errorMessage);
     } finally {
       setLoading(false);

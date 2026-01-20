@@ -286,7 +286,6 @@ const CheckoutSuccess: React.FC = () => {
       setOrderData(confirmation);
       setLoading(false);
     } catch (err) {
-      console.error("Checkout success error:", err);
       setError(err instanceof Error ? err.message : "Failed to load order");
       setLoading(false);
     }

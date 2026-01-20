@@ -208,7 +208,6 @@ const OrderCompletionCard: React.FC<OrderCompletionCardProps> = ({
           let sellerFullName = sellerName || "Seller";
           let buyerFullName = (order as any).buyer_name || "Buyer";
 
-          console.log("📧 Initial emails - buyer:", buyerEmail, "seller:", sellerEmail);
 
           if (!buyerEmail && order.buyer_id) {
             try {
@@ -278,7 +277,6 @@ const OrderCompletionCard: React.FC<OrderCompletionCardProps> = ({
                       bookTitle,
                       orderId,
                     });
-                    console.log("📤 Sending 'Payment on the way' email to:", sellerEmail);
                     await emailService.sendEmail({
                       to: sellerEmail,
                       subject: paymentTemplate.subject,
@@ -300,7 +298,6 @@ const OrderCompletionCard: React.FC<OrderCompletionCardProps> = ({
                     newBalance: creditAmount, // Note: This is simplified, in production you'd fetch actual balance
                   });
 
-                  console.log("📤 Sending wallet credit email to:", sellerEmail);
                   await emailService.sendEmail({
                     to: sellerEmail,
                     subject: walletTemplate.subject,
@@ -321,7 +318,6 @@ const OrderCompletionCard: React.FC<OrderCompletionCardProps> = ({
                     newBalance: creditAmount,
                   });
 
-                  console.log("📤 Sending fallback wallet credit email to:", sellerEmail);
                   await emailService.sendEmail({
                     to: sellerEmail,
                     subject: walletTemplate.subject,

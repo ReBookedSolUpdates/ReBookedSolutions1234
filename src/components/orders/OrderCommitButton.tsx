@@ -207,7 +207,6 @@ const OrderCommitButton: React.FC<OrderCommitButtonProps> = ({
         const allEmailsSuccessful = emailResults.every(result => !result.error && result.data?.success);
         emailsSent = allEmailsSuccessful;
       } catch (emailError) {
-        console.error("Email sending failed:", emailError);
       }
 
       // Show success message with details about what worked

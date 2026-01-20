@@ -46,8 +46,6 @@ const AuthCallback = () => {
       const refresh_token = getParam("refresh_token");
 
       if (type === "recovery" || isRecoveryHint()) {
-        console.log("🔐 Authenticated user in recovery flow - redirecting directly to reset password");
-        console.log("📋 Type:", type, "| Recovery hint:", isRecoveryHint());
         navigate("/reset-password", { replace: true });
         return;
       }
@@ -137,13 +135,6 @@ const AuthCallback = () => {
         const refresh_token = getParam("refresh_token");
         const type = getParam("type");
 
-        // Debug password reset flow specifically
-        if (type === "recovery" || isRecoveryHint()) {
-          console.log("🔐 PASSWORD RESET FLOW DETECTED");
-          console.log("🔐 Type:", type, "| Recovery hint:", isRecoveryHint());
-          console.log("🔐 This should redirect to /reset-password after authentication");
-          console.log("🔐 Tokens present:", { hasAccessToken: !!access_token, hasRefreshToken: !!refresh_token });
-        }
         const error = getParam("error");
         const error_description = getParam("error_description");
 

@@ -46,7 +46,6 @@ function saveRecords(records: Record<string, IdempotencyRecord>): void {
   try {
     sessionStorage.setItem(IDEMPOTENCY_STORAGE_KEY, JSON.stringify(records));
   } catch (error) {
-    console.warn("Failed to save idempotency records", error);
   }
 }
 

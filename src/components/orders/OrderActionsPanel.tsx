@@ -106,7 +106,6 @@ const OrderActionsPanel: React.FC<OrderActionsPanelProps> = ({
       });
 
       if (error) {
-        console.error("Cancel order error:", error);
         throw new Error(error.message || "Failed to send request to server");
       }
 
@@ -126,7 +125,6 @@ const OrderActionsPanel: React.FC<OrderActionsPanelProps> = ({
         onOrderUpdate();
       }, 500);
     } catch (error: any) {
-      console.error("Order cancellation error:", error);
       toast.error(error?.message || "Failed to cancel order. Please try again.");
     } finally {
       setIsLoading(false);
@@ -157,7 +155,6 @@ const OrderActionsPanel: React.FC<OrderActionsPanelProps> = ({
       });
 
       if (error) {
-        console.error("Cancel order error:", error);
         throw new Error(error.message || "Failed to send request to server");
       }
 
@@ -173,7 +170,6 @@ const OrderActionsPanel: React.FC<OrderActionsPanelProps> = ({
         onOrderUpdate();
       }, 500);
     } catch (err: any) {
-      console.error("Order cancellation error:", err);
       toast.error(err?.message || "Failed to cancel order");
     } finally {
       setIsLoading(false);

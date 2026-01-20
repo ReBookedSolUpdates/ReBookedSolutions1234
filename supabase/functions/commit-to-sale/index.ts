@@ -10,12 +10,9 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  console.log("[commit-to-sale] Function invoked");
-
   try {
     // Validate environment configuration
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-      console.error("[commit-to-sale] Missing Supabase configuration");
       return new Response(
         JSON.stringify({
           success: false,
@@ -34,7 +31,6 @@ serve(async (req) => {
     // Authenticate user from JWT token
     const authHeader = req.headers.get("Authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      console.error("[commit-to-sale] Missing or invalid authorization header");
       return new Response(
         JSON.stringify({
           success: false,
@@ -54,7 +50,6 @@ serve(async (req) => {
     } = await supabase.auth.getUser(token);
 
     if (authError || !user) {
-      console.error("[commit-to-sale] Auth error:", authError?.message);
       return new Response(
         JSON.stringify({
           success: false,
@@ -67,7 +62,6 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[commit-to-sale] Authenticated user: ${user.id}`);
 
     // Parse request body
     let body = null;
@@ -108,7 +102,6 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[commit-to-sale] Processing order: ${order_id}`);
 
     // Fetch the order with service role to bypass RLS for initial check
     const { data: order, error: orderError } = await supabase
@@ -118,7 +111,6 @@ serve(async (req) => {
       .single();
 
     if (orderError || !order) {
-      console.error("[commit-to-sale] Order not found:", orderError?.message);
       return new Response(
         JSON.stringify({
           success: false,
@@ -134,7 +126,6 @@ serve(async (req) => {
     // CRITICAL: Verify seller is committing to their own order
     // This is the RLS equivalent check for service role operations
     if (order.seller_id !== user.id) {
-      console.error(
         `[commit-to-sale] Unauthorized: User ${user.id} is not seller ${order.seller_id}`
       );
       return new Response(
@@ -152,7 +143,6 @@ serve(async (req) => {
     // Validate order status - allow 'paid' and 'pending' statuses
     const allowedStatuses = ["paid", "pending"];
     if (!allowedStatuses.includes(order.status)) {
-      console.error(`[commit-to-sale] Invalid order status: ${order.status}`);
       return new Response(
         JSON.stringify({
           success: false,
@@ -165,7 +155,6 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[commit-to-sale] Order validated, status: ${order.status}`);
 
     // Parse items from order
     let items: Array<{ title?: string; price?: number; book_id?: string }> = [];
@@ -186,16 +175,13 @@ serve(async (req) => {
     const deliveryType = order.delivery_type || "door";
 
     if (!pickupType) {
-      console.error("[commit-to-sale] Order has no pickup_type set - this order creation did not complete properly");
       throw new Error("Order is missing pickup type configuration. Please contact support.");
     }
 
     // Only override pickup_type if seller explicitly provided locker data during commit
     if (delivery_method === "locker" && locker_data && locker_data.id) {
-      console.log("[commit-to-sale] Seller provided explicit locker data during commit - updating pickup type to locker");
       pickupType = "locker";
     } else if (delivery_method === "locker" && locker_id && !pickupType.startsWith("locker")) {
-      console.log("[commit-to-sale] Seller provided locker_id - updating pickup type to locker");
       pickupType = "locker";
     }
 
@@ -298,7 +284,6 @@ serve(async (req) => {
             pickupAddress = pickupResp.data.data;
           }
         } catch (e) {
-          console.warn("[commit-to-sale] Failed to decrypt order pickup address:", e);
         }
       }
 
@@ -330,7 +315,6 @@ serve(async (req) => {
             }
           }
         } catch (e) {
-          console.warn("[commit-to-sale] Failed to decrypt book pickup address:", e);
         }
       }
 
@@ -361,7 +345,6 @@ serve(async (req) => {
               pickupAddress = profilePickupResp.data.data;
             }
           } catch (e) {
-            console.warn(
               "[commit-to-sale] Failed to decrypt seller profile pickup address:",
               e
             );
@@ -409,7 +392,6 @@ serve(async (req) => {
           shippingAddress = deliveryResp.data.data;
         }
       } catch (e) {
-        console.warn("[commit-to-sale] Failed to decrypt order delivery address:", e);
       }
     }
 
@@ -430,7 +412,6 @@ serve(async (req) => {
           shippingAddress = shippingResp.data.data;
         }
       } catch (e) {
-        console.warn("[commit-to-sale] Failed to decrypt order shipping address:", e);
       }
     }
 
@@ -461,7 +442,6 @@ serve(async (req) => {
             shippingAddress = profileShippingResp.data.data;
           }
         } catch (e) {
-          console.warn(
             "[commit-to-sale] Failed to decrypt buyer profile shipping address:",
             e
           );
@@ -496,7 +476,6 @@ serve(async (req) => {
             shippingAddress = profilePickupResp.data.data;
           }
         } catch (e) {
-          console.warn(
             "[commit-to-sale] Failed to decrypt seller pickup address as fallback:",
             e
           );
@@ -573,7 +552,6 @@ serve(async (req) => {
       throw new Error("No courier selected during checkout");
     }
 
-    console.log(
       `[commit-to-sale] Using buyer's selected courier: ${order.selected_courier_name} - ${order.selected_service_name}`
     );
 
@@ -648,7 +626,6 @@ serve(async (req) => {
           selectedServiceName = rateQuote!.service_name;
         }
       } catch (e) {
-        console.warn("[commit-to-sale] Failed to recalculate locker-to-locker rates:", e);
       }
     }
 
@@ -663,7 +640,6 @@ serve(async (req) => {
 
     // Add pickup information based on type
     if (pickupData!.type === "locker") {
-      console.log(`[commit-to-sale] 📍 Creating LOCKER PICKUP shipment:`, {
         pickupType: pickupType,
         locationId: pickupData!.location_id,
         providerSlug: pickupData!.provider_slug,
@@ -672,7 +648,6 @@ serve(async (req) => {
       shipmentPayload.pickup_locker_provider_slug = pickupData!.provider_slug;
       shipmentPayload.pickup_locker_data = pickupData!.locker_data;
     } else {
-      console.log(`[commit-to-sale] 🚪 Creating DOOR PICKUP shipment:`, {
         pickupType: pickupType,
       });
       const pickupAddress = pickupData!.address as Record<string, string>;
@@ -787,12 +762,10 @@ serve(async (req) => {
     );
 
     if (shipmentResponse.error) {
-      console.error("[commit-to-sale] Shipment creation failed:", shipmentResponse.error);
       throw new Error("Failed to create shipment");
     }
 
     const shipmentData = shipmentResponse.data || {};
-    console.log(`[commit-to-sale] Shipment created: ${shipmentData.tracking_number}`);
 
     // Build updated delivery_data
     const deliveryDataUpdate: Record<string, unknown> = {
@@ -880,11 +853,9 @@ serve(async (req) => {
       .eq("id", order_id);
 
     if (updateError) {
-      console.error("[commit-to-sale] Failed to update order:", updateError.message);
       throw new Error("Failed to update order");
     }
 
-    console.log("[commit-to-sale] Order updated successfully");
 
     // Send email notifications
     const deliveryMethodText =
@@ -965,7 +936,6 @@ serve(async (req) => {
         },
       });
     } catch (e) {
-      console.warn("[commit-to-sale] Failed to send buyer email:", e);
     }
 
     try {
@@ -977,7 +947,6 @@ serve(async (req) => {
         },
       });
     } catch (e) {
-      console.warn("[commit-to-sale] Failed to send seller email:", e);
     }
 
     // Create notifications for both parties
@@ -1012,11 +981,9 @@ serve(async (req) => {
       try {
         await supabase.from("notifications").insert(notifications);
       } catch (e) {
-        console.warn("[commit-to-sale] Failed to create notifications:", e);
       }
     }
 
-    console.log("[commit-to-sale] Completed successfully");
 
     return new Response(
       JSON.stringify({
@@ -1034,7 +1001,6 @@ serve(async (req) => {
     );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("[commit-to-sale] Error:", errorMessage);
     return new Response(
       JSON.stringify({
         success: false,

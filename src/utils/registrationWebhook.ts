@@ -36,6 +36,5 @@ export const sendRegistrationWebhook = async (data: RegistrationData): Promise<v
     });
   } catch (error) {
     // Log error but don't throw - webhook failure shouldn't block registration
-    console.error("Error sending registration webhook:", error);
   }
 };

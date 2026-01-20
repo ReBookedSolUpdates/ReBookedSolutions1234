@@ -42,7 +42,6 @@ function checkRateLimit(clientIP: string, to: string) {
 }
 
 serve(async (req) => {
-  console.log("📧 send-email called:", req.method);
 
   /* -------------------- CORS -------------------- */
   if (req.method === "OPTIONS") {
@@ -63,7 +62,6 @@ serve(async (req) => {
   /* -------------------- CONTENT-TYPE GUARD -------------------- */
   const contentType = req.headers.get("content-type") || "";
   if (!contentType.includes("application/json")) {
-    console.error("❌ Invalid Content-Type:", contentType);
     return new Response(
       JSON.stringify({
         success: false,
@@ -86,7 +84,6 @@ serve(async (req) => {
 
     emailRequest = JSON.parse(rawBody);
   } catch (err) {
-    console.error("❌ JSON parse failed:", err);
     return new Response(
       JSON.stringify({
         success: false,
@@ -109,11 +106,6 @@ serve(async (req) => {
     );
   }
 
-  console.log("📧 Email payload received:", {
-    to: emailRequest.to,
-    subject: emailRequest.subject,
-    test: emailRequest.test,
-  });
 
   /* -------------------- TEST MODE -------------------- */
   if (emailRequest.test === true) {
@@ -158,7 +150,6 @@ serve(async (req) => {
   const defaultFrom = Deno.env.get("DEFAULT_FROM_EMAIL") || "info@rebookedsolutions.co.za";
 
   if (!brevoApiKey) {
-    console.error("❌ BREVO_API_KEY missing");
     return new Response(
       JSON.stringify({
         success: false,
@@ -191,7 +182,6 @@ serve(async (req) => {
   }
 
   try {
-    console.log("📧 Sending via Brevo API...");
     
     const response = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
@@ -206,7 +196,6 @@ serve(async (req) => {
     const responseData = await response.json();
 
     if (!response.ok) {
-      console.error("❌ Brevo API error:", responseData);
       return new Response(
         JSON.stringify({
           success: false,
@@ -217,14 +206,11 @@ serve(async (req) => {
       );
     }
 
-    console.log("✅ Email sent successfully via Brevo:", responseData);
-
     return new Response(
       JSON.stringify({ success: true, messageId: responseData.messageId }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (err) {
-    console.error("❌ Email send failed:", err);
     return new Response(
       JSON.stringify({
         success: false,

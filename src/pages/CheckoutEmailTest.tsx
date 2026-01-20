@@ -155,7 +155,6 @@ const CheckoutEmailTest: React.FC = () => {
       });
       return true;
     } catch (error) {
-      console.error("Failed to send seller email:", error);
       return false;
     }
   };
@@ -218,7 +217,6 @@ const CheckoutEmailTest: React.FC = () => {
       });
       return true;
     } catch (error) {
-      console.error("Failed to send buyer email:", error);
       return false;
     }
   };

@@ -125,10 +125,8 @@ const CouponInput: React.FC<CouponInputProps> = ({
         `Coupon applied! You save R${discountAmount.toFixed(2)} (via ${usedEdgeFunction ? "server" : "local"} validation)`
       );
     } catch (err) {
-      console.error("Error applying coupon:", err);
       const errorMsg =
         err instanceof Error ? err.message : "Unknown error occurred";
-      console.error("Detailed error:", errorMsg);
       setError("Failed to apply coupon. Please try again.");
     } finally {
       setIsLoading(false);

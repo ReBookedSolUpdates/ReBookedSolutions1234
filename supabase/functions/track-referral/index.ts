@@ -25,10 +25,8 @@ serve(async (req) => {
 
     const { affiliate_code, new_user_id } = await req.json();
 
-    console.log('Tracking referral:', { affiliate_code, new_user_id });
 
     if (!affiliate_code || !new_user_id) {
-      console.error('Missing required fields:', { affiliate_code, new_user_id });
       return new Response(
         JSON.stringify({ error: 'Missing affiliate_code or new_user_id' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
@@ -44,7 +42,6 @@ serve(async (req) => {
       .maybeSingle();
 
     if (affiliateError) {
-      console.error('Error finding affiliate:', affiliateError);
       return new Response(
         JSON.stringify({ error: 'Error finding affiliate' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
@@ -52,14 +49,12 @@ serve(async (req) => {
     }
 
     if (!affiliate) {
-      console.error('Affiliate not found for code:', affiliate_code);
       return new Response(
         JSON.stringify({ error: 'Invalid affiliate code' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
       );
     }
 
-    console.log('Found affiliate:', affiliate.id);
 
     // Check if user is already referred - use maybeSingle to handle no results gracefully
     const { data: existing, error: existingError } = await supabaseClient
@@ -69,7 +64,6 @@ serve(async (req) => {
       .maybeSingle();
 
     if (existingError) {
-      console.error('Error checking existing referral:', existingError);
       return new Response(
         JSON.stringify({ error: 'Error checking existing referral' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
@@ -77,7 +71,6 @@ serve(async (req) => {
     }
 
     if (existing) {
-      console.log('User already referred');
       return new Response(
         JSON.stringify({ message: 'User already has a referrer' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
@@ -95,21 +88,18 @@ serve(async (req) => {
       .single();
 
     if (referralError) {
-      console.error('Error creating referral:', referralError);
       return new Response(
         JSON.stringify({ error: 'Error creating referral: ' + referralError.message }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
       );
     }
 
-    console.log('Referral created:', referral);
 
     return new Response(
       JSON.stringify({ success: true, referral }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     );
   } catch (error) {
-    console.error('Error in track-referral:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ error: errorMessage }),
