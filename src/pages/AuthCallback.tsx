@@ -46,8 +46,6 @@ const AuthCallback = () => {
       const refresh_token = getParam("refresh_token");
 
       if (type === "recovery" || isRecoveryHint()) {
-        console.log("🔐 Authenticated user in recovery flow - redirecting directly to reset password");
-        console.log("📋 Type:", type, "| Recovery hint:", isRecoveryHint());
         navigate("/reset-password", { replace: true });
         return;
       }
