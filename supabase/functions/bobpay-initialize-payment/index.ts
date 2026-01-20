@@ -124,7 +124,6 @@ Deno.serve(async (req) => {
         });
 
       if (txError) {
-        console.error('Error storing transaction:', txError);
         throw new Error(`Failed to store transaction: ${txError.message}`);
       }
     }
