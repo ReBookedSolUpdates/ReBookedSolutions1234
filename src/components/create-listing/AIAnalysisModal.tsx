@@ -229,13 +229,14 @@ const AIAnalysisModal = ({
   };
 
   const handleAnalyze = async () => {
-    if (!validateForm()) {
-      toast.error("Please fill in all required fields");
+    if (!validateImagesStep()) {
+      toast.error("Please upload all images");
       return;
     }
 
     setState((prev) => ({
       ...prev,
+      step: "analyzing",
       isAnalyzing: true,
       analysisError: null,
     }));
@@ -274,6 +275,7 @@ const AIAnalysisModal = ({
         error instanceof Error ? error.message : "Unknown error";
       setState((prev) => ({
         ...prev,
+        step: "images",
         analysisError: errorMessage,
         isAnalyzing: false,
       }));
