@@ -364,12 +364,6 @@ const Profile = () => {
 
                     {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
-            <ShareReminderBanner
-              userId={user?.id || ""}
-              userName={profile?.full_name || profile?.name || ""}
-              onShare={() => setIsShareDialogOpen(true)}
-            />
-
             {/* Share Your Profile */}
             <Card className="bg-gradient-to-r from-book-50 to-book-100 border-book-200">
               <CardContent className="pt-6">
