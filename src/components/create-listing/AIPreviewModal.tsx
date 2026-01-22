@@ -65,22 +65,22 @@ const PreviewField = ({
   isEmpty?: boolean;
 }) => {
   return (
-    <div className="py-1.5 sm:py-3 border-b last:border-b-0">
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide text-[10px] sm:text-xs">
+    <div className="py-1 sm:py-2 border-b last:border-b-0">
+      <div className="flex items-start justify-between gap-1">
+        <div className="flex-1 min-w-0">
+          <p className="text-[9px] sm:text-xs font-medium text-gray-500 uppercase tracking-tight">
             {label}
           </p>
           {isEmpty ? (
-            <p className="text-xs sm:text-sm text-gray-400 italic mt-0.5 sm:mt-1">Not detected</p>
+            <p className="text-[11px] sm:text-xs text-gray-400 italic mt-0.5">Not detected</p>
           ) : (
-            <p className="text-xs sm:text-sm font-medium text-gray-900 mt-0.5 sm:mt-1 break-words">
+            <p className="text-[11px] sm:text-sm font-medium text-gray-900 mt-0.5 break-words">
               {value}
             </p>
           )}
         </div>
         {isEmpty && (
-          <AlertCircle className="h-4 w-4 text-orange-500 ml-2 flex-shrink-0 mt-1" />
+          <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 text-orange-500 flex-shrink-0 mt-0.5" />
         )}
       </div>
     </div>
