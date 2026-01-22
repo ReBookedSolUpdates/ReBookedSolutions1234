@@ -43,8 +43,6 @@ interface AnalysisState {
   step: "bookType" | "details" | "images" | "analyzing";
   bookType: "school" | "university" | "reader" | null;
   uploadedImages: UploadedImages;
-  category: string;
-  condition: string;
   curriculum?: "CAPS" | "Cambridge" | "IEB";
   grade?: string;
   university?: string;
