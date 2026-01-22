@@ -98,10 +98,9 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
         // Apply filters if provided
         if (filters) {
           if (filters.search) {
-            // Include ISBN in the search - normalize by removing dashes from search term
-            const normalizedSearch = filters.search.replace(/-/g, '');
+            // Search by title and author - ISBN will be filtered client-side for proper dash handling
             query = query.or(
-              `title.ilike.%${filters.search}%,author.ilike.%${filters.search}%,isbn.ilike.%${normalizedSearch}%`,
+              `title.ilike.%${filters.search}%,author.ilike.%${filters.search}%`,
             );
           }
           if (filters.category) {
