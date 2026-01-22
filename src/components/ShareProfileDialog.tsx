@@ -137,8 +137,8 @@ const ShareProfileDialog = ({
                     <DialogDescription>
             {isOwnProfile ? (
               <>
-                <p>🚀 Share your profile to sell your books faster!</p>
-                <p className="text-sm text-gray-600">Post it on social media, send to classmates, or share in study groups - the more people see your books, the quicker they'll sell.</p>
+                <span className="block">🚀 Share your profile to sell your books faster!</span>
+                <span className="block text-sm text-gray-600 mt-1">Post it on social media, send to classmates, or share in study groups - the more people see your books, the quicker they'll sell.</span>
               </>
             ) : (
               <>Help {userName} sell their books by sharing their profile!</>
