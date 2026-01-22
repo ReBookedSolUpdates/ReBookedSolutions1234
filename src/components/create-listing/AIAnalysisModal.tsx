@@ -451,7 +451,7 @@ const AIAnalysisModal = ({
               </div>
             )}
 
-            {/* Step 2: Details (Category, Condition, and Type-specific fields) */}
+            {/* Step 2: Details (Type-specific fields) */}
             {state.step === "details" && (
               <div className="space-y-3">
                 <div className="flex items-center justify-between mb-4">
@@ -465,56 +465,6 @@ const AIAnalysisModal = ({
                   >
                     Change Type
                   </button>
-                </div>
-
-                <div>
-                  <Label htmlFor="category" className="text-sm font-medium">
-                    Category <span className="text-red-500">*</span>
-                  </Label>
-                  <Select
-                    value={state.category}
-                    onValueChange={(value) =>
-                      setState((prev) => ({ ...prev, category: value }))
-                    }
-                  >
-                    <SelectTrigger id="category" className="mt-1">
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {categories.map((cat) => (
-                          <SelectItem key={cat} value={cat}>
-                            {cat}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="condition" className="text-sm font-medium">
-                    Condition <span className="text-red-500">*</span>
-                  </Label>
-                  <Select
-                    value={state.condition}
-                    onValueChange={(value) =>
-                      setState((prev) => ({ ...prev, condition: value }))
-                    }
-                  >
-                    <SelectTrigger id="condition" className="mt-1">
-                      <SelectValue placeholder="Select condition" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {conditions.map((cond) => (
-                          <SelectItem key={cond} value={cond}>
-                            {cond}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
                 </div>
 
                 {/* School-specific fields */}
