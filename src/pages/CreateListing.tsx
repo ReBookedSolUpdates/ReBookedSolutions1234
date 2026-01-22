@@ -7,12 +7,13 @@ import { Button } from "@/components/ui/button";
 import { createBook } from "@/services/book/bookMutations";
 import { BookFormData } from "@/types/book";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Loader2, AlertTriangle, Sparkles } from "lucide-react";
 import EnhancedMobileImageUpload from "@/components/EnhancedMobileImageUpload";
 import FirstUploadSuccessDialog from "@/components/FirstUploadSuccessDialog";
 import PostListingSuccessDialog from "@/components/PostListingSuccessDialog";
 import ShareProfileDialog from "@/components/ShareProfileDialog";
 import CommitReminderModal from "@/components/CommitReminderModal";
+import { AIPreviewModal } from "@/components/create-listing/AIPreviewModal";
 import {
   shouldShowCommitReminder,
   shouldShowFirstUpload,
