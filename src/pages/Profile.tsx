@@ -420,7 +420,7 @@ const Profile = () => {
             {/* Share Your Profile */}
             <Card className="bg-gradient-to-r from-book-50 to-book-100 border-book-200">
               <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div className="space-y-2">
                     <h3 className="text-lg font-semibold text-book-800">
                       Share Your ReBooked Mini Page
@@ -431,7 +431,7 @@ const Profile = () => {
                   </div>
                   <Button
                     onClick={() => setIsShareDialogOpen(true)}
-                    className="bg-book-600 hover:bg-book-700 text-white"
+                    className="bg-book-600 hover:bg-book-700 text-white w-full md:w-auto flex-shrink-0"
                   >
                     <Share2 className="w-4 h-4 mr-2" />
                     Share Profile
