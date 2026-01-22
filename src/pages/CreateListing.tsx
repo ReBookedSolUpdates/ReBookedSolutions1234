@@ -688,6 +688,15 @@ const CreateListing = () => {
             }}
             type="seller"
           />
+
+          <AIPreviewModal
+            open={showAIPreview}
+            extractedData={aiPreview}
+            isLoading={isProcessingAI}
+            onAccept={handleAcceptAIResults}
+            onCancel={() => setShowAIPreview(false)}
+            onRetry={handleRetryAI}
+          />
         </BankingRequirementCheck>
       </div>
     </Layout>
