@@ -18,11 +18,13 @@ export const BookInformationForm = ({
   formData,
   errors,
   onInputChange,
+  showAIWarning = false,
 }: BookInformationFormProps) => {
   const isMobile = useIsMobile();
 
   return (
     <div className="space-y-3 md:space-y-4">
+      <AIWarningBanner visible={showAIWarning} />
       <div>
         <Label
           htmlFor="title"
