@@ -57,6 +57,7 @@ export const mapBookFromDatabase = (bookData: BookQueryResult): Book => {
       id: bookData.seller_id,
       name: (profile && (profile as any).name) || `User ${bookData.seller_id.slice(0, 8)}`,
       email: profile?.email || "",
+      createdAt: (profile as any)?.created_at || undefined,
     },
   };
 };
