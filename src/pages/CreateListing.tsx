@@ -14,6 +14,7 @@ import PostListingSuccessDialog from "@/components/PostListingSuccessDialog";
 import ShareProfileDialog from "@/components/ShareProfileDialog";
 import CommitReminderModal from "@/components/CommitReminderModal";
 import { AIPreviewModal } from "@/components/create-listing/AIPreviewModal";
+import AIAnalysisModal from "@/components/create-listing/AIAnalysisModal";
 import {
   shouldShowCommitReminder,
   shouldShowFirstUpload,
