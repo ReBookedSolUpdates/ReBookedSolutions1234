@@ -281,6 +281,7 @@ const AIAnalysisModal = ({
   const handlePreviewAccept = (extractedData: Partial<BookFormData>) => {
     setState((prev) => ({
       ...prev,
+      step: "bookType",
       showPreview: false,
       uploadedImages: {
         frontCover: "",
