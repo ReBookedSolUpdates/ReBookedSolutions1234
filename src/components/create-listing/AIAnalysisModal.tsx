@@ -639,7 +639,7 @@ const AIAnalysisModal = ({
 
             {/* Step 3: Image Upload */}
             {state.step === "images" && (
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-medium">Book Images</h3>
                   <button
@@ -652,7 +652,7 @@ const AIAnalysisModal = ({
                     Back
                   </button>
                 </div>
-                <p className="text-xs text-gray-600 mb-3">
+                <p className="text-xs text-gray-600 mb-2 sm:mb-3">
                   Upload photos of your book's front cover, back cover, and inside pages for AI analysis.
                 </p>
                 <ImageUploadSlot
