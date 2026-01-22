@@ -202,14 +202,12 @@ export const AIPreviewModal = ({
                 <PreviewField
                   label="Grade"
                   value={extractedData.grade}
-                  confidence={extractedData.confidence?.grade}
                 />
               )}
               {extractedData.curriculum && (
                 <PreviewField
                   label="Curriculum"
                   value={extractedData.curriculum}
-                  confidence={extractedData.confidence?.curriculum}
                 />
               )}
               {(extractedData as any).universityYear && (
