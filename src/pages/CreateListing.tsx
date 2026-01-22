@@ -269,6 +269,41 @@ const CreateListing = () => {
     handleRunAIAutoFill();
   };
 
+  const handleAIAnalysisComplete = (extractedData: Partial<BookFormData>) => {
+    // Apply the extracted data to the form
+    const updatedFormData = {
+      ...formData,
+      ...extractedData,
+    };
+
+    setFormData(updatedFormData);
+    setShowAIAnalysisModal(false);
+    setShowAIWarning(true);
+
+    // Clear any previous errors for the fields we just auto-filled
+    const fieldsToClean = [
+      "title",
+      "author",
+      "description",
+      "price",
+      "condition",
+      "isbn",
+      "grade",
+      "curriculum",
+    ];
+    const updatedErrors = { ...errors };
+    fieldsToClean.forEach((field) => {
+      if (updatedErrors[field]) {
+        delete updatedErrors[field];
+      }
+    });
+    setErrors(updatedErrors);
+
+    toast.success("Book details auto-filled! Please review before publishing.", {
+      description: "You can edit any field as needed.",
+    });
+  };
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
