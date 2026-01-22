@@ -192,11 +192,6 @@ const AIAnalysisModal = ({
     state.uploadedImages.backCover &&
     state.uploadedImages.insidePages;
 
-  // Get categories for selected book type
-  const categories = state.bookType
-    ? getCategoriesByBookType(state.bookType)
-    : [];
-
   // Validation function for details step
   const validateDetailsStep = (): boolean => {
     if (state.bookType === "school") {
