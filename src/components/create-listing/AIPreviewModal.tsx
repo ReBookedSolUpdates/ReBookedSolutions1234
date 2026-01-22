@@ -253,7 +253,7 @@ export const AIPreviewModal = ({
                 </div>
               )}
               <div className="py-2 sm:py-3 border-b">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide text-[10px] sm:text-xs">
                   Estimated Price (ZAR)
                 </p>
                 <div className="mt-1 sm:mt-2">
@@ -264,7 +264,7 @@ export const AIPreviewModal = ({
                     value={adjustedPrice || extractedData.estimatedPrice || ""}
                     onChange={(e) => setAdjustedPrice(e.target.value)}
                     placeholder={`R${extractedData.estimatedPrice?.toFixed(2)}`}
-                    className="text-sm w-full"
+                    className="text-xs sm:text-sm w-full h-8 sm:h-10"
                   />
                 </div>
               </div>
