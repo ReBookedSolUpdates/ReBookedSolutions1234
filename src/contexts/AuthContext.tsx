@@ -18,9 +18,11 @@ import {
   fetchUserProfileQuick,
   createUserProfile,
   upgradeToUserProfile,
+  logoutUser,
 } from "@/services/authOperations";
 import { addNotification } from "@/services/notificationService";
 import { logError, getErrorMessage } from "@/utils/errorUtils";
+import { SessionTrackingUtils } from "@/utils/sessionTrackingUtils";
 
 
 export interface UserProfile {
