@@ -105,47 +105,64 @@ const CreateListing = () => {
       addressCheckDoneRef.current = true;
 
       try {
-        const canList = await canUserListBooks(user.id);
-        setCanListBooks(canList);
+        let hasValidAddress = false;
+        let preferredMethod: "locker" | "pickup" | null = null;
 
-        // Auto-determine preferred pickup method based on what addresses user has
-        // Priority: locker > pickup (if both exist, use locker)
-        try {
-          const { data: profile, error } = await supabase
-            .from("profiles")
-            .select("preferred_delivery_locker_data")
-            .eq("id", user.id)
-            .maybeSingle();
+        // Run locker and address checks in parallel for speed
+        const [lockerResult, pickupResult] = await Promise.all([
+          // Check locker
+          (async () => {
+            try {
+              const { data: profile, error } = await supabase
+                .from("profiles")
+                .select("preferred_delivery_locker_data")
+                .eq("id", user.id)
+                .maybeSingle();
 
-          // If user has a locker saved, prefer locker
-          if (!error && profile?.preferred_delivery_locker_data) {
-            const lockerData = profile.preferred_delivery_locker_data as any;
-            if (lockerData.id && lockerData.name) {
-              setPreferredPickupMethod("locker");
-              setIsCheckingAddress(false);
-              return;
+              if (!error && profile?.preferred_delivery_locker_data) {
+                const lockerData = profile.preferred_delivery_locker_data as any;
+                if (lockerData.id && lockerData.name) {
+                  return { hasLocker: true };
+                }
+              }
+              return { hasLocker: false };
+            } catch {
+              return { hasLocker: false };
             }
-          }
+          })(),
+          // Check pickup address
+          (async () => {
+            try {
+              const decrypted = await getSellerDeliveryAddress(user.id);
+              if (decrypted && (decrypted.street || decrypted.streetAddress)) {
+                return { hasPickup: true };
+              }
 
-          // If no locker, check for pickup address (optimized - no dynamic import)
-          const decrypted = await getSellerDeliveryAddress(user.id);
-
-          if (decrypted && (decrypted.street || decrypted.streetAddress)) {
-            setPreferredPickupMethod("pickup");
-            setIsCheckingAddress(false);
-            return;
-          }
-
-          // Fallback: check user_addresses table
-          if (fallbackAddressService && typeof fallbackAddressService.getBestAddress === 'function') {
-            const best = await fallbackAddressService.getBestAddress(user.id, 'pickup');
-            if (best && best.success && best.address) {
-              setPreferredPickupMethod("pickup");
+              // Try fallback if primary check fails
+              if (fallbackAddressService && typeof fallbackAddressService.getBestAddress === 'function') {
+                const best = await fallbackAddressService.getBestAddress(user.id, 'pickup');
+                if (best?.success && best.address) {
+                  return { hasPickup: true };
+                }
+              }
+              return { hasPickup: false };
+            } catch {
+              return { hasPickup: false };
             }
-          }
-        } catch (error) {
-          // Auto-determination failed but user can still list - will be determined at save time
+          })(),
+        ]);
+
+        // Determine preferred method and whether user can list
+        if (lockerResult.hasLocker) {
+          preferredMethod = "locker";
+          hasValidAddress = true;
+        } else if (pickupResult.hasPickup) {
+          preferredMethod = "pickup";
+          hasValidAddress = true;
         }
+
+        setCanListBooks(hasValidAddress);
+        setPreferredPickupMethod(preferredMethod);
       } catch (error) {
         setCanListBooks(false);
       } finally {
