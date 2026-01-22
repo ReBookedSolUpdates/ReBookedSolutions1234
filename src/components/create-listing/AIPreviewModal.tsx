@@ -210,16 +210,20 @@ export const AIPreviewModal = ({
                 />
               )}
               {(extractedData as any).universityYear && (
-                <PreviewField
-                  label="University Year"
-                  value={(extractedData as any).universityYear}
-                />
+                <div className="hidden sm:block">
+                  <PreviewField
+                    label="University Year"
+                    value={(extractedData as any).universityYear}
+                  />
+                </div>
               )}
               {(extractedData as any).genre && (
-                <PreviewField
-                  label="Genre"
-                  value={(extractedData as any).genre}
-                />
+                <div className="hidden sm:block">
+                  <PreviewField
+                    label="Genre"
+                    value={(extractedData as any).genre}
+                  />
+                </div>
               )}
               {((extractedData as any).frontCover || (extractedData as any).backCover || (extractedData as any).insidePages) && (
                 <div className="py-2 sm:py-3 border-b hidden sm:block">
