@@ -515,6 +515,26 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   const handlePaymentSuccess = async (orderData: OrderConfirmation) => {
     setOrderConfirmation(orderData);
 
+    // Track purchase (non-blocking)
+    try {
+      const orderId = orderData.orderId || book.id;
+      const orderTotal = orderData.totalAmount || book.price;
+      const itemCount = checkoutState.order_summary?.items?.length || 1;
+
+      await ActivityService.trackPurchase(
+        user?.id,
+        orderId,
+        orderTotal,
+        itemCount,
+        {
+          seller_id: book.seller?.id,
+          seller_name: book.seller?.name,
+        }
+      );
+    } catch (trackingError) {
+      console.error("Error tracking purchase:", trackingError);
+    }
+
     // Remove book from cart after successful purchase
     // This fixes the bug where books remain in cart after Buy Now purchase
     try {
