@@ -252,23 +252,16 @@ export const AIPreviewModal = ({
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                   Estimated Price (ZAR)
                 </p>
-                <div className="flex items-end gap-2 mt-1 sm:mt-2">
-                  <div className="flex-1">
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={adjustedPrice || extractedData.estimatedPrice || ""}
-                      onChange={(e) => setAdjustedPrice(e.target.value)}
-                      placeholder={`R${extractedData.estimatedPrice?.toFixed(2)}`}
-                      className="text-sm"
-                    />
-                  </div>
-                  {extractedData.confidence?.price && (
-                    <div className="text-xs font-medium text-gray-500">
-                      {Math.round(extractedData.confidence.price)}% confidence
-                    </div>
-                  )}
+                <div className="mt-1 sm:mt-2">
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={adjustedPrice || extractedData.estimatedPrice || ""}
+                    onChange={(e) => setAdjustedPrice(e.target.value)}
+                    placeholder={`R${extractedData.estimatedPrice?.toFixed(2)}`}
+                    className="text-sm w-full"
+                  />
                 </div>
               </div>
               <div className="py-2 sm:py-3 border-b last:border-b-0">
