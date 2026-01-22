@@ -550,6 +550,7 @@ const CreateListing = () => {
                   }
                   variant="object"
                   maxImages={5}
+                  onAllRequiredImagesReady={() => setShowAIReadyButton(true)}
                 />
                 {(errors.frontCover ||
                   errors.backCover ||
