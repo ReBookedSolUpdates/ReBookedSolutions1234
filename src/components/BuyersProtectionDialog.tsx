@@ -129,8 +129,9 @@ const BuyersProtectionDialog = ({
           </div>
 
           {/* Info Section */}
-          <div className="text-center text-[11px] sm:text-sm text-gray-600">
-            <p><span className="font-medium text-green-900">R20 Platform Fee</span> per purchase covers payment processing, protection service, and support.</p>
+          <div className="space-y-2 text-[11px] sm:text-sm text-gray-600">
+            <p className="text-center"><span className="font-medium text-green-900">R20 Platform Fee</span> per purchase covers payment processing, protection service, and support.</p>
+            <p className="text-center">Having payment issues? Email <a href="mailto:payments@rebookedsolutions.co.za" className="font-medium text-blue-600 hover:underline">payments@rebookedsolutions.co.za</a></p>
           </div>
         </div>
 
