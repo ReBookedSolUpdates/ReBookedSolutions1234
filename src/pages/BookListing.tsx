@@ -283,8 +283,6 @@ const BookListing = () => {
           <BookFilters
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
-            isbn={isbn}
-            setIsbn={setIsbn}
             selectedCategory={selectedCategory}
             setSelectedCategory={setSelectedCategory}
             selectedCondition={selectedCondition}
