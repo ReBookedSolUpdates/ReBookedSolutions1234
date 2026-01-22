@@ -112,7 +112,7 @@ export const AIPreviewModal = ({
       title: extractedData.title,
       author: extractedData.author,
       description: extractedData.description,
-      price: extractedData.estimatedPrice || 0,
+      price: adjustedPrice ? parseFloat(adjustedPrice) : (extractedData.estimatedPrice || 0),
       condition: extractedData.condition,
       quantity: extractedData.quantity,
     };
