@@ -7,6 +7,7 @@ interface SellerInfoProps {
     id: string;
     name: string;
     email: string;
+    createdAt?: string;
   };
   onViewProfile: () => void;
 }
