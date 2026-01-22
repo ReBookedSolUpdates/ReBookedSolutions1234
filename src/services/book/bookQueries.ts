@@ -268,7 +268,8 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
               name: profile.name,
               email: profile.email,
               preferred_delivery_locker_data: profile.preferred_delivery_locker_data,
-              has_pickup_address: profile.has_pickup_address
+              has_pickup_address: profile.has_pickup_address,
+              created_at: profile.created_at
             }
           : null,
       };
