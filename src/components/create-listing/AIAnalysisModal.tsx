@@ -59,6 +59,11 @@ const AIAnalysisModal = ({
   onAnalysisComplete,
 }: AIAnalysisModalProps) => {
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
+  const fileInputRefs = {
+    frontCover: useRef<HTMLInputElement>(null),
+    backCover: useRef<HTMLInputElement>(null),
+    insidePages: useRef<HTMLInputElement>(null),
+  };
   const [state, setState] = useState<AnalysisState>({
     step: "bookType",
     bookType: null,
