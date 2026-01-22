@@ -87,7 +87,6 @@ const BookListing = () => {
 
     try {
       const searchQuery = searchParams.get("search") || "";
-      const isbnParam = searchParams.get("isbn") || "";
       const category = searchParams.get("category") || "";
       const grade = searchParams.get("grade") || "";
       const genre = searchParams.get("genre") || "";
