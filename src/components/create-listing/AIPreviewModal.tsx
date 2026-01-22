@@ -175,25 +175,21 @@ export const AIPreviewModal = ({
               <PreviewField
                 label="Title"
                 value={extractedData.title}
-                confidence={extractedData.confidence?.title}
                 isEmpty={!extractedData.title}
               />
               <PreviewField
                 label="Author"
                 value={extractedData.author}
-                confidence={extractedData.confidence?.author}
                 isEmpty={!extractedData.author}
               />
               <PreviewField
                 label="ISBN"
                 value={extractedData.isbn}
-                confidence={extractedData.confidence?.isbn}
                 isEmpty={!extractedData.isbn}
               />
               <PreviewField
                 label="Condition"
                 value={extractedData.condition}
-                confidence={extractedData.confidence?.condition}
               />
               {extractedData.grade && (
                 <PreviewField
