@@ -7,12 +7,13 @@ import { Button } from "@/components/ui/button";
 import { createBook } from "@/services/book/bookMutations";
 import { BookFormData } from "@/types/book";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Loader2, AlertTriangle, Sparkles } from "lucide-react";
 import EnhancedMobileImageUpload from "@/components/EnhancedMobileImageUpload";
 import FirstUploadSuccessDialog from "@/components/FirstUploadSuccessDialog";
 import PostListingSuccessDialog from "@/components/PostListingSuccessDialog";
 import ShareProfileDialog from "@/components/ShareProfileDialog";
 import CommitReminderModal from "@/components/CommitReminderModal";
+import { AIPreviewModal } from "@/components/create-listing/AIPreviewModal";
 import {
   shouldShowCommitReminder,
   shouldShowFirstUpload,
@@ -78,6 +79,11 @@ const CreateListing = () => {
   const [canListBooks, setCanListBooks] = useState<boolean | null>(null);
   const [isCheckingAddress, setIsCheckingAddress] = useState(true);
   const [preferredPickupMethod, setPreferredPickupMethod] = useState<"locker" | "pickup" | null>(null);
+  const [isProcessingAI, setIsProcessingAI] = useState(false);
+  const [aiPreview, setAiPreview] = useState<any>(null);
+  const [showAIPreview, setShowAIPreview] = useState(false);
+  const [showAIReadyButton, setShowAIReadyButton] = useState(false);
+  const [showAIWarning, setShowAIWarning] = useState(false);
 
   // Check if user can list books on component mount
   useEffect(() => {
@@ -191,6 +197,76 @@ const CreateListing = () => {
     setFormData(updatedFormData);
   };
 
+  const handleRunAIAutoFill = async () => {
+    // Validate all 3 images are uploaded
+    if (!bookImages.frontCover || !bookImages.backCover || !bookImages.insidePages) {
+      toast.error("All three images (front cover, back cover, inside pages) must be uploaded");
+      return;
+    }
+
+    setIsProcessingAI(true);
+
+    try {
+      // Call the Edge Function to extract book details
+      const { data, error } = await supabase.functions.invoke('extract-book-details', {
+        body: {
+          frontCoverUrl: bookImages.frontCover,
+          backCoverUrl: bookImages.backCover,
+          insidePagesUrl: bookImages.insidePages,
+          hints: {
+            curriculum: (formData as any).curriculum,
+            grade: formData.grade,
+          },
+        },
+      });
+
+      if (error || !data.success) {
+        toast.error(data?.message || "Failed to extract book details. Please try again.");
+        return;
+      }
+
+      // Show the preview modal with extracted data
+      setAiPreview(data.data);
+      setShowAIPreview(true);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      toast.error(`AI processing failed: ${errorMessage}`);
+    } finally {
+      setIsProcessingAI(false);
+    }
+  };
+
+  const handleAcceptAIResults = (extractedData: Partial<BookFormData>) => {
+    // Apply the extracted data to the form
+    const updatedFormData = {
+      ...formData,
+      ...extractedData,
+    };
+
+    setFormData(updatedFormData);
+    setShowAIPreview(false);
+    setShowAIWarning(true);
+
+    // Clear any previous errors for the fields we just auto-filled
+    const fieldsToClean = ['title', 'author', 'description', 'price', 'condition', 'isbn', 'grade', 'curriculum'];
+    const updatedErrors = { ...errors };
+    fieldsToClean.forEach(field => {
+      if (updatedErrors[field]) {
+        delete updatedErrors[field];
+      }
+    });
+    setErrors(updatedErrors);
+
+    toast.success("Book details auto-filled! Please review before publishing.", {
+      description: "You can edit any field as needed.",
+    });
+  };
+
+  const handleRetryAI = () => {
+    setShowAIPreview(false);
+    handleRunAIAutoFill();
+  };
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
@@ -285,10 +361,13 @@ const CreateListing = () => {
         throw new Error("Please enter a valid price greater than R0");
       }
 
-      const createdBook = await createBook({
-        ...bookData,
-        quantity: formData.quantity || 1,
-      });
+      const createdBook = await createBook(
+        {
+          ...bookData,
+          quantity: formData.quantity || 1,
+        },
+        showAIWarning // Pass aiAssisted flag based on whether AI was used
+      );
 
       // Create success notification
       try {
@@ -387,6 +466,8 @@ const CreateListing = () => {
       });
 
       setErrors({});
+      setShowAIReadyButton(false);
+      setShowAIWarning(false);
     } catch (error) {
       const errorMessage =
         error instanceof Error
@@ -443,6 +524,7 @@ const CreateListing = () => {
                   formData={formData}
                   errors={errors}
                   onInputChange={handleInputChange}
+                  showAIWarning={showAIWarning}
                 />
 
                 <div className="space-y-3 md:space-y-4">
@@ -470,6 +552,7 @@ const CreateListing = () => {
                   }
                   variant="object"
                   maxImages={5}
+                  onAllRequiredImagesReady={() => setShowAIReadyButton(true)}
                 />
                 {(errors.frontCover ||
                   errors.backCover ||
@@ -496,6 +579,33 @@ const CreateListing = () => {
                         {errors.insidePages}
                       </p>
                     )}
+                  </div>
+                )}
+
+                {/* AI Auto-Fill Button */}
+                {showAIReadyButton && (
+                  <div className="mt-4">
+                    <Button
+                      type="button"
+                      onClick={handleRunAIAutoFill}
+                      disabled={isProcessingAI}
+                      className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
+                    >
+                      {isProcessingAI ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Processing Images...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4" />
+                          🤖 Run AI Auto-Fill
+                        </>
+                      )}
+                    </Button>
+                    <p className="text-xs text-gray-500 text-center mt-2">
+                      AI will extract book details from your photos
+                    </p>
                   </div>
                 )}
               </div>
@@ -579,6 +689,15 @@ const CreateListing = () => {
               await handlePostCommitFlow();
             }}
             type="seller"
+          />
+
+          <AIPreviewModal
+            open={showAIPreview}
+            extractedData={aiPreview}
+            isLoading={isProcessingAI}
+            onAccept={handleAcceptAIResults}
+            onCancel={() => setShowAIPreview(false)}
+            onRetry={handleRetryAI}
           />
         </BankingRequirementCheck>
       </div>
