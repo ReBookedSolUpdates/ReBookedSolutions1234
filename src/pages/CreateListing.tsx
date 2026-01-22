@@ -579,6 +579,33 @@ const CreateListing = () => {
                     )}
                   </div>
                 )}
+
+                {/* AI Auto-Fill Button */}
+                {showAIReadyButton && (
+                  <div className="mt-4">
+                    <Button
+                      type="button"
+                      onClick={handleRunAIAutoFill}
+                      disabled={isProcessingAI}
+                      className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
+                    >
+                      {isProcessingAI ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Processing Images...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4" />
+                          🤖 Run AI Auto-Fill
+                        </>
+                      )}
+                    </Button>
+                    <p className="text-xs text-gray-500 text-center mt-2">
+                      AI will extract book details from your photos
+                    </p>
+                  </div>
+                )}
               </div>
 
               <Button
