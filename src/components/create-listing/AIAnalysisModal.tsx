@@ -345,10 +345,10 @@ const AIAnalysisModal = ({
     isUploading: boolean;
   }) => (
     <div className="space-y-2">
-      <Label className="text-sm font-medium">{label}</Label>
+      <Label className="text-sm font-medium text-xs sm:text-sm">{label}</Label>
       <div className="relative">
         {imageUrl ? (
-          <div className="relative w-full h-28 bg-gray-100 rounded-lg overflow-hidden">
+          <div className="relative w-full h-20 sm:h-28 bg-gray-100 rounded-lg overflow-hidden">
             <img
               src={imageUrl}
               alt={label}
@@ -358,13 +358,13 @@ const AIAnalysisModal = ({
               type="button"
               onClick={() => removeImage(imageKey, label)}
               disabled={isUploading}
-              className="absolute top-2 right-2 p-1 bg-white rounded-lg shadow hover:bg-gray-50 disabled:opacity-50"
+              className="absolute top-1 right-1 sm:top-2 sm:right-2 p-1 bg-white rounded-lg shadow hover:bg-gray-50 disabled:opacity-50"
             >
-              <X className="h-4 w-4 text-gray-600" />
+              <X className="h-3 w-3 sm:h-4 sm:w-4 text-gray-600" />
             </button>
           </div>
         ) : (
-          <label className="w-full h-28 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors">
+          <label className="w-full h-20 sm:h-28 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors">
             <input
               type="file"
               accept="image/*"
