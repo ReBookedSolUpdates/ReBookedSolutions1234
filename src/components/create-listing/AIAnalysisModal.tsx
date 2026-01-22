@@ -398,7 +398,7 @@ const AIAnalysisModal = ({
   return (
     <>
       <Dialog open={open && !state.showPreview} onOpenChange={handleClose}>
-        <DialogContent className="max-w-sm rounded-2xl">
+        <DialogContent className="max-w-sm rounded-2xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>AI Book Analysis</DialogTitle>
             <DialogDescription>
