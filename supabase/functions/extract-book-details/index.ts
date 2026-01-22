@@ -284,6 +284,7 @@ serve(async (req) => {
           condition: extractedData.condition || "Good",
           grade: extractedData.grade || undefined,
           curriculum: extractedData.curriculum || undefined,
+          category: extractedData.category || undefined,
           estimatedPrice: extractedData.estimatedPrice || 0,
           quantity: 1,
           confidence: extractedData.confidence,
