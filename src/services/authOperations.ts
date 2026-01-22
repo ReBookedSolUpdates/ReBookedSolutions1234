@@ -8,6 +8,8 @@ import {
   isNetworkError,
 } from "@/utils/errorUtils";
 import { buildDisplayName } from "@/utils/profileUtils";
+import { ActivityService } from "@/services/activityService";
+import { SessionTrackingUtils } from "@/utils/sessionTrackingUtils";
 
 export interface Profile {
   id: string;
@@ -39,6 +41,16 @@ export const loginUser = async (email: string, password: string) => {
     }
 
     throw new Error(errorMessage);
+  }
+
+  // Track login activity (non-blocking)
+  if (data.user) {
+    try {
+      await ActivityService.trackLogin(data.user.id);
+    } catch (trackingError) {
+      // Don't fail login for tracking errors
+      console.error("Error tracking login:", trackingError);
+    }
   }
 
   return data;
@@ -78,6 +90,16 @@ export const registerUser = async (
     }
 
     throw new Error(errorMessage);
+  }
+
+  // Track signup activity (non-blocking)
+  if (data.user) {
+    try {
+      await ActivityService.trackSignup(data.user.id);
+    } catch (trackingError) {
+      // Don't fail signup for tracking errors
+      console.error("Error tracking signup:", trackingError);
+    }
   }
 
   // Check if email verification is working
@@ -174,7 +196,25 @@ const generateWelcomeEmailText = (name: string, email: string): string => `
   "Pre-Loved Pages, New Adventures"
 `;
 
-export const logoutUser = async () => {
+export const logoutUser = async (userId?: string) => {
+  // Track logout activity (non-blocking)
+  if (userId) {
+    try {
+      const sessionDuration = SessionTrackingUtils.getSessionDuration();
+      await ActivityService.trackLogout(userId, sessionDuration);
+    } catch (trackingError) {
+      // Don't fail logout for tracking errors
+      console.error("Error tracking logout:", trackingError);
+    }
+  }
+
+  // Clear session after tracking
+  try {
+    SessionTrackingUtils.clearSession();
+  } catch (clearError) {
+    // Ignore session clearing errors
+  }
+
   const { error } = await supabase.auth.signOut();
   if (error) {
     // Create proper Error object with user-friendly message

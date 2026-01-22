@@ -33,6 +33,7 @@ import Step3Payment from "./Step3Payment";
 import Step4Confirmation from "./Step4Confirmation";
 import AddressInput from "./AddressInput";
 import { toast } from "sonner";
+import { ActivityService } from "@/services/activityService";
 
 interface CheckoutFlowProps {
   book: CheckoutBook;
@@ -447,6 +448,26 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
           : [...prev.step.completed, step - 1].filter((s) => s > 0),
       },
     }));
+
+    // Track checkout step (non-blocking)
+    try {
+      if (step === 1) {
+        // Step 1: Order Summary / Cart Viewed
+        ActivityService.trackCheckoutStep(user?.id, "cart_viewed", {
+          step: 1,
+          step_name: "cart_viewed",
+        });
+      } else if (step === 3) {
+        // Step 3: Payment page
+        ActivityService.trackCheckoutStep(user?.id, "payment_initiated", {
+          step: 3,
+          step_name: "payment_initiated",
+          order_value: checkoutState.order_summary?.total || book.price,
+        });
+      }
+    } catch (trackingError) {
+      console.error("Error tracking checkout step:", trackingError);
+    }
   };
 
   const handleDeliverySelection = (delivery: DeliveryOption) => {
@@ -514,6 +535,26 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   const handlePaymentSuccess = async (orderData: OrderConfirmation) => {
     setOrderConfirmation(orderData);
 
+    // Track purchase (non-blocking)
+    try {
+      const orderId = orderData.orderId || book.id;
+      const orderTotal = orderData.totalAmount || book.price;
+      const itemCount = checkoutState.order_summary?.items?.length || 1;
+
+      await ActivityService.trackPurchase(
+        user?.id,
+        orderId,
+        orderTotal,
+        itemCount,
+        {
+          seller_id: book.seller?.id,
+          seller_name: book.seller?.name,
+        }
+      );
+    } catch (trackingError) {
+      console.error("Error tracking purchase:", trackingError);
+    }
+
     // Remove book from cart after successful purchase
     // This fixes the bug where books remain in cart after Buy Now purchase
     try {
@@ -569,6 +610,15 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   const handlePaymentError = (error: string) => {
     const errorMessage = typeof error === 'string' ? error : String(error || 'Unknown error');
     const safeMessage = errorMessage === '[object Object]' ? 'Payment processing failed' : errorMessage;
+
+    // Track checkout abandoned at payment step (non-blocking)
+    try {
+      const cartValue = checkoutState.order_summary?.total || book.price;
+      ActivityService.trackCheckoutAbandoned(user?.id, "payment_initiated", cartValue);
+    } catch (trackingError) {
+      console.error("Error tracking checkout abandoned:", trackingError);
+    }
+
     toast.error(`Payment failed: ${safeMessage}`);
     setCheckoutState((prev) => ({
       ...prev,
@@ -585,6 +635,16 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   };
 
   const handleCancelCheckout = () => {
+    // Track checkout abandoned (non-blocking)
+    try {
+      const cartValue = checkoutState.order_summary?.total || book.price;
+      const currentStep = checkoutState.step.current;
+      const stepName = currentStep === 1 ? "order_summary" : currentStep === 2 ? "delivery_options" : currentStep === 3 ? "payment_initiated" : "unknown";
+      ActivityService.trackCheckoutAbandoned(user?.id, stepName, cartValue);
+    } catch (trackingError) {
+      console.error("Error tracking checkout abandoned:", trackingError);
+    }
+
     // Navigate back to the book details page
     navigate(`/book/${book.id}`);
   };

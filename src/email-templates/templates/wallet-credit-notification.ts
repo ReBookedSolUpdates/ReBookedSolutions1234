@@ -140,7 +140,7 @@ WHAT YOU CAN DO NEXT:
 - Track all your sales and deliveries
 
 PAYMENT METHODS:
-- Bank Transfer: Payout within 1–2 business days
+- Bank Transfer: Payout within 5-7 business days
 - Wallet Credit: Use instantly or withdraw anytime
 
 View Your Wallet & Profile: https://rebookedsolutions.co.za/profile?tab=overview

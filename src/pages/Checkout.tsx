@@ -6,6 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import CheckoutFlow from "@/components/checkout/CheckoutFlow";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { ActivityService } from "@/services/activityService";
 
 interface CartCheckoutData {
   items: any[];
@@ -21,10 +23,12 @@ const Checkout: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const location = useLocation();
+  const { user } = useAuth();
   const [book, setBook] = useState<CheckoutBook | null>(null);
   const [cartData, setCartData] = useState<CartCheckoutData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [checkoutStartedTracked, setCheckoutStartedTracked] = useState(false);
 
   useEffect(() => {
     // Reset state when component mounts/changes
@@ -64,6 +68,20 @@ const Checkout: React.FC = () => {
       return () => window.removeEventListener('storage', handleStorageChange);
     }
   }, [id, location.pathname]);
+
+  // Track checkout started when book is loaded
+  useEffect(() => {
+    if (book && !checkoutStartedTracked && user) {
+      setCheckoutStartedTracked(true);
+      const cartValue = book.price;
+      // Track checkout started (non-blocking)
+      try {
+        ActivityService.trackCheckoutStarted(user.id, cartValue, 1);
+      } catch (trackingError) {
+        console.error("Error tracking checkout started:", trackingError);
+      }
+    }
+  }, [book, checkoutStartedTracked, user]);
 
   const loadCartData = async () => {
     try {

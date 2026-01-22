@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Share2, Copy, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
+import { ActivityService } from "@/services/activityService";
 
 interface ShareProfileDialogProps {
   isOpen: boolean;
@@ -30,11 +31,10 @@ const ShareProfileDialog = ({
 }: ShareProfileDialogProps) => {
   const profileUrl = `${window.location.origin}/seller/${userId}`;
 
-      const copyProfileLink = () => {
+  const copyProfileLink = async () => {
     try {
       if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(profileUrl);
-        toast.success("Profile link copied! 📋 Share it everywhere to sell faster!");
       } else {
         // Fallback for environments where clipboard API is restricted
         const textArea = document.createElement('textarea');
@@ -47,14 +47,22 @@ const ShareProfileDialog = ({
         textArea.select();
         document.execCommand('copy');
         textArea.remove();
-        toast.success("Profile link copied! 📋 Share it everywhere to sell faster!");
       }
+
+      // Track link copy (non-blocking)
+      try {
+        await ActivityService.trackMiniLinkShare(userId, undefined);
+      } catch (trackingError) {
+        console.error("Error tracking link share:", trackingError);
+      }
+
+      toast.success("Profile link copied! 📋 Share it everywhere to sell faster!");
     } catch (error) {
       toast.error("Couldn't copy link automatically. Please copy it manually from the input field.");
     }
   };
 
-  const shareToSocial = (platform: string) => {
+  const shareToSocial = async (platform: string) => {
     const text = `Check out ${userName}'s textbook listings on Rebooked Solutions!`;
 
     let shareUrl = "";
@@ -70,7 +78,7 @@ const ShareProfileDialog = ({
       case "whatsapp":
         shareUrl = `https://wa.me/?text=${encodeURIComponent(text + " " + profileUrl)}`;
         break;
-            case "instagram": {
+      case "instagram": {
         // Instagram doesn't support direct URL sharing, so we copy the text and URL
         const instagramText = `${text}\n\n${profileUrl}`;
         try {
@@ -89,6 +97,12 @@ const ShareProfileDialog = ({
             document.execCommand('copy');
             textArea.remove();
           }
+          // Track share (non-blocking)
+          try {
+            await ActivityService.trackSocialShare(userId, undefined, platform);
+          } catch (trackingError) {
+            console.error("Error tracking social share:", trackingError);
+          }
           toast.success(
             "Text and link copied! Paste it in your Instagram story or post.",
           );
@@ -101,7 +115,14 @@ const ShareProfileDialog = ({
         return;
     }
 
-        window.open(shareUrl, "_blank", "width=600,height=400");
+    // Track share (non-blocking)
+    try {
+      await ActivityService.trackSocialShare(userId, undefined, platform);
+    } catch (trackingError) {
+      console.error("Error tracking social share:", trackingError);
+    }
+
+    window.open(shareUrl, "_blank", "width=600,height=400");
     toast.success("Great! 🚀 Sharing your profile helps sell books faster!");
   };
 

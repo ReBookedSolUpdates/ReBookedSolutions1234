@@ -17,6 +17,8 @@ import { ArrowLeft, AlertTriangle, BookOpen } from "lucide-react";
 import { useBookDetails } from "@/hooks/useBookDetails";
 import { extractBookId } from "@/utils/bookUtils";
 import { toast } from "sonner";
+import { ActivityService } from "@/services/activityService";
+import { useBookTracking } from "@/hooks/useBookTracking";
 
 const BookDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -39,6 +41,12 @@ const BookDetails = () => {
   }, [id, navigate]);
 
   const { book, isLoading, error } = useBookDetails(id || "");
+
+  // Track book views and time spent
+  useBookTracking({
+    bookId: id || "",
+    userId: user?.id,
+  });
 
   const handleBuyNow = () => {
     if (!user) {
@@ -67,7 +75,7 @@ const BookDetails = () => {
     navigate(`/checkout/${book.id}`);
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!user) {
       toast.error("Please log in to add books to cart");
       navigate("/login");
@@ -96,6 +104,13 @@ const BookDetails = () => {
 
     try {
       addToCart(book);
+
+      // Track add to cart (non-blocking)
+      try {
+        await ActivityService.trackAddToCart(book.id, user.id, 1, book.price);
+      } catch (trackingError) {
+        console.error("Error tracking add to cart:", trackingError);
+      }
     } catch (error) {
       toast.error("Failed to add book to cart. Please try again.");
     }
@@ -117,6 +132,13 @@ const BookDetails = () => {
     };
 
     try { await navigator.clipboard.writeText(bookUrl); } catch {}
+
+    // Track book share (non-blocking)
+    try {
+      await ActivityService.trackBookShare(book.id, user?.id);
+    } catch (trackingError) {
+      console.error("Error tracking book share:", trackingError);
+    }
 
     if (navigator.share) {
       try {

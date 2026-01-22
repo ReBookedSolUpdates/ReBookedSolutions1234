@@ -18,9 +18,11 @@ import {
   fetchUserProfileQuick,
   createUserProfile,
   upgradeToUserProfile,
+  logoutUser,
 } from "@/services/authOperations";
 import { addNotification } from "@/services/notificationService";
 import { logError, getErrorMessage } from "@/utils/errorUtils";
+import { SessionTrackingUtils } from "@/utils/sessionTrackingUtils";
 
 
 export interface UserProfile {
@@ -334,26 +336,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const logout = useCallback(async () => {
     try {
       setIsLoading(true);
-      const { error } = await supabase.auth.signOut();
+
+      // Track logout with user ID before clearing state
+      if (user?.id) {
+        try {
+          await logoutUser(user.id);
+        } catch (logoutError) {
+          // Don't fail the logout process for tracking errors
+          console.error("Error in logoutUser:", logoutError);
+        }
+      }
 
       // Clear local state regardless of signOut result
       setUser(null);
       setProfile(null);
       setSession(null);
-
-      // Only throw if it's a real error (not just session missing)
-      if (error) {
-        // Common "success" scenarios that shouldn't be treated as errors
-        const isAcceptableError =
-          error.message?.includes("session") ||
-          error.message?.includes("not authenticated") ||
-          error.message?.includes("JWT") ||
-          error.message?.includes("token");
-
-        if (!isAcceptableError) {
-          // Don't throw - the user is effectively logged out
-        }
-      }
     } catch (error) {
       // Always clear local state even if signOut fails
       setUser(null);
@@ -362,7 +359,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user?.id]);
 
   const refreshProfile = useCallback(async () => {
     if (!user) return;
@@ -590,6 +587,9 @@ support@rebookedsolutions.co.za`
 
     const initAuth = async () => {
       try {
+        // Initialize session tracking on app load
+        SessionTrackingUtils.initializeSession();
+
         // Get current session with retry logic for network failures
         let sessionResult;
         let retryCount = 0;
