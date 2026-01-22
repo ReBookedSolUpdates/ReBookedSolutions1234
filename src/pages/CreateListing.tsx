@@ -361,10 +361,13 @@ const CreateListing = () => {
         throw new Error("Please enter a valid price greater than R0");
       }
 
-      const createdBook = await createBook({
-        ...bookData,
-        quantity: formData.quantity || 1,
-      });
+      const createdBook = await createBook(
+        {
+          ...bookData,
+          quantity: formData.quantity || 1,
+        },
+        showAIWarning // Pass aiAssisted flag based on whether AI was used
+      );
 
       // Create success notification
       try {
