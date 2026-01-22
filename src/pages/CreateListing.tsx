@@ -95,11 +95,14 @@ const CreateListing = () => {
   // Check if user can list books on component mount
   useEffect(() => {
     const checkAddressStatus = async () => {
-      if (!user) {
+      if (!user?.id || addressCheckDoneRef.current) {
         setCanListBooks(false);
         setIsCheckingAddress(false);
         return;
       }
+
+      // Mark that we're checking to prevent duplicate checks
+      addressCheckDoneRef.current = true;
 
       try {
         const canList = await canUserListBooks(user.id);
@@ -119,24 +122,23 @@ const CreateListing = () => {
             const lockerData = profile.preferred_delivery_locker_data as any;
             if (lockerData.id && lockerData.name) {
               setPreferredPickupMethod("locker");
+              setIsCheckingAddress(false);
               return;
             }
           }
 
-          // If no locker, check for pickup address
-          const { getSellerDeliveryAddress } = await import("@/services/simplifiedAddressService");
+          // If no locker, check for pickup address (optimized - no dynamic import)
           const decrypted = await getSellerDeliveryAddress(user.id);
 
           if (decrypted && (decrypted.street || decrypted.streetAddress)) {
             setPreferredPickupMethod("pickup");
+            setIsCheckingAddress(false);
             return;
           }
 
           // Fallback: check user_addresses table
-          const fallbackModule = await import("@/services/fallbackAddressService");
-          const fallbackSvc = fallbackModule?.default || fallbackModule?.fallbackAddressService;
-          if (fallbackSvc && typeof fallbackSvc.getBestAddress === 'function') {
-            const best = await fallbackSvc.getBestAddress(user.id, 'pickup');
+          if (fallbackAddressService && typeof fallbackAddressService.getBestAddress === 'function') {
+            const best = await fallbackAddressService.getBestAddress(user.id, 'pickup');
             if (best && best.success && best.address) {
               setPreferredPickupMethod("pickup");
             }
@@ -152,7 +154,7 @@ const CreateListing = () => {
     };
 
     checkAddressStatus();
-  }, [user]);
+  }, [user?.id]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
