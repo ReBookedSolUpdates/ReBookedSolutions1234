@@ -406,10 +406,10 @@ const AIAnalysisModal = ({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="space-y-2 sm:space-y-4">
             {/* Step 1: Book Type Selection */}
             {state.step === "bookType" && (
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 <Label className="text-base font-medium">
                   Select Book Type <span className="text-red-500">*</span>
                 </Label>
@@ -419,7 +419,7 @@ const AIAnalysisModal = ({
                     onClick={() =>
                       setState((prev) => ({ ...prev, bookType: "school", step: "details" }))
                     }
-                    className="flex flex-col items-center gap-2 p-3 rounded-lg border-2 border-gray-200 hover:border-book-600 hover:bg-book-50 transition-all"
+                    className="flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-3 rounded-lg border-2 border-gray-200 hover:border-book-600 hover:bg-book-50 transition-all"
                   >
                     <School className="h-6 w-6 text-gray-700" />
                     <span className="text-xs font-medium text-gray-700">
