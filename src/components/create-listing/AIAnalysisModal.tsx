@@ -79,7 +79,6 @@ const AIAnalysisModal = ({
     extractedData: null,
   });
 
-  const conditions = ["New", "Good", "Better", "Average", "Below Average"];
   const curricula = ["CAPS", "Cambridge", "IEB"];
   const grades = [
     "N/A",
