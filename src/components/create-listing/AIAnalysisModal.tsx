@@ -384,6 +384,7 @@ const AIAnalysisModal = ({
         ) : (
           <label className="w-full h-20 sm:h-28 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors">
             <input
+              ref={inputRef}
               type="file"
               accept="image/*"
               onChange={(e) => handleFileUpload(e, imageKey, label)}
