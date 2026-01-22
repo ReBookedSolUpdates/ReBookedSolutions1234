@@ -36,7 +36,7 @@ const ReadyToGetStarted = () => {
               onClick={() => navigate("/getting-started")}
               size="lg"
               variant="outline"
-              className="w-full sm:w-auto border-2 border-white text-white hover:bg-white hover:text-book-600 font-semibold px-8 py-4 text-lg bg-white/10 backdrop-blur-sm"
+              className="w-full sm:w-auto border-2 border-white text-white hover:bg-white hover:text-book-600 px-8 py-4 text-lg bg-white/10 backdrop-blur-sm"
             >
               Getting Started
             </Button>
