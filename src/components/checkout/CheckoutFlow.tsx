@@ -448,6 +448,26 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
           : [...prev.step.completed, step - 1].filter((s) => s > 0),
       },
     }));
+
+    // Track checkout step (non-blocking)
+    try {
+      if (step === 1) {
+        // Step 1: Order Summary / Cart Viewed
+        ActivityService.trackCheckoutStep(user?.id, "cart_viewed", {
+          step: 1,
+          step_name: "cart_viewed",
+        });
+      } else if (step === 3) {
+        // Step 3: Payment page
+        ActivityService.trackCheckoutStep(user?.id, "payment_initiated", {
+          step: 3,
+          step_name: "payment_initiated",
+          order_value: checkoutState.order_summary?.total || book.price,
+        });
+      }
+    } catch (trackingError) {
+      console.error("Error tracking checkout step:", trackingError);
+    }
   };
 
   const handleDeliverySelection = (delivery: DeliveryOption) => {
