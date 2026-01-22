@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Share2, Copy, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
+import { ActivityService } from "@/services/activityService";
 
 interface ShareProfileDialogProps {
   isOpen: boolean;
