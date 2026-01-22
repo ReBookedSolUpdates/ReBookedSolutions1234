@@ -55,7 +55,7 @@ const ShareProfileDialog = ({
     }
   };
 
-  const shareToSocial = (platform: string) => {
+  const shareToSocial = async (platform: string) => {
     const text = `Check out ${userName}'s textbook listings on Rebooked Solutions!`;
 
     let shareUrl = "";
@@ -71,7 +71,7 @@ const ShareProfileDialog = ({
       case "whatsapp":
         shareUrl = `https://wa.me/?text=${encodeURIComponent(text + " " + profileUrl)}`;
         break;
-            case "instagram": {
+      case "instagram": {
         // Instagram doesn't support direct URL sharing, so we copy the text and URL
         const instagramText = `${text}\n\n${profileUrl}`;
         try {
@@ -90,6 +90,12 @@ const ShareProfileDialog = ({
             document.execCommand('copy');
             textArea.remove();
           }
+          // Track share (non-blocking)
+          try {
+            await ActivityService.trackSocialShare(userId, undefined, platform);
+          } catch (trackingError) {
+            console.error("Error tracking social share:", trackingError);
+          }
           toast.success(
             "Text and link copied! Paste it in your Instagram story or post.",
           );
@@ -102,7 +108,14 @@ const ShareProfileDialog = ({
         return;
     }
 
-        window.open(shareUrl, "_blank", "width=600,height=400");
+    // Track share (non-blocking)
+    try {
+      await ActivityService.trackSocialShare(userId, undefined, platform);
+    } catch (trackingError) {
+      console.error("Error tracking social share:", trackingError);
+    }
+
+    window.open(shareUrl, "_blank", "width=600,height=400");
     toast.success("Great! 🚀 Sharing your profile helps sell books faster!");
   };
 
