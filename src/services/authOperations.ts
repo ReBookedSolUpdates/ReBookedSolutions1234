@@ -196,7 +196,25 @@ const generateWelcomeEmailText = (name: string, email: string): string => `
   "Pre-Loved Pages, New Adventures"
 `;
 
-export const logoutUser = async () => {
+export const logoutUser = async (userId?: string) => {
+  // Track logout activity (non-blocking)
+  if (userId) {
+    try {
+      const sessionDuration = SessionTrackingUtils.getSessionDuration();
+      await ActivityService.trackLogout(userId, sessionDuration);
+    } catch (trackingError) {
+      // Don't fail logout for tracking errors
+      console.error("Error tracking logout:", trackingError);
+    }
+  }
+
+  // Clear session after tracking
+  try {
+    SessionTrackingUtils.clearSession();
+  } catch (clearError) {
+    // Ignore session clearing errors
+  }
+
   const { error } = await supabase.auth.signOut();
   if (error) {
     // Create proper Error object with user-friendly message
