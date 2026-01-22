@@ -74,91 +74,89 @@ const BuyersProtectionDialog = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 mt-6">
+        <div className="space-y-5 mt-6">
           {/* How It Works Section */}
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-lg p-4 border border-blue-200">
-            <h3 className="font-semibold text-blue-900 flex items-center gap-2 mb-3">
-              <Clock className="h-5 w-5 text-blue-600" />
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <Clock className="h-5 w-5 text-gray-700" />
               How Buyer Protection Works
             </h3>
-            <ol className="space-y-2 text-sm text-blue-900">
-              <li className="flex gap-3">
-                <span className="font-semibold text-blue-600 flex-shrink-0">1.</span>
-                <span>You purchase a book and payment is securely held in escrow</span>
+            <ol className="space-y-2 text-sm text-gray-700 ml-7">
+              <li className="flex gap-2">
+                <span className="font-medium text-gray-600 flex-shrink-0">1.</span>
+                <span>Payment is held securely until you confirm receipt</span>
               </li>
-              <li className="flex gap-3">
-                <span className="font-semibold text-blue-600 flex-shrink-0">2.</span>
-                <span>The seller ships your book and provides tracking information</span>
+              <li className="flex gap-2">
+                <span className="font-medium text-gray-600 flex-shrink-0">2.</span>
+                <span>Seller ships the book with tracking information</span>
               </li>
-              <li className="flex gap-3">
-                <span className="font-semibold text-blue-600 flex-shrink-0">3.</span>
-                <span>You receive and verify the book condition and details</span>
+              <li className="flex gap-2">
+                <span className="font-medium text-gray-600 flex-shrink-0">3.</span>
+                <span>You verify the book matches the listing</span>
               </li>
-              <li className="flex gap-3">
-                <span className="font-semibold text-blue-600 flex-shrink-0">4.</span>
-                <span>Payment is released to the seller after your buyer confirmation</span>
+              <li className="flex gap-2">
+                <span className="font-medium text-gray-600 flex-shrink-0">4.</span>
+                <span>Payment releases to seller after confirmation</span>
               </li>
             </ol>
           </div>
 
           {/* Key Protections Section */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4 text-lg">Your Protections</h3>
-            <div className="space-y-3">
-              <div className="flex gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
-                <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+            <h3 className="font-semibold text-gray-900 mb-3">What You Get</h3>
+            <div className="space-y-2">
+              <div className="flex gap-3 p-3 rounded border border-gray-200 bg-white">
+                <CheckCircle2 className="h-5 w-5 text-gray-700 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-semibold text-green-900 text-sm mb-0.5">Secure Escrow Payment</p>
-                  <p className="text-xs text-green-800">Your payment is held securely and not released until you confirm receipt and satisfaction</p>
+                  <p className="font-medium text-gray-900 text-sm">Secure Escrow Payment</p>
+                  <p className="text-xs text-gray-600 mt-0.5">Payment held until you confirm satisfaction</p>
                 </div>
               </div>
 
-              <div className="flex gap-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
-                <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="flex gap-3 p-3 rounded border border-gray-200 bg-white">
+                <AlertCircle className="h-5 w-5 text-gray-700 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-semibold text-amber-900 text-sm mb-0.5">Refund Guarantee</p>
-                  <p className="text-xs text-amber-800">If the book doesn't match the listing or isn't received, you're eligible for a full refund after review</p>
+                  <p className="font-medium text-gray-900 text-sm">Refund Guarantee</p>
+                  <p className="text-xs text-gray-600 mt-0.5">Full refund if book doesn't match description or isn't received</p>
                 </div>
               </div>
 
-              <div className="flex gap-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
-                <MessageCircle className="h-5 w-5 text-purple-600 flex-shrink-0 mt-0.5" />
+              <div className="flex gap-3 p-3 rounded border border-gray-200 bg-white">
+                <MessageCircle className="h-5 w-5 text-gray-700 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-semibold text-purple-900 text-sm mb-0.5">Dispute Resolution</p>
-                  <p className="text-xs text-purple-800">Our support team reviews disputes fairly and works to resolve issues quickly</p>
+                  <p className="font-medium text-gray-900 text-sm">Dispute Resolution</p>
+                  <p className="text-xs text-gray-600 mt-0.5">Our team reviews issues fairly and quickly</p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* What to Do Section */}
+          {/* Tips Section */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <HelpCircle className="h-5 w-5 text-gray-600" />
-              Tips for a Smooth Transaction
-            </h3>
-            <ul className="space-y-2 text-sm text-gray-700 list-disc list-inside">
-              <li>Save tracking information from the seller</li>
-              <li>Take photos when the book arrives to document its condition</li>
-              <li>Check that the book matches the listing description (title, author, condition)</li>
-              <li>Report any issues promptly with photographic evidence</li>
+            <h3 className="font-semibold text-gray-900 mb-3">For a Smooth Transaction</h3>
+            <ul className="space-y-1 text-sm text-gray-700">
+              <li className="flex gap-2">
+                <span className="text-gray-400">•</span>
+                <span>Save the seller's tracking information</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-gray-400">•</span>
+                <span>Take photos of the book when it arrives</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-gray-400">•</span>
+                <span>Verify it matches the listing description</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-gray-400">•</span>
+                <span>Report any issues with evidence</span>
+              </li>
             </ul>
           </div>
 
           {/* Platform Fee Section */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="font-semibold text-blue-900 mb-2">About Our Platform Fee</h3>
-            <p className="text-sm text-blue-900 leading-relaxed">
-              A R20 platform fee is applied to each purchase. This covers secure payment processing, buyer protection, dispute resolution, and platform maintenance to ensure a safe experience for all users.
-            </p>
-          </div>
-
-          {/* Payment Issues Section */}
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-            <h3 className="font-semibold text-amber-900 mb-2">Payment Issues?</h3>
-            <p className="text-sm text-amber-900 leading-relaxed">
-              If you experience any payment-related issues, please email us at <a href="mailto:payments@rebookedsolutions.co.za" className="underline font-semibold">payments@rebookedsolutions.co.za</a> with details of your concern and we'll help resolve it promptly.
-            </p>
+          <div className="bg-gray-50 rounded border border-gray-200 p-3">
+            <p className="text-sm text-gray-700"><span className="font-medium">R20 Platform Fee:</span> Covers payment processing, protection, and support</p>
           </div>
         </div>
 
