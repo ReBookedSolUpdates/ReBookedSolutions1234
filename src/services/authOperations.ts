@@ -43,6 +43,16 @@ export const loginUser = async (email: string, password: string) => {
     throw new Error(errorMessage);
   }
 
+  // Track login activity (non-blocking)
+  if (data.user) {
+    try {
+      await ActivityService.trackLogin(data.user.id);
+    } catch (trackingError) {
+      // Don't fail login for tracking errors
+      console.error("Error tracking login:", trackingError);
+    }
+  }
+
   return data;
 };
 
