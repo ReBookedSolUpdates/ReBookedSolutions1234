@@ -456,7 +456,8 @@ const getUserBooksWithFallback = async (userId: string): Promise<Book[]> => {
           name: displayName,
           email: profileData.email || "",
           preferred_delivery_locker_data: (profileData as any).preferred_delivery_locker_data,
-          has_pickup_address: !!(profileData as any).pickup_address_encrypted
+          has_pickup_address: !!(profileData as any).pickup_address_encrypted,
+          created_at: (profileData as any).created_at
         } : {
           id: userId,
           name: "Anonymous",
