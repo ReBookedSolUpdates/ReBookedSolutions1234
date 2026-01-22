@@ -115,14 +115,14 @@ const SavedLockersCard = forwardRef<
     onImageSelect: (imageUrl: string) => void;
   }) => {
     return (
-      <Card className="border border-green-200 bg-green-50 hover:shadow-lg transition-all duration-200 overflow-hidden">
-        <CardHeader className="border-b border-green-100 bg-white py-4 px-6">
+      <Card className="border border-gray-200 hover:shadow-lg transition-all duration-200 overflow-hidden">
+        <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-blue-50 to-slate-50 py-4 px-6">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-              <MapPin className="h-5 w-5 text-green-600" />
+              <MapPin className="h-5 w-5 text-blue-600" />
               {locker.name || "Saved Locker"}
             </CardTitle>
-            <Badge className="bg-green-100 text-green-700 text-xs font-medium">
+            <Badge className="bg-blue-100 text-blue-700 text-xs font-medium">
               <CheckCircle className="h-3 w-3 mr-1" />
               Active
             </Badge>
