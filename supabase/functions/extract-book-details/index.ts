@@ -123,18 +123,6 @@ async function callOpenAIVision(
     throw new Error("OPENAI_API_KEY not configured");
   }
 
-  const visionMessages = [
-    {
-      role: "user",
-      content: [
-        { type: "text", text: buildVisionPrompt(hints) },
-        { type: "image_url", image_url: { url: imageUrls[0] } },
-        { type: "image_url", image_url: { url: imageUrls[1] } },
-        { type: "image_url", image_url: { url: imageUrls[2] } },
-      ],
-    },
-  ];
-
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -142,15 +130,29 @@ async function callOpenAIVision(
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: "gpt-4-vision",
+      model: "gpt-4o",
       max_tokens: 1024,
-      system: getSystemPrompt(),
-      messages: visionMessages,
+      messages: [
+        {
+          role: "system",
+          content: getSystemPrompt(),
+        },
+        {
+          role: "user",
+          content: [
+            { type: "text", text: buildVisionPrompt(hints) },
+            { type: "image_url", image_url: { url: imageUrls[0], detail: "high" } },
+            { type: "image_url", image_url: { url: imageUrls[1], detail: "high" } },
+            { type: "image_url", image_url: { url: imageUrls[2], detail: "high" } },
+          ],
+        },
+      ],
     }),
   });
 
   if (!response.ok) {
     const error = await response.json();
+    console.error("OpenAI API error:", error);
     throw new Error(`OpenAI API error: ${error.error?.message || "Unknown error"}`);
   }
 
@@ -295,6 +297,7 @@ serve(async (req) => {
     });
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : "Unknown error";
+    console.error("Extraction error:", errorMessage);
     
     // Provide helpful error context
     let message = errorMessage;
