@@ -261,9 +261,9 @@ export const AIPreviewModal = ({
                     type="number"
                     min="0"
                     step="0.01"
-                    value={adjustedPrice}
+                    value={adjustedPrice || (extractedData.estimatedPrice || "")}
                     onChange={(e) => setAdjustedPrice(e.target.value)}
-                    placeholder={extractedData.estimatedPrice ? `R${extractedData.estimatedPrice.toFixed(2)}` : "Enter price"}
+                    placeholder="Enter price"
                     className="text-xs sm:text-sm w-full h-8 sm:h-10"
                   />
                 </div>
