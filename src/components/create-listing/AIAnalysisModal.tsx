@@ -270,6 +270,7 @@ const AIAnalysisModal = ({
         ...prev,
         extractedData: {
           ...data.data,
+          quantity: data.data.quantity || 1,
           frontCover: state.uploadedImages.frontCover,
           backCover: state.uploadedImages.backCover,
           insidePages: state.uploadedImages.insidePages,
