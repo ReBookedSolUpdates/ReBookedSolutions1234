@@ -6,6 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import CheckoutFlow from "@/components/checkout/CheckoutFlow";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { ActivityService } from "@/services/activityService";
 
 interface CartCheckoutData {
   items: any[];
