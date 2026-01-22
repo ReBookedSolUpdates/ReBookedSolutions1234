@@ -161,6 +161,7 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
       });
     } catch (error) {
       toast.error("Failed to save locker to profile");
+    } finally {
       setIsSavingLocker(false);
     }
   };
