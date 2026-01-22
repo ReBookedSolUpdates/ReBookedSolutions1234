@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, CreditCard, Edit, User, Clock, Share2 } from "lucide-react";
+import { ShoppingCart, CreditCard, Edit, Clock, Share2 } from "lucide-react";
 import { Book } from "@/types/book";
 import { UserProfile } from "@/types/address"; // UserProfile includes id
 import { toast } from "sonner";
@@ -112,49 +112,15 @@ const BookActions = ({
 
           {/* Secondary Actions */}
           <div className="pt-3 border-t border-gray-200 space-y-2">
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                onClick={onShare}
-                variant="outline"
-                className="flex-1"
-                size="sm"
-              >
-                <Share2 className="mr-2 h-4 w-4" />
-                Share Book
-              </Button>
-              <Button
-                onClick={async () => {
-                  const sellerId = book.seller?.id;
-                  if (!sellerId) {
-                    toast.error("Could not find seller information.");
-                    return;
-                  }
-                  const listingsUrl = `${window.location.origin}/seller/${sellerId}`;
-                  try { await navigator.clipboard.writeText(listingsUrl); } catch {}
-                  const shareData = {
-                    title: `${book.seller?.name ? book.seller.name + ' ' : ''}ReBooked Mini`,
-                    text: book.seller?.name ? `Check out ${book.seller.name}'s books on ReBooked!` : `Check out this seller on ReBooked!`,
-                    url: listingsUrl,
-                  };
-                  if (navigator.share) {
-                    try {
-                      await navigator.share(shareData);
-                      toast.success("Link copied • Share sheet opened");
-                      return;
-                    } catch (err) {
-                      if (err instanceof Error && err.name === 'AbortError') return;
-                    }
-                  }
-                  toast.success("Seller profile link copied!");
-                }}
-                variant="outline"
-                className="flex-1"
-                size="sm"
-              >
-                <User className="mr-2 h-4 w-4" />
-                Share Seller
-              </Button>
-            </div>
+            <Button
+              onClick={onShare}
+              variant="outline"
+              className="w-full"
+              size="sm"
+            >
+              <Share2 className="mr-2 h-4 w-4" />
+              Share Book
+            </Button>
           </div>
         </div>
       </CardContent>

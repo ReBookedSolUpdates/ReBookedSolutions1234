@@ -7,6 +7,7 @@ interface SellerInfoProps {
     id: string;
     name: string;
     email: string;
+    createdAt?: string;
   };
   onViewProfile: () => void;
 }
@@ -24,7 +25,10 @@ const SellerInfo = ({ seller, onViewProfile }: SellerInfoProps) => {
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-gray-500" />
             <span className="text-sm text-gray-600">
-              Member since {new Date().getFullYear()}
+              Member since {seller?.createdAt ? new Date(seller.createdAt).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+              }) : "Unknown"}
             </span>
           </div>
         </div>

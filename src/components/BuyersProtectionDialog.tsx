@@ -11,6 +11,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import "./BuyersProtectionDialog.css";
 
 interface BuyersProtectionDialogProps {
   triggerClassName?: string;
@@ -61,7 +62,7 @@ const BuyersProtectionDialog = ({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="rounded-xl p-3 sm:p-6 w-[calc(100vw-0.5rem)] sm:w-full max-w-lg sm:max-w-2xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto mx-auto">
+      <DialogContent className="rounded-2xl p-2 sm:p-6 w-[calc(100vw-1rem)] sm:w-full max-w-xs sm:max-w-2xl max-h-[85vh] sm:max-h-[85vh] overflow-y-auto mx-auto buyers-protection-dialog">
         <DialogHeader className="pb-3 sm:pb-4">
           <DialogTitle className="flex items-center gap-2 text-base sm:text-xl">
             <ShieldCheck className="h-4 w-4 sm:h-6 sm:w-6 text-green-600 flex-shrink-0" />

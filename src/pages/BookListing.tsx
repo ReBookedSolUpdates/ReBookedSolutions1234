@@ -35,7 +35,6 @@ const BookListing = () => {
   const [searchQuery, setSearchQuery] = useState(
     searchParams.get("search") || "",
   );
-  const [isbn, setIsbn] = useState(searchParams.get("isbn") || "");
   const [selectedCategory, setSelectedCategory] = useState(
     searchParams.get("category") || "",
   );
@@ -88,7 +87,6 @@ const BookListing = () => {
 
     try {
       const searchQuery = searchParams.get("search") || "";
-      const isbnParam = searchParams.get("isbn") || "";
       const category = searchParams.get("category") || "";
       const grade = searchParams.get("grade") || "";
       const genre = searchParams.get("genre") || "";
@@ -98,7 +96,6 @@ const BookListing = () => {
 
       const filters: {
         search?: string;
-        isbn?: string;
         category?: string;
         condition?: string;
         grade?: string;
@@ -113,7 +110,6 @@ const BookListing = () => {
       } = {};
 
       if (searchQuery) filters.search = searchQuery;
-      if (isbnParam) filters.isbn = isbnParam;
       if (category) filters.category = category;
       if (selectedCondition) filters.condition = selectedCondition;
       if (grade) filters.grade = grade;
@@ -179,9 +175,6 @@ const BookListing = () => {
     if (searchQuery.trim()) {
       newSearchParams.set("search", searchQuery.trim());
     }
-    if (isbn.trim()) {
-      newSearchParams.set("isbn", isbn.trim());
-    }
     if (selectedCategory) {
       newSearchParams.set("category", selectedCategory);
     }
@@ -206,7 +199,6 @@ const BookListing = () => {
     setSearchParams(newSearchParams);
   }, [
     searchQuery,
-    isbn,
     selectedCategory,
     selectedGrade,
     selectedGenre,
@@ -218,7 +210,6 @@ const BookListing = () => {
 
   const clearFilters = useCallback(() => {
     setSearchQuery("");
-    setIsbn("");
     setSelectedCategory("");
     setSelectedCondition("");
     setSelectedGrade("");
@@ -292,8 +283,6 @@ const BookListing = () => {
           <BookFilters
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
-            isbn={isbn}
-            setIsbn={setIsbn}
             selectedCategory={selectedCategory}
             setSelectedCategory={setSelectedCategory}
             selectedCondition={selectedCondition}

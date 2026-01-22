@@ -106,7 +106,7 @@ const Index = () => {
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-0">
               <input
                 type="text"
-                placeholder="Search by title, author, or subject..."
+                placeholder="Search by title, author, ISBN, or subject..."
                 className="w-full p-3 sm:p-4 sm:pr-16 rounded-lg sm:rounded-r-none border border-gray-300 focus:outline-none focus:ring-2 focus:ring-book-500 focus:border-transparent text-base sm:text-lg"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
