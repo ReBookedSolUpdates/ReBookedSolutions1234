@@ -79,6 +79,11 @@ const CreateListing = () => {
   const [canListBooks, setCanListBooks] = useState<boolean | null>(null);
   const [isCheckingAddress, setIsCheckingAddress] = useState(true);
   const [preferredPickupMethod, setPreferredPickupMethod] = useState<"locker" | "pickup" | null>(null);
+  const [isProcessingAI, setIsProcessingAI] = useState(false);
+  const [aiPreview, setAiPreview] = useState<any>(null);
+  const [showAIPreview, setShowAIPreview] = useState(false);
+  const [showAIReadyButton, setShowAIReadyButton] = useState(false);
+  const [showAIWarning, setShowAIWarning] = useState(false);
 
   // Check if user can list books on component mount
   useEffect(() => {
