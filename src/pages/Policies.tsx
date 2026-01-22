@@ -560,7 +560,7 @@ const Policies = () => {
                       <ul className="list-disc pl-6 space-y-2 text-gray-700 text-sm sm:text-base">
                         <li><strong>4.1</strong> Seller commission is 10% of the sale price, deducted upon successful sale completion.</li>
                         <li><strong>4.2</strong> Buyer pays a R20 platform fee per order plus any applicable shipping charges shown at checkout.</li>
-                        <li><strong>4.3</strong> Fees are VAT inclusive or exclusive as specified; tax invoices available upon request to accounts@rebookedsolutions.co.za.</li>
+                        <li><strong>4.3</strong> Fees are VAT inclusive or exclusive as specified; tax invoices available upon request to info@rebookedsolutions.co.za.</li>
                         <li><strong>4.4</strong> Fees may be changed with prior notice; changes apply only to transactions initiated after the effective date.</li>
                         <li><strong>4.5</strong> Users are responsible for their own tax obligations related to sales and purchases.</li>
                       </ul>

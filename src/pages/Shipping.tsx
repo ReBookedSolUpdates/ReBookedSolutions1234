@@ -52,7 +52,7 @@ const Shipping = () => {
             <h1 className="mt-3 text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-book-700">
               Shipping Powered by BobGo
             </h1>
-            <p className="mt-3 text-gray-700 text-sm sm:text-base">
+            <p className="mt-3 text-gray-700 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
               BobGo connects us to leading couriers so you get reliable, trackable shipping at great rates.
             </p>
             <div className="mt-4 flex flex-wrap items-center justify-center gap-2">

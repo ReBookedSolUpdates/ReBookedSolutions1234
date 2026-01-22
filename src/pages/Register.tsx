@@ -5,7 +5,6 @@ import Layout from "@/components/Layout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Mail, Lock, User, Loader2, BookOpen, Book } from "lucide-react";
 import { BackupEmailService } from "@/utils/backupEmailService";
@@ -56,7 +55,6 @@ const Register = () => {
   };
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [termsAccepted, setTermsAccepted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [userEmail, setUserEmail] = useState("");
@@ -95,12 +93,6 @@ const Register = () => {
     try {
       if (!firstName.trim() || !lastName.trim() || !email.trim() || !password.trim() || !phone.trim()) {
         throw new Error("All fields are required");
-      }
-
-      if (!termsAccepted) {
-        throw new Error(
-          "You must accept the Terms & Conditions and All Policies",
-        );
       }
 
       if (password !== confirmPassword) {
@@ -376,22 +368,18 @@ const Register = () => {
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone Number</Label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                      <span className="text-gray-400 text-xs">+27</span>
-                    </div>
                     <Input
                       id="phone"
                       type="tel"
                       inputMode="numeric"
                       maxLength={10}
                       placeholder="e.g., 0812345678"
-                      className="pl-10"
                       value={phone}
                       onChange={(e) => setPhone(normalizePhone(e.target.value))}
                       required
                     />
                     {phone && !/^0\d{9}$/.test(phone) && (
-                      <p className="text-xs text-amber-600 mt-1 pl-10">
+                      <p className="text-xs text-amber-600 mt-1">
                         South African numbers should start with 0 and be 10 digits. Please double-check.
                       </p>
                     )}
@@ -462,34 +450,20 @@ const Register = () => {
                   </div>
                 </div>
 
-                <div className="flex items-start space-x-3">
-                  <Checkbox
-                    id="terms"
-                    checked={termsAccepted}
-                    onCheckedChange={(checked) =>
-                      setTermsAccepted(checked === true)
-                    }
-                    className="mt-1"
-                    required
-                  />
-                  <Label
-                    htmlFor="terms"
-                    className="text-sm text-gray-600 leading-relaxed"
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  By creating an account you are agreeing to ReBooked Solutions{" "}
+                  <Link
+                    to="/policies"
+                    className="text-book-600 hover:text-book-800 underline"
                   >
-                    I agree to the{" "}
-                    <Link
-                      to="/policies"
-                      className="text-book-600 hover:text-book-800 underline"
->
-                      Terms & Conditions and All Policies
-                    </Link>
-                  </Label>
-                </div>
+                    terms and conditions and all policies
+                  </Link>
+                </p>
 
                 <Button
                   type="submit"
                   className="w-full bg-book-600 hover:bg-book-700"
-                  disabled={isLoading || !termsAccepted}
+                  disabled={isLoading}
                 >
                   {isLoading ? (
                     <>

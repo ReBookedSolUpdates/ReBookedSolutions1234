@@ -35,34 +35,19 @@ const BuyersProtectionDialog = ({
             type="button"
             {...(triggerProps as any)}
             className={cn(
-              "w-full rounded-lg bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 text-emerald-900 px-3 py-3 sm:px-5 sm:py-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 hover:from-emerald-100 hover:to-teal-100 transition-colors duration-200 group",
+              "w-full rounded-lg border border-green-200 bg-green-50 px-4 py-3 flex items-center gap-3 hover:bg-green-100 transition-colors",
               triggerClassName,
             )}
             aria-label={triggerLabel}
           >
-            <div className="flex items-start gap-3 sm:gap-4 flex-1 min-w-0">
-              <div className="flex-shrink-0 mt-0.5">
-                <ShieldCheck className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-600" />
-              </div>
-
-              <div className="flex-1 text-left min-w-0">
-                <div className="font-semibold text-sm sm:text-base text-emerald-900 leading-tight">
-                  {triggerLabel}
-                </div>
-                <div className="text-xs text-emerald-800 mt-0.5 leading-tight">
-                  Applied to all purchases
-                </div>
-              </div>
+            <ShieldCheck className="h-5 w-5 text-green-600 flex-shrink-0" />
+            <div className="flex-1 text-left">
+              <div className="font-medium text-sm text-gray-900">{triggerLabel}</div>
+              <div className="text-xs text-gray-600">Applied to all purchases</div>
             </div>
-
-            <div className="flex-shrink-0 self-end sm:self-center">
-              <span className="inline-flex items-center gap-1 text-xs sm:text-sm text-emerald-700 font-medium bg-white/50 rounded-full px-2.5 py-1 group-hover:bg-white/80 transition-colors whitespace-nowrap">
-                Learn more
-                <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </span>
-            </div>
+            <svg className="w-4 h-4 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
           </button>
         ) : (
           <Button
@@ -76,115 +61,83 @@ const BuyersProtectionDialog = ({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="rounded-xl p-4 sm:p-8 shadow-2xl w-[calc(100vw-2rem)] sm:w-full max-w-sm sm:max-w-2xl max-h-[90vh] overflow-y-auto mx-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-3 text-2xl">
-            <div className="flex-shrink-0 p-2 bg-emerald-100 rounded-lg">
-              <ShieldCheck className="h-6 w-6 text-emerald-600" />
-            </div>
+      <DialogContent className="rounded-xl p-3 sm:p-6 w-[calc(100vw-0.5rem)] sm:w-full max-w-lg sm:max-w-2xl max-h-[90vh] sm:max-h-[85vh] overflow-y-auto mx-auto">
+        <DialogHeader className="pb-3 sm:pb-4">
+          <DialogTitle className="flex items-center gap-2 text-base sm:text-xl">
+            <ShieldCheck className="h-4 w-4 sm:h-6 sm:w-6 text-green-600 flex-shrink-0" />
             <span>Buyer Protection</span>
           </DialogTitle>
-          <DialogDescription className="mt-2 text-base">
-            Your funds are protected on every purchase. We ensure safe, secure transactions for all ReBooked Solutions customers.
+          <DialogDescription className="mt-1 sm:mt-2 text-xs sm:text-sm text-gray-600">
+            How your money is kept safe on every purchase.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 mt-6">
+        <div className="space-y-3 sm:space-y-4">
           {/* How It Works Section */}
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-lg p-4 border border-blue-200">
-            <h3 className="font-semibold text-blue-900 flex items-center gap-2 mb-3">
-              <Clock className="h-5 w-5 text-blue-600" />
-              How Buyer Protection Works
+          <div className="pb-3 border-b">
+            <h3 className="font-semibold text-gray-900 mb-2 text-xs sm:text-base flex items-center gap-1.5">
+              <Clock className="h-4 w-4 text-green-600 flex-shrink-0" />
+              How It Works
             </h3>
-            <ol className="space-y-2 text-sm text-blue-900">
-              <li className="flex gap-3">
-                <span className="font-semibold text-blue-600 flex-shrink-0">1.</span>
-                <span>You purchase a book and payment is securely held in escrow</span>
-              </li>
-              <li className="flex gap-3">
-                <span className="font-semibold text-blue-600 flex-shrink-0">2.</span>
-                <span>The seller ships your book and provides tracking information</span>
-              </li>
-              <li className="flex gap-3">
-                <span className="font-semibold text-blue-600 flex-shrink-0">3.</span>
-                <span>You receive and verify the book condition and details</span>
-              </li>
-              <li className="flex gap-3">
-                <span className="font-semibold text-blue-600 flex-shrink-0">4.</span>
-                <span>Payment is released to the seller after your buyer confirmation</span>
-              </li>
+            <ol className="space-y-1 text-[11px] sm:text-sm text-gray-700 ml-5">
+              <li><span className="font-medium text-gray-600">1.</span> You buy, we hold your payment</li>
+              <li><span className="font-medium text-gray-600">2.</span> Seller ships the book with tracking</li>
+              <li><span className="font-medium text-gray-600">3.</span> You verify it matches the listing</li>
+              <li><span className="font-medium text-gray-600">4.</span> You confirm, we release payment</li>
             </ol>
           </div>
 
           {/* Key Protections Section */}
-          <div>
-            <h3 className="font-semibold text-gray-900 mb-4 text-lg">Your Protections</h3>
-            <div className="space-y-3">
-              <div className="flex gap-3 p-3 bg-green-50 rounded-lg border border-green-200">
-                <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-semibold text-green-900 text-sm mb-0.5">Secure Escrow Payment</p>
-                  <p className="text-xs text-green-800">Your payment is held securely and not released until you confirm receipt and satisfaction</p>
+          <div className="pb-3 border-b">
+            <h3 className="font-semibold text-gray-900 mb-1.5 text-xs sm:text-base">Your Protections</h3>
+            <div className="space-y-1.5">
+              <div className="flex gap-2 p-2 rounded border border-gray-200 bg-white">
+                <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
+                <div className="min-w-0 text-[11px] sm:text-sm">
+                  <p className="font-medium text-gray-900">Safe Payment Hold</p>
+                  <p className="text-gray-600">Your money stays with us until you're happy with the book</p>
                 </div>
               </div>
 
-              <div className="flex gap-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
-                <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-semibold text-amber-900 text-sm mb-0.5">Refund Guarantee</p>
-                  <p className="text-xs text-amber-800">If the book doesn't match the listing or isn't received, you're eligible for a full refund after review</p>
+              <div className="flex gap-2 p-2 rounded border border-gray-200 bg-white">
+                <AlertCircle className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
+                <div className="min-w-0 text-[11px] sm:text-sm">
+                  <p className="font-medium text-gray-900">Money-Back Guarantee</p>
+                  <p className="text-gray-600">Get refunded if the book doesn't match the description or doesn't arrive</p>
                 </div>
               </div>
 
-              <div className="flex gap-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
-                <MessageCircle className="h-5 w-5 text-purple-600 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-semibold text-purple-900 text-sm mb-0.5">Dispute Resolution</p>
-                  <p className="text-xs text-purple-800">Our support team reviews disputes fairly and works to resolve issues quickly</p>
+              <div className="flex gap-2 p-2 rounded border border-gray-200 bg-white">
+                <MessageCircle className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
+                <div className="min-w-0 text-[11px] sm:text-sm">
+                  <p className="font-medium text-gray-900">Dispute Help</p>
+                  <p className="text-gray-600">We step in to help resolve any disagreements between you and the seller</p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* What to Do Section */}
-          <div>
-            <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <HelpCircle className="h-5 w-5 text-gray-600" />
-              Tips for a Smooth Transaction
-            </h3>
-            <ul className="space-y-2 text-sm text-gray-700 list-disc list-inside">
-              <li>Save tracking information from the seller</li>
-              <li>Take photos when the book arrives to document its condition</li>
-              <li>Check that the book matches the listing description (title, author, condition)</li>
-              <li>Report any issues promptly with photographic evidence</li>
+          {/* Tips Section */}
+          <div className="pb-3 border-b">
+            <h3 className="font-semibold text-gray-900 mb-1.5 text-xs sm:text-base">To Protect Yourself</h3>
+            <ul className="space-y-1 text-[11px] sm:text-sm text-gray-700">
+              <li>• Keep the seller's tracking number</li>
+              <li>• Take photos of the book when it arrives</li>
+              <li>• Check it matches the listing details</li>
+              <li>• Report issues within 48 hours with photos</li>
             </ul>
           </div>
 
-          {/* Platform Fee Section */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="font-semibold text-blue-900 mb-2">About Our Platform Fee</h3>
-            <p className="text-sm text-blue-900 leading-relaxed">
-              A R20 platform fee is applied to each purchase. This covers secure payment processing, buyer protection, dispute resolution, and platform maintenance to ensure a safe experience for all users.
-            </p>
-          </div>
-
-          {/* Payment Issues Section */}
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-            <h3 className="font-semibold text-amber-900 mb-2">Payment Issues?</h3>
-            <p className="text-sm text-amber-900 leading-relaxed">
-              If you experience any payment-related issues, please email us at <a href="mailto:payments@rebookedsolutions.co.za" className="underline font-semibold">payments@rebookedsolutions.co.za</a> with details of your concern and we'll help resolve it promptly.
-            </p>
+          {/* Info Section */}
+          <div className="space-y-2 text-[11px] sm:text-sm text-gray-600">
+            <p className="text-center"><span className="font-medium text-green-900">R20 Platform Fee</span> per purchase covers payment processing, protection service, and support.</p>
+            <p className="text-center">Having payment issues? Email <a href="mailto:payments@rebookedsolutions.co.za" className="font-medium text-blue-600 hover:underline">payments@rebookedsolutions.co.za</a></p>
           </div>
         </div>
 
-        <div className="mt-6 flex gap-3 justify-end">
+        <div className="mt-3 sm:mt-4 pt-3 border-t">
           <DialogClose asChild>
-            <Button variant="outline" size="sm">
-              Close
-            </Button>
-          </DialogClose>
-          <DialogClose asChild>
-            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700">
+            <Button variant="outline" className="w-full text-xs sm:text-sm py-2 sm:py-2.5">
               I Understand
             </Button>
           </DialogClose>
