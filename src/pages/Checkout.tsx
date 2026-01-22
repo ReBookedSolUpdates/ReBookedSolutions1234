@@ -69,6 +69,20 @@ const Checkout: React.FC = () => {
     }
   }, [id, location.pathname]);
 
+  // Track checkout started when book is loaded
+  useEffect(() => {
+    if (book && !checkoutStartedTracked && user) {
+      setCheckoutStartedTracked(true);
+      const cartValue = book.price;
+      // Track checkout started (non-blocking)
+      try {
+        ActivityService.trackCheckoutStarted(user.id, cartValue, 1);
+      } catch (trackingError) {
+        console.error("Error tracking checkout started:", trackingError);
+      }
+    }
+  }, [book, checkoutStartedTracked, user]);
+
   const loadCartData = async () => {
     try {
       setLoading(true);
