@@ -590,6 +590,15 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   const handlePaymentError = (error: string) => {
     const errorMessage = typeof error === 'string' ? error : String(error || 'Unknown error');
     const safeMessage = errorMessage === '[object Object]' ? 'Payment processing failed' : errorMessage;
+
+    // Track checkout abandoned at payment step (non-blocking)
+    try {
+      const cartValue = checkoutState.order_summary?.total || book.price;
+      ActivityService.trackCheckoutAbandoned(user?.id, "payment_initiated", cartValue);
+    } catch (trackingError) {
+      console.error("Error tracking checkout abandoned:", trackingError);
+    }
+
     toast.error(`Payment failed: ${safeMessage}`);
     setCheckoutState((prev) => ({
       ...prev,
