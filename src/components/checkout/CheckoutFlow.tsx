@@ -615,6 +615,16 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   };
 
   const handleCancelCheckout = () => {
+    // Track checkout abandoned (non-blocking)
+    try {
+      const cartValue = checkoutState.order_summary?.total || book.price;
+      const currentStep = checkoutState.step.current;
+      const stepName = currentStep === 1 ? "order_summary" : currentStep === 2 ? "delivery_options" : currentStep === 3 ? "payment_initiated" : "unknown";
+      ActivityService.trackCheckoutAbandoned(user?.id, stepName, cartValue);
+    } catch (trackingError) {
+      console.error("Error tracking checkout abandoned:", trackingError);
+    }
+
     // Navigate back to the book details page
     navigate(`/book/${book.id}`);
   };
