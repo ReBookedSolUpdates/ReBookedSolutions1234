@@ -211,6 +211,12 @@ export const AIPreviewModal = ({
                   value={extractedData.curriculum}
                 />
               )}
+              {extractedData.category && (
+                <PreviewField
+                  label="Category"
+                  value={extractedData.category}
+                />
+              )}
               {(extractedData as any).universityYear && (
                 <PreviewField
                   label="University Year"
