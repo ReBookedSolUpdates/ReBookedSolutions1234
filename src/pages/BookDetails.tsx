@@ -75,7 +75,7 @@ const BookDetails = () => {
     navigate(`/checkout/${book.id}`);
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!user) {
       toast.error("Please log in to add books to cart");
       navigate("/login");
@@ -104,6 +104,13 @@ const BookDetails = () => {
 
     try {
       addToCart(book);
+
+      // Track add to cart (non-blocking)
+      try {
+        await ActivityService.trackAddToCart(book.id, user.id, 1, book.price);
+      } catch (trackingError) {
+        console.error("Error tracking add to cart:", trackingError);
+      }
     } catch (error) {
       toast.error("Failed to add book to cart. Please try again.");
     }
