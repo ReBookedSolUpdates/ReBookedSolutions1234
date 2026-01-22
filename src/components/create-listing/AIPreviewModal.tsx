@@ -21,6 +21,7 @@ interface ExtractedBookData {
   condition: "New" | "Good" | "Better" | "Average" | "Below Average";
   grade?: string;
   curriculum?: "CAPS" | "Cambridge" | "IEB";
+  category?: string;
   estimatedPrice?: number;
   quantity: number;
   confidence?: Record<string, number>;
