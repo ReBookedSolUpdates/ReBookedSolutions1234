@@ -35,17 +35,17 @@ const BuyersProtectionDialog = ({
             type="button"
             {...(triggerProps as any)}
             className={cn(
-              "w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 flex items-center gap-3 hover:bg-gray-100 transition-colors",
+              "w-full rounded-lg border border-green-200 bg-green-50 px-4 py-3 flex items-center gap-3 hover:bg-green-100 transition-colors",
               triggerClassName,
             )}
             aria-label={triggerLabel}
           >
-            <ShieldCheck className="h-5 w-5 text-gray-700 flex-shrink-0" />
+            <ShieldCheck className="h-5 w-5 text-green-600 flex-shrink-0" />
             <div className="flex-1 text-left">
               <div className="font-medium text-sm text-gray-900">{triggerLabel}</div>
               <div className="text-xs text-gray-600">Applied to all purchases</div>
             </div>
-            <svg className="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
@@ -61,14 +61,14 @@ const BuyersProtectionDialog = ({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="rounded-lg p-6 w-[calc(100vw-2rem)] sm:w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-auto">
+      <DialogContent className="rounded-xl p-4 sm:p-6 w-[calc(100vw-1rem)] sm:w-full max-w-xl sm:max-w-2xl max-h-[85vh] overflow-y-auto mx-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-3 text-xl">
-            <ShieldCheck className="h-5 w-5 text-gray-700" />
+          <DialogTitle className="flex items-center gap-2 sm:gap-3 text-lg sm:text-xl">
+            <ShieldCheck className="h-5 w-5 text-green-600 flex-shrink-0" />
             <span>Buyer Protection</span>
           </DialogTitle>
-          <DialogDescription className="mt-2 text-sm text-gray-600">
-            Your funds are protected on every purchase through our secure escrow system.
+          <DialogDescription className="mt-2 text-xs sm:text-sm text-gray-600">
+            Your funds are protected through our secure escrow system.
           </DialogDescription>
         </DialogHeader>
 
