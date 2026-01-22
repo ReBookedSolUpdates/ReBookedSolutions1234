@@ -5,7 +5,7 @@ import { handleBookServiceError } from "./bookErrorHandler";
 import { BookQueryResult } from "./bookTypes";
 import { ActivityService } from "@/services/activityService";
 
-export const createBook = async (bookData: BookFormData): Promise<Book> => {
+export const createBook = async (bookData: BookFormData, aiAssisted: boolean = false): Promise<Book> => {
   try {
     const {
       data: { user },
