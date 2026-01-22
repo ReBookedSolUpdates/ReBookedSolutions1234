@@ -175,9 +175,6 @@ const BookListing = () => {
     if (searchQuery.trim()) {
       newSearchParams.set("search", searchQuery.trim());
     }
-    if (isbn.trim()) {
-      newSearchParams.set("isbn", isbn.trim());
-    }
     if (selectedCategory) {
       newSearchParams.set("category", selectedCategory);
     }
@@ -202,7 +199,6 @@ const BookListing = () => {
     setSearchParams(newSearchParams);
   }, [
     searchQuery,
-    isbn,
     selectedCategory,
     selectedGrade,
     selectedGenre,
