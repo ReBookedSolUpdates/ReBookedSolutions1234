@@ -23,7 +23,7 @@ const CommitReminderModal = ({
   if (type === "seller") {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="w-[90vw] max-w-[90vw] sm:max-w-md mx-auto my-auto">
+        <DialogContent className="rounded-2xl max-w-xs sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-orange-600">
               <Clock className="h-5 w-5" />
