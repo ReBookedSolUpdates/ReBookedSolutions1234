@@ -96,7 +96,6 @@ const BookListing = () => {
 
       const filters: {
         search?: string;
-        isbn?: string;
         category?: string;
         condition?: string;
         grade?: string;
@@ -111,7 +110,6 @@ const BookListing = () => {
       } = {};
 
       if (searchQuery) filters.search = searchQuery;
-      if (isbnParam) filters.isbn = isbnParam;
       if (category) filters.category = category;
       if (selectedCondition) filters.condition = selectedCondition;
       if (grade) filters.grade = grade;
