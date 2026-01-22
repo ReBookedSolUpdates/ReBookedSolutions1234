@@ -155,14 +155,14 @@ export const BookTypeSection = ({
       {bookType === "school" && (
         <div>
           <Label htmlFor="curriculum" className="text-base font-medium">
-            Curriculum <span className="text-gray-400">(Optional)</span>
+            Curriculum <span className="text-red-500">*</span>
           </Label>
           <Select
             value={(formData as any).curriculum || ""}
-            onValueChange={(value) => onSelectChange("curriculum", value || undefined)}
+            onValueChange={(value) => onSelectChange("curriculum", value)}
           >
-            <SelectTrigger>
-              <SelectValue placeholder="Select curriculum (if applicable)" />
+            <SelectTrigger className={errors.curriculum ? "border-red-500" : ""}>
+              <SelectValue placeholder="Select curriculum" />
             </SelectTrigger>
             <SelectContent>
             {curricula.map((curriculum, index) => (
@@ -172,6 +172,9 @@ export const BookTypeSection = ({
             ))}
           </SelectContent>
           </Select>
+          {errors.curriculum && (
+            <p className="text-sm text-red-500 mt-1">{errors.curriculum}</p>
+          )}
         </div>
       )}
 

@@ -14,6 +14,7 @@ import PostListingSuccessDialog from "@/components/PostListingSuccessDialog";
 import ShareProfileDialog from "@/components/ShareProfileDialog";
 import CommitReminderModal from "@/components/CommitReminderModal";
 import { AIPreviewModal } from "@/components/create-listing/AIPreviewModal";
+import AIAnalysisModal from "@/components/create-listing/AIAnalysisModal";
 import {
   shouldShowCommitReminder,
   shouldShowFirstUpload,
@@ -84,6 +85,7 @@ const CreateListing = () => {
   const [showAIPreview, setShowAIPreview] = useState(false);
   const [showAIReadyButton, setShowAIReadyButton] = useState(false);
   const [showAIWarning, setShowAIWarning] = useState(false);
+  const [showAIAnalysisModal, setShowAIAnalysisModal] = useState(false);
 
   // Check if user can list books on component mount
   useEffect(() => {
@@ -267,6 +269,41 @@ const CreateListing = () => {
     handleRunAIAutoFill();
   };
 
+  const handleAIAnalysisComplete = (extractedData: Partial<BookFormData>) => {
+    // Apply the extracted data to the form
+    const updatedFormData = {
+      ...formData,
+      ...extractedData,
+    };
+
+    setFormData(updatedFormData);
+    setShowAIAnalysisModal(false);
+    setShowAIWarning(true);
+
+    // Clear any previous errors for the fields we just auto-filled
+    const fieldsToClean = [
+      "title",
+      "author",
+      "description",
+      "price",
+      "condition",
+      "isbn",
+      "grade",
+      "curriculum",
+    ];
+    const updatedErrors = { ...errors };
+    fieldsToClean.forEach((field) => {
+      if (updatedErrors[field]) {
+        delete updatedErrors[field];
+      }
+    });
+    setErrors(updatedErrors);
+
+    toast.success("Book details auto-filled! Please review before publishing.", {
+      description: "You can edit any field as needed.",
+    });
+  };
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
@@ -281,8 +318,13 @@ const CreateListing = () => {
     if (!formData.quantity || formData.quantity < 1)
       newErrors.quantity = "Quantity must be at least 1";
 
-    if (bookType === "school" && !formData.grade) {
-      newErrors.grade = "Grade is required for school books";
+    if (bookType === "school") {
+      if (!formData.grade) {
+        newErrors.grade = "Grade is required for school books";
+      }
+      if (!(formData as any).curriculum) {
+        newErrors.curriculum = "Curriculum is required for school books";
+      }
     }
 
     if (bookType === "university" && !formData.universityYear) {
@@ -507,11 +549,22 @@ const CreateListing = () => {
           <div
             className={`bg-white rounded-lg shadow-md ${isMobile ? "p-4" : "p-8"}`}
           >
-            <h1
-              className="text-xl md:text-3xl font-bold text-book-800 mb-6 text-center"
-            >
-              Create New Listing
-            </h1>
+            <div className="flex items-center justify-between gap-4 mb-6">
+              <h1
+                className="text-xl md:text-3xl font-bold text-book-800 flex-1 text-center"
+              >
+                Create New Listing
+              </h1>
+              <Button
+                type="button"
+                onClick={() => setShowAIAnalysisModal(true)}
+                variant="outline"
+                className="flex items-center gap-2 whitespace-nowrap"
+              >
+                <Sparkles className="h-4 w-4" />
+                Use AI
+              </Button>
+            </div>
 
             <form
               onSubmit={handleSubmit}
@@ -581,33 +634,6 @@ const CreateListing = () => {
                     )}
                   </div>
                 )}
-
-                {/* AI Auto-Fill Button */}
-                {showAIReadyButton && (
-                  <div className="mt-4">
-                    <Button
-                      type="button"
-                      onClick={handleRunAIAutoFill}
-                      disabled={isProcessingAI}
-                      className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
-                    >
-                      {isProcessingAI ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Processing Images...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="h-4 w-4" />
-                          🤖 Run AI Auto-Fill
-                        </>
-                      )}
-                    </Button>
-                    <p className="text-xs text-gray-500 text-center mt-2">
-                      AI will extract book details from your photos
-                    </p>
-                  </div>
-                )}
               </div>
 
               <Button
@@ -637,6 +663,13 @@ const CreateListing = () => {
               </Button>
             </form>
           </div>
+
+          <AIAnalysisModal
+            open={showAIAnalysisModal}
+            onClose={() => setShowAIAnalysisModal(false)}
+            onAnalysisComplete={handleAIAnalysisComplete}
+            bookType={bookType}
+          />
 
           <FirstUploadSuccessDialog
             isOpen={showFirstUploadDialog}
