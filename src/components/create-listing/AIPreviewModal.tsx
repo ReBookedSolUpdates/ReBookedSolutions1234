@@ -21,6 +21,7 @@ interface ExtractedBookData {
   condition: "New" | "Good" | "Better" | "Average" | "Below Average";
   grade?: string;
   curriculum?: "CAPS" | "Cambridge" | "IEB";
+  category?: string;
   estimatedPrice?: number;
   quantity: number;
   confidence?: Record<string, number>;
@@ -57,36 +58,29 @@ const ConfidenceIndicator = ({ value }: { value: number | undefined }) => {
 const PreviewField = ({
   label,
   value,
-  confidence,
   isEmpty = false,
 }: {
   label: string;
   value: string | number | undefined;
-  confidence?: number;
   isEmpty?: boolean;
 }) => {
   return (
-    <div className="py-3 border-b last:border-b-0">
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+    <div className="py-1 sm:py-2 border-b last:border-b-0">
+      <div className="flex items-start justify-between gap-1">
+        <div className="flex-1 min-w-0">
+          <p className="text-[9px] sm:text-xs font-medium text-gray-500 uppercase tracking-tight">
             {label}
           </p>
           {isEmpty ? (
-            <p className="text-sm text-gray-400 italic mt-1">Not detected</p>
+            <p className="text-[11px] sm:text-xs text-gray-400 italic mt-0.5">Not detected</p>
           ) : (
-            <p className="text-sm font-medium text-gray-900 mt-1 break-words">
+            <p className="text-[11px] sm:text-sm font-medium text-gray-900 mt-0.5 break-words">
               {value}
             </p>
           )}
         </div>
-        {!isEmpty && confidence && (
-          <div className="ml-4 flex-shrink-0">
-            <ConfidenceIndicator value={confidence} />
-          </div>
-        )}
         {isEmpty && (
-          <AlertCircle className="h-4 w-4 text-orange-500 ml-2 flex-shrink-0 mt-1" />
+          <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 text-orange-500 flex-shrink-0 mt-0.5" />
         )}
       </div>
     </div>
@@ -126,6 +120,9 @@ export const AIPreviewModal = ({
     if (extractedData.curriculum) {
       (formDataUpdate as any).curriculum = extractedData.curriculum;
     }
+    if (extractedData.category) {
+      (formDataUpdate as any).category = extractedData.category;
+    }
     if ((extractedData as any).frontCover) {
       formDataUpdate.frontCover = (extractedData as any).frontCover;
     }
@@ -153,7 +150,7 @@ export const AIPreviewModal = ({
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
-      <DialogContent className="sm:max-w-sm rounded-2xl p-4 sm:p-6">
+      <DialogContent className="max-w-sm rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CheckCircle className="h-5 w-5 text-green-600" />
@@ -166,70 +163,74 @@ export const AIPreviewModal = ({
         </DialogHeader>
 
         {isLoading ? (
-          <div className="py-8 text-center">
+          <div className="py-1 sm:py-4 text-center">
             <div className="inline-flex items-center justify-center">
-              <div className="h-8 w-8 border-4 border-gray-200 border-t-book-600 rounded-full animate-spin" />
+              <div className="h-6 w-6 sm:h-8 sm:w-8 border-3 sm:border-4 border-gray-200 border-t-book-600 rounded-full animate-spin" />
             </div>
-            <p className="text-sm text-gray-600 mt-4">Processing images...</p>
+            <p className="text-xs text-gray-600 mt-1">Processing...</p>
           </div>
         ) : extractedData ? (
-          <div className="space-y-4">
-            <div className="border rounded-lg p-4 bg-gray-50">
+          <div className="space-y-0.5 sm:space-y-2">
+            <div className="border rounded p-1.5 sm:p-3 bg-gray-50 text-sm">
               <PreviewField
                 label="Title"
                 value={extractedData.title}
-                confidence={extractedData.confidence?.title}
                 isEmpty={!extractedData.title}
               />
               <PreviewField
                 label="Author"
                 value={extractedData.author}
-                confidence={extractedData.confidence?.author}
                 isEmpty={!extractedData.author}
               />
               <PreviewField
                 label="ISBN"
                 value={extractedData.isbn}
-                confidence={extractedData.confidence?.isbn}
                 isEmpty={!extractedData.isbn}
               />
               <PreviewField
                 label="Condition"
                 value={extractedData.condition}
-                confidence={extractedData.confidence?.condition}
               />
               {extractedData.grade && (
                 <PreviewField
                   label="Grade"
                   value={extractedData.grade}
-                  confidence={extractedData.confidence?.grade}
                 />
               )}
               {extractedData.curriculum && (
                 <PreviewField
                   label="Curriculum"
                   value={extractedData.curriculum}
-                  confidence={extractedData.confidence?.curriculum}
+                />
+              )}
+              {extractedData.category && (
+                <PreviewField
+                  label="Category"
+                  value={extractedData.category}
                 />
               )}
               {(extractedData as any).universityYear && (
-                <PreviewField
-                  label="University Year"
-                  value={(extractedData as any).universityYear}
-                />
+                <div className="hidden sm:block">
+                  <PreviewField
+                    label="University Year"
+                    value={(extractedData as any).universityYear}
+                  />
+                </div>
               )}
               {(extractedData as any).genre && (
-                <PreviewField
-                  label="Genre"
-                  value={(extractedData as any).genre}
-                />
+                <div className="hidden sm:block">
+                  <PreviewField
+                    label="Genre"
+                    value={(extractedData as any).genre}
+                  />
+                </div>
               )}
               {((extractedData as any).frontCover || (extractedData as any).backCover || (extractedData as any).insidePages) && (
-                <div className="py-3 border-b">
+                <div className="py-2 sm:py-3 border-b hidden sm:block">
                   <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                     Book Images
                   </p>
-                  <div className="flex gap-2 mt-2">
+                  <div className="flex gap-2 mt-1 sm:mt-2">
                     {(extractedData as any).frontCover && (
                       <div className="flex items-center gap-1 px-2 py-1 bg-green-50 border border-green-200 rounded text-xs">
                         <CheckCircle className="h-3 w-3 text-green-600" />
@@ -251,34 +252,27 @@ export const AIPreviewModal = ({
                   </div>
                 </div>
               )}
-              <div className="py-3 border-b">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              <div className="py-2 sm:py-3 border-b">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide text-[10px] sm:text-xs">
                   Estimated Price (ZAR)
                 </p>
-                <div className="flex items-end gap-2 mt-2">
-                  <div className="flex-1">
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={adjustedPrice || extractedData.estimatedPrice || ""}
-                      onChange={(e) => setAdjustedPrice(e.target.value)}
-                      placeholder={`R${extractedData.estimatedPrice?.toFixed(2)}`}
-                      className="text-sm"
-                    />
-                  </div>
-                  {extractedData.confidence?.price && (
-                    <div className="text-xs font-medium text-gray-500">
-                      {Math.round(extractedData.confidence.price)}% confidence
-                    </div>
-                  )}
+                <div className="mt-1 sm:mt-2">
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={adjustedPrice || extractedData.estimatedPrice || ""}
+                    onChange={(e) => setAdjustedPrice(e.target.value)}
+                    placeholder={`R${extractedData.estimatedPrice?.toFixed(2)}`}
+                    className="text-xs sm:text-sm w-full h-8 sm:h-10"
+                  />
                 </div>
               </div>
-              <div className="py-3 border-b last:border-b-0">
+              <div className="py-2 sm:py-3 border-b last:border-b-0">
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                   Description
                 </p>
-                <p className="text-sm text-gray-700 mt-1 line-clamp-4">
+                <p className="text-xs sm:text-sm text-gray-700 mt-1 line-clamp-2 sm:line-clamp-4">
                   {extractedData.description}
                 </p>
                 {extractedData.condition && (

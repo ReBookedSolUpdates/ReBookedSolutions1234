@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -59,6 +59,11 @@ const AIAnalysisModal = ({
   onAnalysisComplete,
 }: AIAnalysisModalProps) => {
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
+  const fileInputRefs = {
+    frontCover: useRef<HTMLInputElement>(null),
+    backCover: useRef<HTMLInputElement>(null),
+    insidePages: useRef<HTMLInputElement>(null),
+  };
   const [state, setState] = useState<AnalysisState>({
     step: "bookType",
     bookType: null,
@@ -105,7 +110,10 @@ const AIAnalysisModal = ({
       format: "image/webp",
     });
 
-    const fileName = `${Math.random()}.${compressed.extension}`;
+    // Generate unique filename using timestamp + random string
+    const timestamp = Date.now();
+    const randomStr = Math.random().toString(36).substring(2, 11);
+    const fileName = `${timestamp}-${randomStr}.${compressed.extension}`;
     const filePath = `book-images/${fileName}`;
 
     const { error: uploadError } = await supabase.storage
@@ -168,10 +176,18 @@ const AIAnalysisModal = ({
       }));
       toast.success(`${label} uploaded successfully!`);
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      console.error(`Upload error for ${label}:`, errorMessage);
       toast.error(`Failed to upload ${label}. Please try again.`);
     } finally {
       setUploadingIndex(null);
-      event.target.value = "";
+      // Reset the input element using ref
+      const inputRef = fileInputRefs[imageKey];
+      if (inputRef?.current) {
+        inputRef.current.value = "";
+      } else if (event.target instanceof HTMLInputElement) {
+        event.target.value = "";
+      }
     }
   };
 
@@ -338,17 +354,19 @@ const AIAnalysisModal = ({
     imageKey,
     imageUrl,
     isUploading,
+    inputRef,
   }: {
     label: string;
     imageKey: keyof UploadedImages;
     imageUrl: string;
     isUploading: boolean;
+    inputRef?: React.RefObject<HTMLInputElement>;
   }) => (
     <div className="space-y-2">
-      <Label className="text-sm font-medium">{label}</Label>
+      <Label className="text-sm font-medium text-xs sm:text-sm">{label}</Label>
       <div className="relative">
         {imageUrl ? (
-          <div className="relative w-full h-28 bg-gray-100 rounded-lg overflow-hidden">
+          <div className="relative w-full h-20 sm:h-28 bg-gray-100 rounded-lg overflow-hidden">
             <img
               src={imageUrl}
               alt={label}
@@ -358,31 +376,32 @@ const AIAnalysisModal = ({
               type="button"
               onClick={() => removeImage(imageKey, label)}
               disabled={isUploading}
-              className="absolute top-2 right-2 p-1 bg-white rounded-lg shadow hover:bg-gray-50 disabled:opacity-50"
+              className="absolute top-1 right-1 sm:top-2 sm:right-2 p-1 bg-white rounded-lg shadow hover:bg-gray-50 disabled:opacity-50"
             >
-              <X className="h-4 w-4 text-gray-600" />
+              <X className="h-3 w-3 sm:h-4 sm:w-4 text-gray-600" />
             </button>
           </div>
         ) : (
-          <label className="w-full h-28 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors">
+          <label className="w-full h-20 sm:h-28 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors">
             <input
+              ref={inputRef}
               type="file"
               accept="image/*"
               onChange={(e) => handleFileUpload(e, imageKey, label)}
               disabled={isUploading}
               className="hidden"
             />
-            <div className="flex flex-col items-center gap-1 text-center">
+            <div className="flex flex-col items-center gap-0.5 sm:gap-1 text-center">
               {isUploading ? (
                 <>
-                  <Loader2 className="h-5 w-5 text-book-600 animate-spin" />
+                  <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 text-book-600 animate-spin" />
                   <span className="text-xs font-medium text-gray-600">
                     Uploading...
                   </span>
                 </>
               ) : (
                 <>
-                  <Upload className="h-5 w-5 text-gray-400" />
+                  <Upload className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                   <span className="text-xs font-medium text-gray-600">
                     {label}
                   </span>
@@ -398,7 +417,7 @@ const AIAnalysisModal = ({
   return (
     <>
       <Dialog open={open && !state.showPreview} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-sm max-h-[85vh] overflow-y-auto rounded-2xl p-4 sm:p-6">
+        <DialogContent className="max-w-sm rounded-2xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>AI Book Analysis</DialogTitle>
             <DialogDescription>
@@ -406,10 +425,10 @@ const AIAnalysisModal = ({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="space-y-2 sm:space-y-4">
             {/* Step 1: Book Type Selection */}
             {state.step === "bookType" && (
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 <Label className="text-base font-medium">
                   Select Book Type <span className="text-red-500">*</span>
                 </Label>
@@ -419,7 +438,7 @@ const AIAnalysisModal = ({
                     onClick={() =>
                       setState((prev) => ({ ...prev, bookType: "school", step: "details" }))
                     }
-                    className="flex flex-col items-center gap-2 p-3 rounded-lg border-2 border-gray-200 hover:border-book-600 hover:bg-book-50 transition-all"
+                    className="flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-3 rounded-lg border-2 border-gray-200 hover:border-book-600 hover:bg-book-50 transition-all"
                   >
                     <School className="h-6 w-6 text-gray-700" />
                     <span className="text-xs font-medium text-gray-700">
@@ -431,7 +450,7 @@ const AIAnalysisModal = ({
                     onClick={() =>
                       setState((prev) => ({ ...prev, bookType: "university", step: "details" }))
                     }
-                    className="flex flex-col items-center gap-2 p-3 rounded-lg border-2 border-gray-200 hover:border-book-600 hover:bg-book-50 transition-all"
+                    className="flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-3 rounded-lg border-2 border-gray-200 hover:border-book-600 hover:bg-book-50 transition-all"
                   >
                     <GraduationCap className="h-6 w-6 text-gray-700" />
                     <span className="text-xs font-medium text-gray-700">
@@ -443,7 +462,7 @@ const AIAnalysisModal = ({
                     onClick={() =>
                       setState((prev) => ({ ...prev, bookType: "reader", step: "details" }))
                     }
-                    className="flex flex-col items-center gap-2 p-3 rounded-lg border-2 border-gray-200 hover:border-book-600 hover:bg-book-50 transition-all"
+                    className="flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-3 rounded-lg border-2 border-gray-200 hover:border-book-600 hover:bg-book-50 transition-all"
                   >
                     <BookOpen className="h-6 w-6 text-gray-700" />
                     <span className="text-xs font-medium text-gray-700">
@@ -456,8 +475,8 @@ const AIAnalysisModal = ({
 
             {/* Step 2: Details (Type-specific fields) */}
             {state.step === "details" && (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between mb-4">
+              <div className="space-y-2 sm:space-y-3">
+                <div className="flex items-center justify-between mb-2 sm:mb-4">
                   <h3 className="font-medium">Book Details</h3>
                   <button
                     type="button"
@@ -639,7 +658,7 @@ const AIAnalysisModal = ({
 
             {/* Step 3: Image Upload */}
             {state.step === "images" && (
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-medium">Book Images</h3>
                   <button
@@ -652,7 +671,7 @@ const AIAnalysisModal = ({
                     Back
                   </button>
                 </div>
-                <p className="text-xs text-gray-600 mb-3">
+                <p className="text-xs text-gray-600 mb-2 sm:mb-3">
                   Upload photos of your book's front cover, back cover, and inside pages for AI analysis.
                 </p>
                 <ImageUploadSlot
@@ -660,18 +679,21 @@ const AIAnalysisModal = ({
                   imageKey="frontCover"
                   imageUrl={state.uploadedImages.frontCover}
                   isUploading={uploadingIndex === 0}
+                  inputRef={fileInputRefs.frontCover}
                 />
                 <ImageUploadSlot
                   label="Back Cover"
                   imageKey="backCover"
                   imageUrl={state.uploadedImages.backCover}
                   isUploading={uploadingIndex === 1}
+                  inputRef={fileInputRefs.backCover}
                 />
                 <ImageUploadSlot
                   label="Inside Pages"
                   imageKey="insidePages"
                   imageUrl={state.uploadedImages.insidePages}
                   isUploading={uploadingIndex === 2}
+                  inputRef={fileInputRefs.insidePages}
                 />
 
                 {/* Error Message */}
