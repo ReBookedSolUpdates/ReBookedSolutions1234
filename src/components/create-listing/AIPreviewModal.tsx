@@ -200,11 +200,29 @@ export const AIPreviewModal = ({
                   confidence={extractedData.confidence?.curriculum}
                 />
               )}
-              <PreviewField
-                label="Estimated Price (ZAR)"
-                value={`R${extractedData.estimatedPrice?.toFixed(2)}`}
-                confidence={extractedData.confidence?.price}
-              />
+              <div className="py-3 border-b">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  Estimated Price (ZAR)
+                </p>
+                <div className="flex items-end gap-2 mt-2">
+                  <div className="flex-1">
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={adjustedPrice || extractedData.estimatedPrice || ""}
+                      onChange={(e) => setAdjustedPrice(e.target.value)}
+                      placeholder={`R${extractedData.estimatedPrice?.toFixed(2)}`}
+                      className="text-sm"
+                    />
+                  </div>
+                  {extractedData.confidence?.price && (
+                    <div className="text-xs font-medium text-gray-500">
+                      {Math.round(extractedData.confidence.price)}% confidence
+                    </div>
+                  )}
+                </div>
+              </div>
               <div className="py-3 border-b last:border-b-0">
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                   Description
