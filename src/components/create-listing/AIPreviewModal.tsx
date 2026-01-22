@@ -150,7 +150,7 @@ export const AIPreviewModal = ({
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
-      <DialogContent className="max-w-sm rounded-2xl">
+      <DialogContent className="rounded-2xl max-w-xs sm:max-w-sm">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CheckCircle className="h-5 w-5 text-green-600" />
@@ -261,9 +261,9 @@ export const AIPreviewModal = ({
                     type="number"
                     min="0"
                     step="0.01"
-                    value={adjustedPrice || extractedData.estimatedPrice || ""}
+                    value={adjustedPrice || (extractedData.estimatedPrice || "")}
                     onChange={(e) => setAdjustedPrice(e.target.value)}
-                    placeholder={`R${extractedData.estimatedPrice?.toFixed(2)}`}
+                    placeholder="Enter price"
                     className="text-xs sm:text-sm w-full h-8 sm:h-10"
                   />
                 </div>

@@ -63,7 +63,6 @@ import ClearNotifications from "./pages/ClearNotifications";
 import RestoreBooks from "./pages/RestoreBooks";
 import BankingSetup from "./pages/BankingSetup";
 import UserProfile from "./pages/UserProfile";
-import Transparency from "./pages/Transparency";
 import WebhookTest from "./pages/WebhookTest";
 // import LockerSearchPage from "./pages/LockerSearchPage"; // DISABLED - Locker functionality removed
 
@@ -268,7 +267,6 @@ function AppRoutes() {
         <Route path="/policies" element={<Policies />} />
         <Route path="/shipping" element={<Shipping />} />
         <Route path="/getting-started" element={<GettingStarted />} />
-        <Route path="/transparency" element={<Transparency />} />
         <Route path="/report" element={<Report />} />
         <Route path="/webhook-test" element={<WebhookTest />} />
 
