@@ -58,12 +58,10 @@ const ConfidenceIndicator = ({ value }: { value: number | undefined }) => {
 const PreviewField = ({
   label,
   value,
-  confidence,
   isEmpty = false,
 }: {
   label: string;
   value: string | number | undefined;
-  confidence?: number;
   isEmpty?: boolean;
 }) => {
   return (
@@ -81,11 +79,6 @@ const PreviewField = ({
             </p>
           )}
         </div>
-        {!isEmpty && confidence && (
-          <div className="ml-4 flex-shrink-0">
-            <ConfidenceIndicator value={confidence} />
-          </div>
-        )}
         {isEmpty && (
           <AlertCircle className="h-4 w-4 text-orange-500 ml-2 flex-shrink-0 mt-1" />
         )}
