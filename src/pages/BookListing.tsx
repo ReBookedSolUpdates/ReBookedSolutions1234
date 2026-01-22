@@ -35,7 +35,6 @@ const BookListing = () => {
   const [searchQuery, setSearchQuery] = useState(
     searchParams.get("search") || "",
   );
-  const [isbn, setIsbn] = useState(searchParams.get("isbn") || "");
   const [selectedCategory, setSelectedCategory] = useState(
     searchParams.get("category") || "",
   );
