@@ -212,6 +212,45 @@ export const AIPreviewModal = ({
                   confidence={extractedData.confidence?.curriculum}
                 />
               )}
+              {(extractedData as any).universityYear && (
+                <PreviewField
+                  label="University Year"
+                  value={(extractedData as any).universityYear}
+                />
+              )}
+              {(extractedData as any).genre && (
+                <PreviewField
+                  label="Genre"
+                  value={(extractedData as any).genre}
+                />
+              )}
+              {((extractedData as any).frontCover || (extractedData as any).backCover || (extractedData as any).insidePages) && (
+                <div className="py-3 border-b">
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                    Book Images
+                  </p>
+                  <div className="flex gap-2 mt-2">
+                    {(extractedData as any).frontCover && (
+                      <div className="flex items-center gap-1 px-2 py-1 bg-green-50 border border-green-200 rounded text-xs">
+                        <CheckCircle className="h-3 w-3 text-green-600" />
+                        <span className="text-green-700">Front Cover</span>
+                      </div>
+                    )}
+                    {(extractedData as any).backCover && (
+                      <div className="flex items-center gap-1 px-2 py-1 bg-green-50 border border-green-200 rounded text-xs">
+                        <CheckCircle className="h-3 w-3 text-green-600" />
+                        <span className="text-green-700">Back Cover</span>
+                      </div>
+                    )}
+                    {(extractedData as any).insidePages && (
+                      <div className="flex items-center gap-1 px-2 py-1 bg-green-50 border border-green-200 rounded text-xs">
+                        <CheckCircle className="h-3 w-3 text-green-600" />
+                        <span className="text-green-700">Inside Pages</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
               <div className="py-3 border-b">
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                   Estimated Price (ZAR)
