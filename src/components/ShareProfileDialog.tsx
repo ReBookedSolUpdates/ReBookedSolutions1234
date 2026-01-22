@@ -31,11 +31,10 @@ const ShareProfileDialog = ({
 }: ShareProfileDialogProps) => {
   const profileUrl = `${window.location.origin}/seller/${userId}`;
 
-      const copyProfileLink = () => {
+  const copyProfileLink = async () => {
     try {
       if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(profileUrl);
-        toast.success("Profile link copied! 📋 Share it everywhere to sell faster!");
       } else {
         // Fallback for environments where clipboard API is restricted
         const textArea = document.createElement('textarea');
@@ -48,8 +47,16 @@ const ShareProfileDialog = ({
         textArea.select();
         document.execCommand('copy');
         textArea.remove();
-        toast.success("Profile link copied! 📋 Share it everywhere to sell faster!");
       }
+
+      // Track link copy (non-blocking)
+      try {
+        await ActivityService.trackMiniLinkShare(userId, undefined);
+      } catch (trackingError) {
+        console.error("Error tracking link share:", trackingError);
+      }
+
+      toast.success("Profile link copied! 📋 Share it everywhere to sell faster!");
     } catch (error) {
       toast.error("Couldn't copy link automatically. Please copy it manually from the input field.");
     }
