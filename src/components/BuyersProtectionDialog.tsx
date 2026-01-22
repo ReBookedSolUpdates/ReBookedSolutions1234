@@ -72,58 +72,58 @@ const BuyersProtectionDialog = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-5 mt-6">
+        <div className="space-y-4 sm:space-y-5 mt-4 sm:mt-6">
           {/* How It Works Section */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <Clock className="h-5 w-5 text-gray-700" />
+            <h3 className="font-semibold text-gray-900 mb-2 sm:mb-3 text-sm sm:text-base flex items-center gap-2">
+              <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 flex-shrink-0" />
               How Buyer Protection Works
             </h3>
-            <ol className="space-y-2 text-sm text-gray-700 ml-7">
+            <ol className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-700 ml-6">
               <li className="flex gap-2">
                 <span className="font-medium text-gray-600 flex-shrink-0">1.</span>
-                <span>Payment is held securely until you confirm receipt</span>
+                <span>Payment held securely until you confirm</span>
               </li>
               <li className="flex gap-2">
                 <span className="font-medium text-gray-600 flex-shrink-0">2.</span>
-                <span>Seller ships the book with tracking information</span>
+                <span>Seller ships with tracking info</span>
               </li>
               <li className="flex gap-2">
                 <span className="font-medium text-gray-600 flex-shrink-0">3.</span>
-                <span>You verify the book matches the listing</span>
+                <span>You verify the book</span>
               </li>
               <li className="flex gap-2">
                 <span className="font-medium text-gray-600 flex-shrink-0">4.</span>
-                <span>Payment releases to seller after confirmation</span>
+                <span>Payment released to seller</span>
               </li>
             </ol>
           </div>
 
           {/* Key Protections Section */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-3">What You Get</h3>
+            <h3 className="font-semibold text-gray-900 mb-2 sm:mb-3 text-sm sm:text-base">What You Get</h3>
             <div className="space-y-2">
-              <div className="flex gap-3 p-3 rounded border border-gray-200 bg-white">
-                <CheckCircle2 className="h-5 w-5 text-gray-700 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-medium text-gray-900 text-sm">Secure Escrow Payment</p>
-                  <p className="text-xs text-gray-600 mt-0.5">Payment held until you confirm satisfaction</p>
+              <div className="flex gap-2 sm:gap-3 p-2 sm:p-3 rounded border border-gray-200 bg-white">
+                <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <div className="min-w-0">
+                  <p className="font-medium text-gray-900 text-xs sm:text-sm">Secure Escrow</p>
+                  <p className="text-xs text-gray-600 mt-0.5">Payment held until you confirm</p>
                 </div>
               </div>
 
-              <div className="flex gap-3 p-3 rounded border border-gray-200 bg-white">
-                <AlertCircle className="h-5 w-5 text-gray-700 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-medium text-gray-900 text-sm">Refund Guarantee</p>
-                  <p className="text-xs text-gray-600 mt-0.5">Full refund if book doesn't match description or isn't received</p>
+              <div className="flex gap-2 sm:gap-3 p-2 sm:p-3 rounded border border-gray-200 bg-white">
+                <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <div className="min-w-0">
+                  <p className="font-medium text-gray-900 text-xs sm:text-sm">Refund Guarantee</p>
+                  <p className="text-xs text-gray-600 mt-0.5">Full refund if doesn't match</p>
                 </div>
               </div>
 
-              <div className="flex gap-3 p-3 rounded border border-gray-200 bg-white">
-                <MessageCircle className="h-5 w-5 text-gray-700 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-medium text-gray-900 text-sm">Dispute Resolution</p>
-                  <p className="text-xs text-gray-600 mt-0.5">Our team reviews issues fairly and quickly</p>
+              <div className="flex gap-2 sm:gap-3 p-2 sm:p-3 rounded border border-gray-200 bg-white">
+                <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <div className="min-w-0">
+                  <p className="font-medium text-gray-900 text-xs sm:text-sm">Dispute Support</p>
+                  <p className="text-xs text-gray-600 mt-0.5">We review and resolve issues</p>
                 </div>
               </div>
             </div>
@@ -131,30 +131,26 @@ const BuyersProtectionDialog = ({
 
           {/* Tips Section */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-3">For a Smooth Transaction</h3>
-            <ul className="space-y-1 text-sm text-gray-700">
+            <h3 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">Quick Tips</h3>
+            <ul className="space-y-1 text-xs sm:text-sm text-gray-700">
               <li className="flex gap-2">
-                <span className="text-gray-400">•</span>
-                <span>Save the seller's tracking information</span>
+                <span className="text-gray-400 flex-shrink-0">•</span>
+                <span>Save tracking info</span>
               </li>
               <li className="flex gap-2">
-                <span className="text-gray-400">•</span>
-                <span>Take photos of the book when it arrives</span>
+                <span className="text-gray-400 flex-shrink-0">•</span>
+                <span>Take photos when it arrives</span>
               </li>
               <li className="flex gap-2">
-                <span className="text-gray-400">•</span>
-                <span>Verify it matches the listing description</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="text-gray-400">•</span>
-                <span>Report any issues with evidence</span>
+                <span className="text-gray-400 flex-shrink-0">•</span>
+                <span>Verify it matches the listing</span>
               </li>
             </ul>
           </div>
 
           {/* Platform Fee Section */}
-          <div className="bg-gray-50 rounded border border-gray-200 p-3">
-            <p className="text-sm text-gray-700"><span className="font-medium">R20 Platform Fee:</span> Covers payment processing, protection, and support</p>
+          <div className="bg-green-50 rounded border border-green-200 p-2.5 sm:p-3">
+            <p className="text-xs sm:text-sm text-gray-700"><span className="font-medium text-green-900">R20 Platform Fee:</span> <span className="text-gray-600">Payment processing & support</span></p>
           </div>
         </div>
 
