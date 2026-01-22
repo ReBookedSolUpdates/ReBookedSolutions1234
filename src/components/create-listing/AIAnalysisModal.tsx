@@ -252,7 +252,12 @@ const AIAnalysisModal = ({
 
       setState((prev) => ({
         ...prev,
-        extractedData: data.data,
+        extractedData: {
+          ...data.data,
+          frontCover: state.uploadedImages.frontCover,
+          backCover: state.uploadedImages.backCover,
+          insidePages: state.uploadedImages.insidePages,
+        },
         showPreview: true,
         isAnalyzing: false,
       }));
