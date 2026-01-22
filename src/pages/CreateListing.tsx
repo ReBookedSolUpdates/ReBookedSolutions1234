@@ -197,6 +197,76 @@ const CreateListing = () => {
     setFormData(updatedFormData);
   };
 
+  const handleRunAIAutoFill = async () => {
+    // Validate all 3 images are uploaded
+    if (!bookImages.frontCover || !bookImages.backCover || !bookImages.insidePages) {
+      toast.error("All three images (front cover, back cover, inside pages) must be uploaded");
+      return;
+    }
+
+    setIsProcessingAI(true);
+
+    try {
+      // Call the Edge Function to extract book details
+      const { data, error } = await supabase.functions.invoke('extract-book-details', {
+        body: {
+          frontCoverUrl: bookImages.frontCover,
+          backCoverUrl: bookImages.backCover,
+          insidePagesUrl: bookImages.insidePages,
+          hints: {
+            curriculum: (formData as any).curriculum,
+            grade: formData.grade,
+          },
+        },
+      });
+
+      if (error || !data.success) {
+        toast.error(data?.message || "Failed to extract book details. Please try again.");
+        return;
+      }
+
+      // Show the preview modal with extracted data
+      setAiPreview(data.data);
+      setShowAIPreview(true);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      toast.error(`AI processing failed: ${errorMessage}`);
+    } finally {
+      setIsProcessingAI(false);
+    }
+  };
+
+  const handleAcceptAIResults = (extractedData: Partial<BookFormData>) => {
+    // Apply the extracted data to the form
+    const updatedFormData = {
+      ...formData,
+      ...extractedData,
+    };
+
+    setFormData(updatedFormData);
+    setShowAIPreview(false);
+    setShowAIWarning(true);
+
+    // Clear any previous errors for the fields we just auto-filled
+    const fieldsToClean = ['title', 'author', 'description', 'price', 'condition', 'isbn', 'grade', 'curriculum'];
+    const updatedErrors = { ...errors };
+    fieldsToClean.forEach(field => {
+      if (updatedErrors[field]) {
+        delete updatedErrors[field];
+      }
+    });
+    setErrors(updatedErrors);
+
+    toast.success("Book details auto-filled! Please review before publishing.", {
+      description: "You can edit any field as needed.",
+    });
+  };
+
+  const handleRetryAI = () => {
+    setShowAIPreview(false);
+    handleRunAIAutoFill();
+  };
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
