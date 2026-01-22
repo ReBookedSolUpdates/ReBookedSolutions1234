@@ -272,7 +272,7 @@ export const AIPreviewModal = ({
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                   Description
                 </p>
-                <p className="text-sm text-gray-700 mt-1 line-clamp-3 sm:line-clamp-4">
+                <p className="text-xs sm:text-sm text-gray-700 mt-1 line-clamp-2 sm:line-clamp-4">
                   {extractedData.description}
                 </p>
                 {extractedData.condition && (
