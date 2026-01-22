@@ -11,6 +11,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import "./BuyersProtectionDialog.css";
 
 interface BuyersProtectionDialogProps {
   triggerClassName?: string;
