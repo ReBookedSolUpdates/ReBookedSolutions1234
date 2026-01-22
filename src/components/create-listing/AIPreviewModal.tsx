@@ -222,11 +222,11 @@ export const AIPreviewModal = ({
                 />
               )}
               {((extractedData as any).frontCover || (extractedData as any).backCover || (extractedData as any).insidePages) && (
-                <div className="py-3 border-b">
+                <div className="py-2 sm:py-3 border-b hidden sm:block">
                   <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                     Book Images
                   </p>
-                  <div className="flex gap-2 mt-2">
+                  <div className="flex gap-2 mt-1 sm:mt-2">
                     {(extractedData as any).frontCover && (
                       <div className="flex items-center gap-1 px-2 py-1 bg-green-50 border border-green-200 rounded text-xs">
                         <CheckCircle className="h-3 w-3 text-green-600" />
