@@ -181,8 +181,11 @@ const AIAnalysisModal = ({
       toast.error(`Failed to upload ${label}. Please try again.`);
     } finally {
       setUploadingIndex(null);
-      // Reset the input element
-      if (event.target) {
+      // Reset the input element using ref
+      const inputRef = fileInputRefs[imageKey];
+      if (inputRef?.current) {
+        inputRef.current.value = "";
+      } else if (event.target instanceof HTMLInputElement) {
         event.target.value = "";
       }
     }
