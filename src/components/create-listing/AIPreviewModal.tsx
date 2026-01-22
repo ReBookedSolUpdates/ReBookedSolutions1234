@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -7,6 +8,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { BookFormData } from "@/types/book";
 import { AlertCircle, CheckCircle } from "lucide-react";
 
@@ -98,6 +101,10 @@ export const AIPreviewModal = ({
   onCancel,
   onRetry,
 }: AIPreviewModalProps) => {
+  const [adjustedPrice, setAdjustedPrice] = useState<string>("");
+
+  const displayPrice = adjustedPrice ? parseFloat(adjustedPrice) : (extractedData?.estimatedPrice || 0);
+
   const handleAccept = () => {
     if (!extractedData) return;
 
@@ -105,7 +112,7 @@ export const AIPreviewModal = ({
       title: extractedData.title,
       author: extractedData.author,
       description: extractedData.description,
-      price: extractedData.estimatedPrice || 0,
+      price: adjustedPrice ? parseFloat(adjustedPrice) : (extractedData.estimatedPrice || 0),
       condition: extractedData.condition,
       quantity: extractedData.quantity,
     };
@@ -119,13 +126,34 @@ export const AIPreviewModal = ({
     if (extractedData.curriculum) {
       (formDataUpdate as any).curriculum = extractedData.curriculum;
     }
+    if ((extractedData as any).frontCover) {
+      formDataUpdate.frontCover = (extractedData as any).frontCover;
+    }
+    if ((extractedData as any).backCover) {
+      formDataUpdate.backCover = (extractedData as any).backCover;
+    }
+    if ((extractedData as any).insidePages) {
+      formDataUpdate.insidePages = (extractedData as any).insidePages;
+    }
+    if ((extractedData as any).curriculum) {
+      (formDataUpdate as any).curriculum = (extractedData as any).curriculum;
+    }
+    if ((extractedData as any).genre) {
+      (formDataUpdate as any).genre = (extractedData as any).genre;
+    }
+    if ((extractedData as any).university) {
+      formDataUpdate.university = (extractedData as any).university;
+    }
+    if ((extractedData as any).universityYear) {
+      formDataUpdate.universityYear = (extractedData as any).universityYear;
+    }
 
     onAccept(formDataUpdate);
   };
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-sm rounded-2xl p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CheckCircle className="h-5 w-5 text-green-600" />
@@ -184,18 +212,80 @@ export const AIPreviewModal = ({
                   confidence={extractedData.confidence?.curriculum}
                 />
               )}
-              <PreviewField
-                label="Estimated Price (ZAR)"
-                value={`R${extractedData.estimatedPrice?.toFixed(2)}`}
-                confidence={extractedData.confidence?.price}
-              />
+              {(extractedData as any).universityYear && (
+                <PreviewField
+                  label="University Year"
+                  value={(extractedData as any).universityYear}
+                />
+              )}
+              {(extractedData as any).genre && (
+                <PreviewField
+                  label="Genre"
+                  value={(extractedData as any).genre}
+                />
+              )}
+              {((extractedData as any).frontCover || (extractedData as any).backCover || (extractedData as any).insidePages) && (
+                <div className="py-3 border-b">
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                    Book Images
+                  </p>
+                  <div className="flex gap-2 mt-2">
+                    {(extractedData as any).frontCover && (
+                      <div className="flex items-center gap-1 px-2 py-1 bg-green-50 border border-green-200 rounded text-xs">
+                        <CheckCircle className="h-3 w-3 text-green-600" />
+                        <span className="text-green-700">Front Cover</span>
+                      </div>
+                    )}
+                    {(extractedData as any).backCover && (
+                      <div className="flex items-center gap-1 px-2 py-1 bg-green-50 border border-green-200 rounded text-xs">
+                        <CheckCircle className="h-3 w-3 text-green-600" />
+                        <span className="text-green-700">Back Cover</span>
+                      </div>
+                    )}
+                    {(extractedData as any).insidePages && (
+                      <div className="flex items-center gap-1 px-2 py-1 bg-green-50 border border-green-200 rounded text-xs">
+                        <CheckCircle className="h-3 w-3 text-green-600" />
+                        <span className="text-green-700">Inside Pages</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              <div className="py-3 border-b">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  Estimated Price (ZAR)
+                </p>
+                <div className="flex items-end gap-2 mt-2">
+                  <div className="flex-1">
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={adjustedPrice || extractedData.estimatedPrice || ""}
+                      onChange={(e) => setAdjustedPrice(e.target.value)}
+                      placeholder={`R${extractedData.estimatedPrice?.toFixed(2)}`}
+                      className="text-sm"
+                    />
+                  </div>
+                  {extractedData.confidence?.price && (
+                    <div className="text-xs font-medium text-gray-500">
+                      {Math.round(extractedData.confidence.price)}% confidence
+                    </div>
+                  )}
+                </div>
+              </div>
               <div className="py-3 border-b last:border-b-0">
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                   Description
                 </p>
-                <p className="text-sm text-gray-700 mt-1 line-clamp-3">
+                <p className="text-sm text-gray-700 mt-1 line-clamp-4">
                   {extractedData.description}
                 </p>
+                {extractedData.condition && (
+                  <p className="text-xs text-gray-600 mt-2 pt-2 border-t">
+                    <span className="font-medium">Overall Condition:</span> {extractedData.condition}
+                  </p>
+                )}
               </div>
             </div>
 

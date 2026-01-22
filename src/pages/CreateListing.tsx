@@ -277,6 +277,17 @@ const CreateListing = () => {
     };
 
     setFormData(updatedFormData);
+
+    // Update book images if they were provided by AI
+    if (extractedData.frontCover || extractedData.backCover || extractedData.insidePages) {
+      setBookImages((prev) => ({
+        ...prev,
+        frontCover: extractedData.frontCover || prev.frontCover,
+        backCover: extractedData.backCover || prev.backCover,
+        insidePages: extractedData.insidePages || prev.insidePages,
+      }));
+    }
+
     setShowAIAnalysisModal(false);
     setShowAIWarning(true);
 
@@ -290,6 +301,12 @@ const CreateListing = () => {
       "isbn",
       "grade",
       "curriculum",
+      "universityYear",
+      "university",
+      "genre",
+      "frontCover",
+      "backCover",
+      "insidePages",
     ];
     const updatedErrors = { ...errors };
     fieldsToClean.forEach((field) => {

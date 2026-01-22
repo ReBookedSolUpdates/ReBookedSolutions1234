@@ -23,7 +23,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { compressImage } from "@/utils/imageCompression";
 import { BookFormData } from "@/types/book";
 import { AIPreviewModal } from "./AIPreviewModal";
-import { getCategoriesByBookType } from "@/constants/bookTypeCategories";
 import { UNIVERSITY_YEARS, SOUTH_AFRICAN_UNIVERSITIES_SIMPLE } from "@/constants/universities";
 import { ALL_READER_GENRES } from "@/constants/readerGenres";
 
@@ -40,10 +39,9 @@ interface UploadedImages {
 }
 
 interface AnalysisState {
+  step: "bookType" | "details" | "images" | "analyzing";
   bookType: "school" | "university" | "reader" | null;
   uploadedImages: UploadedImages;
-  category: string;
-  condition: string;
   curriculum?: "CAPS" | "Cambridge" | "IEB";
   grade?: string;
   university?: string;
@@ -62,14 +60,13 @@ const AIAnalysisModal = ({
 }: AIAnalysisModalProps) => {
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   const [state, setState] = useState<AnalysisState>({
+    step: "bookType",
     bookType: null,
     uploadedImages: {
       frontCover: "",
       backCover: "",
       insidePages: "",
     },
-    category: "",
-    condition: "",
     curriculum: undefined,
     grade: undefined,
     university: undefined,
@@ -81,7 +78,6 @@ const AIAnalysisModal = ({
     extractedData: null,
   });
 
-  const conditions = ["New", "Good", "Better", "Average", "Below Average"];
   const curricula = ["CAPS", "Cambridge", "IEB"];
   const grades = [
     "N/A",
@@ -195,18 +191,8 @@ const AIAnalysisModal = ({
     state.uploadedImages.backCover &&
     state.uploadedImages.insidePages;
 
-  // Get categories for selected book type
-  const categories = state.bookType
-    ? getCategoriesByBookType(state.bookType)
-    : [];
-
-  // Validation function
-  const validateForm = (): boolean => {
-    if (!allImagesUploaded) return false;
-    if (!state.bookType) return false;
-    if (!state.category) return false;
-    if (!state.condition) return false;
-
+  // Validation function for details step
+  const validateDetailsStep = (): boolean => {
     if (state.bookType === "school") {
       if (!state.curriculum) return false;
       if (!state.grade) return false;
@@ -223,14 +209,20 @@ const AIAnalysisModal = ({
     return true;
   };
 
+  // Validation function for images step
+  const validateImagesStep = (): boolean => {
+    return allImagesUploaded;
+  };
+
   const handleAnalyze = async () => {
-    if (!validateForm()) {
-      toast.error("Please fill in all required fields");
+    if (!validateImagesStep()) {
+      toast.error("Please upload all images");
       return;
     }
 
     setState((prev) => ({
       ...prev,
+      step: "analyzing",
       isAnalyzing: true,
       analysisError: null,
     }));
@@ -260,7 +252,17 @@ const AIAnalysisModal = ({
 
       setState((prev) => ({
         ...prev,
-        extractedData: data.data,
+        extractedData: {
+          ...data.data,
+          frontCover: state.uploadedImages.frontCover,
+          backCover: state.uploadedImages.backCover,
+          insidePages: state.uploadedImages.insidePages,
+          curriculum: state.curriculum,
+          grade: state.grade,
+          university: state.university,
+          universityYear: state.universityYear,
+          genre: state.genre,
+        },
         showPreview: true,
         isAnalyzing: false,
       }));
@@ -269,6 +271,7 @@ const AIAnalysisModal = ({
         error instanceof Error ? error.message : "Unknown error";
       setState((prev) => ({
         ...prev,
+        step: "images",
         analysisError: errorMessage,
         isAnalyzing: false,
       }));
@@ -279,6 +282,7 @@ const AIAnalysisModal = ({
   const handlePreviewAccept = (extractedData: Partial<BookFormData>) => {
     setState((prev) => ({
       ...prev,
+      step: "bookType",
       showPreview: false,
       uploadedImages: {
         frontCover: "",
@@ -286,8 +290,6 @@ const AIAnalysisModal = ({
         insidePages: "",
       },
       bookType: null,
-      category: "",
-      condition: "",
       curriculum: undefined,
       grade: undefined,
       university: undefined,
@@ -310,14 +312,13 @@ const AIAnalysisModal = ({
   const handleClose = () => {
     if (!state.isAnalyzing && !state.showPreview) {
       setState({
+        step: "bookType",
         bookType: null,
         uploadedImages: {
           frontCover: "",
           backCover: "",
           insidePages: "",
         },
-        category: "",
-        condition: "",
         curriculum: undefined,
         grade: undefined,
         university: undefined,
@@ -397,7 +398,7 @@ const AIAnalysisModal = ({
   return (
     <>
       <Dialog open={open && !state.showPreview} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-sm max-h-[85vh] overflow-y-auto rounded-2xl p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>AI Book Analysis</DialogTitle>
             <DialogDescription>
@@ -407,7 +408,7 @@ const AIAnalysisModal = ({
 
           <div className="space-y-4">
             {/* Step 1: Book Type Selection */}
-            {!state.bookType ? (
+            {state.step === "bookType" && (
               <div className="space-y-3">
                 <Label className="text-base font-medium">
                   Select Book Type <span className="text-red-500">*</span>
@@ -416,7 +417,7 @@ const AIAnalysisModal = ({
                   <button
                     type="button"
                     onClick={() =>
-                      setState((prev) => ({ ...prev, bookType: "school" }))
+                      setState((prev) => ({ ...prev, bookType: "school", step: "details" }))
                     }
                     className="flex flex-col items-center gap-2 p-3 rounded-lg border-2 border-gray-200 hover:border-book-600 hover:bg-book-50 transition-all"
                   >
@@ -428,7 +429,7 @@ const AIAnalysisModal = ({
                   <button
                     type="button"
                     onClick={() =>
-                      setState((prev) => ({ ...prev, bookType: "university" }))
+                      setState((prev) => ({ ...prev, bookType: "university", step: "details" }))
                     }
                     className="flex flex-col items-center gap-2 p-3 rounded-lg border-2 border-gray-200 hover:border-book-600 hover:bg-book-50 transition-all"
                   >
@@ -440,7 +441,7 @@ const AIAnalysisModal = ({
                   <button
                     type="button"
                     onClick={() =>
-                      setState((prev) => ({ ...prev, bookType: "reader" }))
+                      setState((prev) => ({ ...prev, bookType: "reader", step: "details" }))
                     }
                     className="flex flex-col items-center gap-2 p-3 rounded-lg border-2 border-gray-200 hover:border-book-600 hover:bg-book-50 transition-all"
                   >
@@ -451,65 +452,54 @@ const AIAnalysisModal = ({
                   </button>
                 </div>
               </div>
-            ) : (
-              <>
-                {/* Step 2: Image Upload */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-base font-medium">
-                      Book Images <span className="text-red-500">*</span>
-                    </Label>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setState((prev) => ({ ...prev, bookType: null }))
-                      }
-                      className="text-xs text-book-600 hover:text-book-700 font-medium"
-                    >
-                      Change Type
-                    </button>
-                  </div>
-                  <ImageUploadSlot
-                    label="Front Cover"
-                    imageKey="frontCover"
-                    imageUrl={state.uploadedImages.frontCover}
-                    isUploading={uploadingIndex === 0}
-                  />
-                  <ImageUploadSlot
-                    label="Back Cover"
-                    imageKey="backCover"
-                    imageUrl={state.uploadedImages.backCover}
-                    isUploading={uploadingIndex === 1}
-                  />
-                  <ImageUploadSlot
-                    label="Inside Pages"
-                    imageKey="insidePages"
-                    imageUrl={state.uploadedImages.insidePages}
-                    isUploading={uploadingIndex === 2}
-                  />
+            )}
+
+            {/* Step 2: Details (Type-specific fields) */}
+            {state.step === "details" && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-medium">Book Details</h3>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setState((prev) => ({ ...prev, step: "bookType" }))
+                    }
+                    className="text-xs text-book-600 hover:text-book-700 font-medium"
+                  >
+                    Change Type
+                  </button>
                 </div>
 
-                {/* Step 3: Category & Condition */}
-                {allImagesUploaded && (
-                  <div className="border-t pt-4 space-y-3">
+                {/* School-specific fields */}
+                {state.bookType === "school" && (
+                  <>
                     <div>
-                      <Label htmlFor="category" className="text-sm font-medium">
-                        Category <span className="text-red-500">*</span>
+                      <Label
+                        htmlFor="curriculum"
+                        className="text-sm font-medium"
+                      >
+                        Curriculum <span className="text-red-500">*</span>
                       </Label>
                       <Select
-                        value={state.category}
+                        value={state.curriculum || ""}
                         onValueChange={(value) =>
-                          setState((prev) => ({ ...prev, category: value }))
+                          setState((prev) => ({
+                            ...prev,
+                            curriculum: value as
+                              | "CAPS"
+                              | "Cambridge"
+                              | "IEB",
+                          }))
                         }
                       >
-                        <SelectTrigger id="category" className="mt-1">
-                          <SelectValue placeholder="Select category" />
+                        <SelectTrigger id="curriculum" className="mt-1">
+                          <SelectValue placeholder="Select curriculum" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
-                            {categories.map((cat) => (
-                              <SelectItem key={cat} value={cat}>
-                                {cat}
+                            {curricula.map((curr) => (
+                              <SelectItem key={curr} value={curr}>
+                                {curr}
                               </SelectItem>
                             ))}
                           </SelectGroup>
@@ -518,196 +508,171 @@ const AIAnalysisModal = ({
                     </div>
 
                     <div>
-                      <Label htmlFor="condition" className="text-sm font-medium">
-                        Condition <span className="text-red-500">*</span>
+                      <Label htmlFor="grade" className="text-sm font-medium">
+                        Grade <span className="text-red-500">*</span>
                       </Label>
                       <Select
-                        value={state.condition}
+                        value={state.grade || ""}
                         onValueChange={(value) =>
-                          setState((prev) => ({ ...prev, condition: value }))
+                          setState((prev) => ({ ...prev, grade: value }))
                         }
                       >
-                        <SelectTrigger id="condition" className="mt-1">
-                          <SelectValue placeholder="Select condition" />
+                        <SelectTrigger id="grade" className="mt-1">
+                          <SelectValue placeholder="Select grade" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
-                            {conditions.map((cond) => (
-                              <SelectItem key={cond} value={cond}>
-                                {cond}
+                            {grades.map((g) => (
+                              <SelectItem key={g} value={g}>
+                                {g}
                               </SelectItem>
                             ))}
                           </SelectGroup>
                         </SelectContent>
                       </Select>
                     </div>
+                  </>
+                )}
 
-                    {/* School-specific fields */}
-                    {state.bookType === "school" && (
-                      <>
-                        <div>
-                          <Label
-                            htmlFor="curriculum"
-                            className="text-sm font-medium"
-                          >
-                            Curriculum <span className="text-red-500">*</span>
-                          </Label>
-                          <Select
-                            value={state.curriculum || ""}
-                            onValueChange={(value) =>
-                              setState((prev) => ({
-                                ...prev,
-                                curriculum: value as
-                                  | "CAPS"
-                                  | "Cambridge"
-                                  | "IEB",
-                              }))
-                            }
-                          >
-                            <SelectTrigger id="curriculum" className="mt-1">
-                              <SelectValue placeholder="Select curriculum" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectGroup>
-                                {curricula.map((curr) => (
-                                  <SelectItem key={curr} value={curr}>
-                                    {curr}
-                                  </SelectItem>
-                                ))}
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div>
-                          <Label htmlFor="grade" className="text-sm font-medium">
-                            Grade <span className="text-red-500">*</span>
-                          </Label>
-                          <Select
-                            value={state.grade || ""}
-                            onValueChange={(value) =>
-                              setState((prev) => ({ ...prev, grade: value }))
-                            }
-                          >
-                            <SelectTrigger id="grade" className="mt-1">
-                              <SelectValue placeholder="Select grade" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectGroup>
-                                {grades.map((g) => (
-                                  <SelectItem key={g} value={g}>
-                                    {g}
-                                  </SelectItem>
-                                ))}
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </>
-                    )}
-
-                    {/* University-specific fields */}
-                    {state.bookType === "university" && (
-                      <>
-                        <div>
-                          <Label
-                            htmlFor="universityYear"
-                            className="text-sm font-medium"
-                          >
-                            University Year{" "}
-                            <span className="text-red-500">*</span>
-                          </Label>
-                          <Select
-                            value={state.universityYear || ""}
-                            onValueChange={(value) =>
-                              setState((prev) => ({
-                                ...prev,
-                                universityYear: value,
-                              }))
-                            }
-                          >
-                            <SelectTrigger
-                              id="universityYear"
-                              className="mt-1"
-                            >
-                              <SelectValue placeholder="Select year" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectGroup>
-                                {UNIVERSITY_YEARS.map((year) => (
-                                  <SelectItem key={year} value={year}>
-                                    {year}
-                                  </SelectItem>
-                                ))}
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div>
-                          <Label
-                            htmlFor="university"
-                            className="text-sm font-medium"
-                          >
-                            University (Optional)
-                          </Label>
-                          <Select
-                            value={state.university || ""}
-                            onValueChange={(value) =>
-                              setState((prev) => ({
-                                ...prev,
-                                university: value,
-                              }))
-                            }
-                          >
-                            <SelectTrigger id="university" className="mt-1">
-                              <SelectValue placeholder="Select university" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectGroup>
-                                {SOUTH_AFRICAN_UNIVERSITIES_SIMPLE.map(
-                                  (uni) => (
-                                    <SelectItem key={uni.id} value={uni.id}>
-                                      {uni.abbreviation} - {uni.name}
-                                    </SelectItem>
-                                  )
-                                )}
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </>
-                    )}
-
-                    {/* Reader-specific fields */}
-                    {state.bookType === "reader" && (
-                      <div>
-                        <Label htmlFor="genre" className="text-sm font-medium">
-                          Genre <span className="text-red-500">*</span>
-                        </Label>
-                        <Select
-                          value={state.genre || ""}
-                          onValueChange={(value) =>
-                            setState((prev) => ({ ...prev, genre: value }))
-                          }
+                {/* University-specific fields */}
+                {state.bookType === "university" && (
+                  <>
+                    <div>
+                      <Label
+                        htmlFor="universityYear"
+                        className="text-sm font-medium"
+                      >
+                        University Year{" "}
+                        <span className="text-red-500">*</span>
+                      </Label>
+                      <Select
+                        value={state.universityYear || ""}
+                        onValueChange={(value) =>
+                          setState((prev) => ({
+                            ...prev,
+                            universityYear: value,
+                          }))
+                        }
+                      >
+                        <SelectTrigger
+                          id="universityYear"
+                          className="mt-1"
                         >
-                          <SelectTrigger id="genre" className="mt-1">
-                            <SelectValue placeholder="Select genre" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectGroup>
-                              {ALL_READER_GENRES.map((g) => (
-                                <SelectItem key={g} value={g}>
-                                  {g}
+                          <SelectValue placeholder="Select year" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            {UNIVERSITY_YEARS.map((year) => (
+                              <SelectItem key={year} value={year}>
+                                {year}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label
+                        htmlFor="university"
+                        className="text-sm font-medium"
+                      >
+                        University (Optional)
+                      </Label>
+                      <Select
+                        value={state.university || ""}
+                        onValueChange={(value) =>
+                          setState((prev) => ({
+                            ...prev,
+                            university: value,
+                          }))
+                        }
+                      >
+                        <SelectTrigger id="university" className="mt-1">
+                          <SelectValue placeholder="Select university" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            {SOUTH_AFRICAN_UNIVERSITIES_SIMPLE.map(
+                              (uni) => (
+                                <SelectItem key={uni.id} value={uni.id}>
+                                  {uni.abbreviation} - {uni.name}
                                 </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
+                              )
+                            )}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </>
+                )}
+
+                {/* Reader-specific fields */}
+                {state.bookType === "reader" && (
+                  <div>
+                    <Label htmlFor="genre" className="text-sm font-medium">
+                      Genre <span className="text-red-500">*</span>
+                    </Label>
+                    <Select
+                      value={state.genre || ""}
+                      onValueChange={(value) =>
+                        setState((prev) => ({ ...prev, genre: value }))
+                      }
+                    >
+                      <SelectTrigger id="genre" className="mt-1">
+                        <SelectValue placeholder="Select genre" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          {ALL_READER_GENRES.map((g) => (
+                            <SelectItem key={g} value={g}>
+                              {g}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Step 3: Image Upload */}
+            {state.step === "images" && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-medium">Book Images</h3>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setState((prev) => ({ ...prev, step: "details" }))
+                    }
+                    className="text-xs text-book-600 hover:text-book-700 font-medium"
+                  >
+                    Back
+                  </button>
+                </div>
+                <p className="text-xs text-gray-600 mb-3">
+                  Upload photos of your book's front cover, back cover, and inside pages for AI analysis.
+                </p>
+                <ImageUploadSlot
+                  label="Front Cover"
+                  imageKey="frontCover"
+                  imageUrl={state.uploadedImages.frontCover}
+                  isUploading={uploadingIndex === 0}
+                />
+                <ImageUploadSlot
+                  label="Back Cover"
+                  imageKey="backCover"
+                  imageUrl={state.uploadedImages.backCover}
+                  isUploading={uploadingIndex === 1}
+                />
+                <ImageUploadSlot
+                  label="Inside Pages"
+                  imageKey="insidePages"
+                  imageUrl={state.uploadedImages.insidePages}
+                  isUploading={uploadingIndex === 2}
+                />
 
                 {/* Error Message */}
                 {state.analysisError && (
@@ -718,7 +683,20 @@ const AIAnalysisModal = ({
                     </p>
                   </div>
                 )}
-              </>
+              </div>
+            )}
+
+            {/* Step 4: Analyzing */}
+            {state.step === "analyzing" && (
+              <div className="flex flex-col items-center justify-center py-8 gap-3">
+                <Loader2 className="h-8 w-8 text-book-600 animate-spin" />
+                <p className="text-sm font-medium text-gray-700">
+                  Analyzing your book...
+                </p>
+                <p className="text-xs text-gray-500">
+                  This may take a few moments
+                </p>
+              </div>
             )}
           </div>
 
@@ -726,15 +704,28 @@ const AIAnalysisModal = ({
             <Button
               variant="outline"
               onClick={handleClose}
-              disabled={state.isAnalyzing}
+              disabled={state.isAnalyzing || state.step === "analyzing"}
               className="flex-1"
             >
               Cancel
             </Button>
-            {state.bookType && (
+
+            {state.step === "details" && (
+              <Button
+                onClick={() =>
+                  setState((prev) => ({ ...prev, step: "images" }))
+                }
+                disabled={!validateDetailsStep()}
+                className="flex-1 bg-book-600 hover:bg-book-700"
+              >
+                Next
+              </Button>
+            )}
+
+            {state.step === "images" && (
               <Button
                 onClick={handleAnalyze}
-                disabled={!validateForm() || state.isAnalyzing}
+                disabled={!validateImagesStep() || state.isAnalyzing}
                 className="flex-1 bg-book-600 hover:bg-book-700"
               >
                 {state.isAnalyzing ? (
@@ -743,7 +734,7 @@ const AIAnalysisModal = ({
                     Analyzing...
                   </>
                 ) : (
-                  "Generate"
+                  "Analyze"
                 )}
               </Button>
             )}
