@@ -63,7 +63,6 @@ import ClearNotifications from "./pages/ClearNotifications";
 import RestoreBooks from "./pages/RestoreBooks";
 import BankingSetup from "./pages/BankingSetup";
 import UserProfile from "./pages/UserProfile";
-import Transparency from "./pages/Transparency";
 import WebhookTest from "./pages/WebhookTest";
 // import LockerSearchPage from "./pages/LockerSearchPage"; // DISABLED - Locker functionality removed
 
