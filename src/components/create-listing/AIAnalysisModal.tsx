@@ -312,6 +312,7 @@ const AIAnalysisModal = ({
   const handleClose = () => {
     if (!state.isAnalyzing && !state.showPreview) {
       setState({
+        step: "bookType",
         bookType: null,
         uploadedImages: {
           frontCover: "",
