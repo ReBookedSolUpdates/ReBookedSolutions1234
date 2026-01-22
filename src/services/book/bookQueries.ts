@@ -182,7 +182,19 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
     }
 
     // EMERGENCY: Show ALL books regardless of seller profile or address
-    const validBooks = booksData; // Show everything!
+    let validBooks = booksData; // Show everything!
+
+    // Apply client-side ISBN filtering if search contains only numbers/dashes
+    if (filters?.search) {
+      const normalizedSearch = filters.search.replace(/-/g, '').trim();
+      // Check if search looks like an ISBN (contains only numbers and dashes)
+      if (/^[\d\-]+$/.test(filters.search)) {
+        validBooks = validBooks.filter((book: any) => {
+          const normalizedIsbn = (book.isbn || '').replace(/-/g, '');
+          return normalizedIsbn.includes(normalizedSearch);
+        });
+      }
+    }
 
     if (validBooks.length === 0) {
       return [];
