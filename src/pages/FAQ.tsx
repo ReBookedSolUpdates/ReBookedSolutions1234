@@ -37,7 +37,7 @@ const FAQ = () => {
     },
     {
       question: "What kinds of books can I list?",
-      answer: "We accept academic, school, and university-level books, as well as exam prep guides and study material. Books must be genuine and in good condition."
+      answer: "We accept all types of books. Whether they're academic, school, university-level, exam prep guides, study materials, or any other books, as long as they're genuine and in good condition, you can list them on ReBooked Solutions."
     },
     {
       question: "Do I need to pay to list a book?",
