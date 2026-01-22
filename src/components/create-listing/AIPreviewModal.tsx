@@ -135,6 +135,18 @@ export const AIPreviewModal = ({
     if ((extractedData as any).insidePages) {
       formDataUpdate.insidePages = (extractedData as any).insidePages;
     }
+    if ((extractedData as any).curriculum) {
+      (formDataUpdate as any).curriculum = (extractedData as any).curriculum;
+    }
+    if ((extractedData as any).genre) {
+      (formDataUpdate as any).genre = (extractedData as any).genre;
+    }
+    if ((extractedData as any).university) {
+      formDataUpdate.university = (extractedData as any).university;
+    }
+    if ((extractedData as any).universityYear) {
+      formDataUpdate.universityYear = (extractedData as any).universityYear;
+    }
 
     onAccept(formDataUpdate);
   };
