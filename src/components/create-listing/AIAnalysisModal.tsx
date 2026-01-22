@@ -202,10 +202,8 @@ const AIAnalysisModal = ({
     ? getCategoriesByBookType(state.bookType)
     : [];
 
-  // Validation function
-  const validateForm = (): boolean => {
-    if (!allImagesUploaded) return false;
-    if (!state.bookType) return false;
+  // Validation function for details step
+  const validateDetailsStep = (): boolean => {
     if (!state.category) return false;
     if (!state.condition) return false;
 
@@ -223,6 +221,11 @@ const AIAnalysisModal = ({
     }
 
     return true;
+  };
+
+  // Validation function for images step
+  const validateImagesStep = (): boolean => {
+    return allImagesUploaded;
   };
 
   const handleAnalyze = async () => {
