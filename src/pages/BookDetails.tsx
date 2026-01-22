@@ -120,6 +120,13 @@ const BookDetails = () => {
 
     try { await navigator.clipboard.writeText(bookUrl); } catch {}
 
+    // Track book share (non-blocking)
+    try {
+      await ActivityService.trackBookShare(book.id, user?.id);
+    } catch (trackingError) {
+      console.error("Error tracking book share:", trackingError);
+    }
+
     if (navigator.share) {
       try {
         await navigator.share(shareData);
