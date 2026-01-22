@@ -318,8 +318,13 @@ const CreateListing = () => {
     if (!formData.quantity || formData.quantity < 1)
       newErrors.quantity = "Quantity must be at least 1";
 
-    if (bookType === "school" && !formData.grade) {
-      newErrors.grade = "Grade is required for school books";
+    if (bookType === "school") {
+      if (!formData.grade) {
+        newErrors.grade = "Grade is required for school books";
+      }
+      if (!(formData as any).curriculum) {
+        newErrors.curriculum = "Curriculum is required for school books";
+      }
     }
 
     if (bookType === "university" && !formData.universityYear) {
