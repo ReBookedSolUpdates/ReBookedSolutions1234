@@ -154,9 +154,9 @@ const BuyersProtectionDialog = ({
           </div>
         </div>
 
-        <div className="mt-6">
+        <div className="mt-4 sm:mt-6">
           <DialogClose asChild>
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full text-sm sm:text-base">
               Got It
             </Button>
           </DialogClose>
