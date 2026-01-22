@@ -114,54 +114,12 @@ const SavedLockersCard = forwardRef<
     onDelete: () => void;
     onImageSelect: (imageUrl: string) => void;
   }) => {
-    const renderFieldValue = (value: any): string => {
-      if (value === null || value === undefined) return "—";
-      if (typeof value === "boolean") return value ? "Yes" : "No";
-      if (typeof value === "number") {
-        if (Number.isFinite(value)) {
-          return value.toString();
-        }
-        return "—";
-      }
-      if (typeof value === "object") return JSON.stringify(value, null, 2);
-      return String(value);
-    };
-
-    const formatFieldName = (key: string): string => {
-      return key
-        .replace(/_/g, " ")
-        .replace(/\b\w/g, (char) => char.toUpperCase());
-    };
-
-    // Get all locker fields, excluding empty values and certain fields
-    const excludeFields = [
-      "image_url",
-      "pickup_point_provider_logo_url",
-      "address",
-      "compartment_errors",
-      "human_name",
-      "provider_slug",
-      "id",
-      "od",
-      "created_at",
-      "updated_at"
-    ];
-    const fields = Object.entries(locker)
-      .filter(
-        ([key, value]) =>
-          !excludeFields.includes(key) &&
-          value !== null &&
-          value !== undefined &&
-          value !== ""
-      )
-      .sort(([keyA], [keyB]) => keyA.localeCompare(keyB));
-
     return (
-      <Card className="border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
-        <CardHeader className="border-b border-gray-100 bg-white py-4 px-6 space-y-4">
+      <Card className="border border-green-200 bg-green-50 hover:shadow-lg transition-all duration-200 overflow-hidden">
+        <CardHeader className="border-b border-green-100 bg-white py-4 px-6">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-              <MapPin className="h-5 w-5 text-blue-600" />
+              <MapPin className="h-5 w-5 text-green-600" />
               {locker.name || "Saved Locker"}
             </CardTitle>
             <Badge className="bg-green-100 text-green-700 text-xs font-medium">
@@ -169,111 +127,125 @@ const SavedLockersCard = forwardRef<
               Active
             </Badge>
           </div>
+        </CardHeader>
 
+        <CardContent className="p-6 space-y-6">
           {/* Image Section */}
-          <div className="flex justify-center">
-            {(locker.image_url || locker.pickup_point_provider_logo_url) ? (
+          {(locker.image_url || locker.pickup_point_provider_logo_url) && (
+            <div className="flex justify-center">
               <div
-                className="cursor-pointer hover:opacity-80 transition-opacity max-w-xs w-full"
+                className="cursor-pointer hover:opacity-80 transition-opacity max-w-sm w-full"
                 onClick={() => onImageSelect(locker.image_url || locker.pickup_point_provider_logo_url || "")}
               >
                 <img
                   src={locker.image_url || locker.pickup_point_provider_logo_url}
                   alt={locker.name}
-                  className="w-full h-auto object-cover rounded-lg border border-gray-200 shadow-sm"
+                  className="w-full h-auto max-h-48 object-cover rounded-lg border border-green-200 shadow-sm"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';
                   }}
                 />
               </div>
-            ) : (
-              <div className="w-full max-w-xs h-48 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg border border-gray-200 flex items-center justify-center">
-                <MapPin className="h-8 w-8 text-gray-400" />
-              </div>
-            )}
-          </div>
-        </CardHeader>
-
-        <CardContent className="p-6">
-          <div className="space-y-5">
-            {/* Address Section */}
-            <div>
-              <p className="text-sm font-semibold text-gray-700 mb-2">Full Address</p>
-              <p className="text-sm text-gray-600 leading-relaxed break-words">
-                {locker.full_address || "—"}
-              </p>
             </div>
+          )}
 
-            {/* Details Grid */}
-            {fields.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
-                {fields.map(([key, value]) => {
-                  // Skip certain verbose and technical fields
-                  if (["description", "lat", "lng", "provider_id", "type", "full_address", "location_id"].includes(key)) {
-                    return null;
-                  }
+          {/* Address Section */}
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Address</p>
+            <p className="text-sm text-gray-800 leading-relaxed break-words">
+              {locker.full_address || locker.address || "—"}
+            </p>
+          </div>
 
-                  // Skip if no value
-                  if (!value) return null;
-
-                  return (
-                    <div key={key} className="flex flex-col">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
-                        {key === "phone" || key === "contact_phone" ? (
-                          <>
-                            <Phone className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
-                            <span>Contact</span>
-                          </>
-                        ) : key === "trading_hours" ? (
-                          <>
-                            <Clock className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
-                            <span>Hours</span>
-                          </>
-                        ) : (
-                          <span>{formatFieldName(key)}</span>
-                        )}
-                      </p>
-                      {key === "phone" || key === "contact_phone" ? (
-                        <a
-                          href={`tel:${value}`}
-                          className="text-sm text-blue-600 hover:text-blue-700 font-medium break-words"
-                        >
-                          {renderFieldValue(value)}
-                        </a>
-                      ) : (
-                        <p className="text-sm text-gray-700 break-words">
-                          {renderFieldValue(value)}
-                        </p>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Action Button */}
-            <div className="pt-4 border-t border-gray-100">
-              <Button
-                onClick={onDelete}
-                disabled={isDeleting}
-                variant="outline"
-                size="sm"
-                className="w-full border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 text-sm font-medium"
-              >
-                {isDeleting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Removing...
-                  </>
-                ) : (
-                  <>
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Remove Locker
-                  </>
+          {/* Key Details Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Provider */}
+            {locker.pickup_point_provider_name && (
+              <div className="flex items-center gap-2 p-3 bg-white rounded-lg border border-gray-100">
+                {locker.pickup_point_provider_logo_url && (
+                  <img
+                    src={locker.pickup_point_provider_logo_url}
+                    alt="Provider"
+                    className="h-5 w-5 object-contain flex-shrink-0"
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                  />
                 )}
-              </Button>
-            </div>
+                <div className="min-w-0">
+                  <p className="text-xs text-gray-500 font-semibold uppercase">Provider</p>
+                  <p className="text-sm text-gray-800 font-medium truncate">
+                    {locker.pickup_point_provider_name}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Hours */}
+            {locker.trading_hours && (
+              <div className="flex items-start gap-2 p-3 bg-white rounded-lg border border-gray-100">
+                <Clock className="h-5 w-5 text-gray-400 flex-shrink-0 mt-0.5" />
+                <div className="min-w-0">
+                  <p className="text-xs text-gray-500 font-semibold uppercase">Hours</p>
+                  <p className="text-sm text-gray-800">
+                    {locker.trading_hours}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Phone */}
+            {(locker.phone || locker.contact_phone) && (
+              <div className="flex items-center gap-2 p-3 bg-white rounded-lg border border-gray-100">
+                <Phone className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs text-gray-500 font-semibold uppercase">Contact</p>
+                  <a
+                    href={`tel:${locker.phone || locker.contact_phone}`}
+                    className="text-sm text-green-600 hover:text-green-700 font-medium"
+                  >
+                    {locker.phone || locker.contact_phone}
+                  </a>
+                </div>
+              </div>
+            )}
+
+            {/* Distance */}
+            {(locker.distance || locker.distance_km) && (
+              <div className="flex items-center gap-2 p-3 bg-white rounded-lg border border-gray-100">
+                <MapPin className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs text-gray-500 font-semibold uppercase">Distance</p>
+                  <p className="text-sm text-gray-800 font-medium">
+                    {typeof locker.distance === "number"
+                      ? `${locker.distance.toFixed(1)} km`
+                      : typeof locker.distance_km === "number"
+                      ? `${locker.distance_km.toFixed(1)} km`
+                      : "—"}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
+
+          {/* Remove Button */}
+          <Button
+            onClick={onDelete}
+            disabled={isDeleting}
+            variant="outline"
+            size="sm"
+            className="w-full border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 text-sm font-medium mt-2"
+          >
+            {isDeleting ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Removing...
+              </>
+            ) : (
+              <>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Remove Locker
+              </>
+            )}
+          </Button>
         </CardContent>
       </Card>
     );
