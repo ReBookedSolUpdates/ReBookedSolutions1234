@@ -267,7 +267,6 @@ function AppRoutes() {
         <Route path="/policies" element={<Policies />} />
         <Route path="/shipping" element={<Shipping />} />
         <Route path="/getting-started" element={<GettingStarted />} />
-        <Route path="/transparency" element={<Transparency />} />
         <Route path="/report" element={<Report />} />
         <Route path="/webhook-test" element={<WebhookTest />} />
 
