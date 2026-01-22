@@ -36,6 +36,7 @@ export interface Book {
     id: string;
     name: string;
     email: string;
+    createdAt?: string;
   };
 }
 
