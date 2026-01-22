@@ -679,18 +679,21 @@ const AIAnalysisModal = ({
                   imageKey="frontCover"
                   imageUrl={state.uploadedImages.frontCover}
                   isUploading={uploadingIndex === 0}
+                  inputRef={fileInputRefs.frontCover}
                 />
                 <ImageUploadSlot
                   label="Back Cover"
                   imageKey="backCover"
                   imageUrl={state.uploadedImages.backCover}
                   isUploading={uploadingIndex === 1}
+                  inputRef={fileInputRefs.backCover}
                 />
                 <ImageUploadSlot
                   label="Inside Pages"
                   imageKey="insidePages"
                   imageUrl={state.uploadedImages.insidePages}
                   isUploading={uploadingIndex === 2}
+                  inputRef={fileInputRefs.insidePages}
                 />
 
                 {/* Error Message */}
