@@ -372,17 +372,17 @@ const AIAnalysisModal = ({
               disabled={isUploading}
               className="hidden"
             />
-            <div className="flex flex-col items-center gap-1 text-center">
+            <div className="flex flex-col items-center gap-0.5 sm:gap-1 text-center">
               {isUploading ? (
                 <>
-                  <Loader2 className="h-5 w-5 text-book-600 animate-spin" />
+                  <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 text-book-600 animate-spin" />
                   <span className="text-xs font-medium text-gray-600">
                     Uploading...
                   </span>
                 </>
               ) : (
                 <>
-                  <Upload className="h-5 w-5 text-gray-400" />
+                  <Upload className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                   <span className="text-xs font-medium text-gray-600">
                     {label}
                   </span>
