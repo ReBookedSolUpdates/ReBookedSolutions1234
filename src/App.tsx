@@ -84,7 +84,200 @@ const queryClient = new QueryClient({
   },
 });
 
-// Full application routing restored
+// Wrapper component to use hooks inside Router context
+function AppRoutes() {
+  const { user } = useAuth();
+  
+  // Track page views
+  usePageTracking(user?.id);
+
+  return (
+    <>
+      <AuthErrorHandler />
+      <ScrollToTop />
+
+      <Routes>
+        {/* Main Application Routes */}
+        <Route path="/" element={<Index />} />
+        <Route path="/books" element={<BookListing />} />
+        <Route path="/books/:id" element={<BookDetails />} />
+        <Route
+          path="/edit-book/:id"
+          element={
+            <ProtectedRoute>
+              <EditBook />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/seller/:sellerId"
+          element={<SellerProfile />}
+        />
+
+        {/* Authentication Routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route
+          path="/forgot-password"
+          element={<ForgotPassword />}
+        />
+        <Route
+          path="/reset-password"
+          element={<ResetPassword />}
+        />
+        <Route path="/verify" element={<Verify />} />
+        <Route path="/verify/*" element={<VerifyEmail />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
+
+        {/* Protected User Routes */}
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/create-listing"
+          element={
+            <ProtectedRoute>
+              <CreateListing />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/cart"
+          element={
+            <ProtectedRoute>
+              <Cart />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/checkout"
+          element={
+            <ProtectedRoute>
+              <Checkout />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/checkout/:id"
+          element={
+            <ProtectedRoute>
+              <Checkout />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/checkout-cart"
+          element={
+            <ProtectedRoute>
+              <Checkout />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/checkout/success"
+          element={<CheckoutSuccess />}
+        />
+        <Route
+          path="/checkout/pending"
+          element={<CheckoutPending />}
+        />
+        <Route
+          path="/checkout/cancel"
+          element={<CheckoutCancel />}
+        />
+        <Route
+          path="/checkout/email-test"
+          element={
+            <ProtectedRoute>
+              <CheckoutEmailTest />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <NotificationsNew />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/clear-notifications"
+          element={
+            <ProtectedRoute>
+              <ClearNotifications />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/restore-books"
+          element={
+            <ProtectedRoute>
+              <RestoreBooks />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/banking-setup"
+          element={
+            <ProtectedRoute>
+              <BankingSetup />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/user-profile"
+          element={
+            <ProtectedRoute>
+              <UserProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/sell"
+          element={
+            <ProtectedRoute>
+              <CreateListing />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        {/* DISABLED - Locker functionality removed */}
+        {/* <Route
+          path="/lockers"
+          element={<LockerSearchPage />}
+        /> */}
+
+        {/* Support Routes */}
+        <Route path="/contact" element={<ContactUs />} />
+        <Route path="/faq" element={<FAQ />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/policies" element={<Policies />} />
+        <Route path="/shipping" element={<Shipping />} />
+        <Route path="/getting-started" element={<GettingStarted />} />
+        <Route path="/transparency" element={<Transparency />} />
+        <Route path="/report" element={<Report />} />
+        <Route path="/webhook-test" element={<WebhookTest />} />
+
+        {/* 404 Catch All */}
+        <Route path="*" element={<Index />} />
+      </Routes>
+    </>
+  );
+}
 
 function App() {
   // Check environment configuration first
@@ -111,195 +304,12 @@ function App() {
         <QueryClientProvider client={queryClient}>
           <ThemeProvider attribute="class" defaultTheme="light">
             <AuthProvider>
-                <CartProvider>
-                  <Router>
-                    <AuthErrorHandler />
-                    <ScrollToTop />
-
-                    <Routes>
-                      {/* Main Application Routes */}
-                      <Route path="/" element={<Index />} />
-                      <Route path="/books" element={<BookListing />} />
-                      <Route path="/books/:id" element={<BookDetails />} />
-                      <Route
-                        path="/edit-book/:id"
-                        element={
-                          <ProtectedRoute>
-                            <EditBook />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/seller/:sellerId"
-                        element={<SellerProfile />}
-                      />
-
-                      {/* Authentication Routes */}
-                      <Route path="/login" element={<Login />} />
-                      <Route path="/register" element={<Register />} />
-                      <Route
-                        path="/forgot-password"
-                        element={<ForgotPassword />}
-                      />
-                      <Route
-                        path="/reset-password"
-                        element={<ResetPassword />}
-                      />
-                      <Route path="/verify" element={<Verify />} />
-                      <Route path="/verify/*" element={<VerifyEmail />} />
-                                            <Route path="/auth/callback" element={<AuthCallback />} />
-
-                      {/* Protected User Routes */}
-                      <Route
-                        path="/profile"
-                        element={
-                          <ProtectedRoute>
-                            <Profile />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/create-listing"
-                        element={
-                          <ProtectedRoute>
-                            <CreateListing />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/cart"
-                        element={
-                          <ProtectedRoute>
-                            <Cart />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/checkout"
-                        element={
-                          <ProtectedRoute>
-                            <Checkout />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/checkout/:id"
-                        element={
-                          <ProtectedRoute>
-                            <Checkout />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/checkout-cart"
-                        element={
-                          <ProtectedRoute>
-                            <Checkout />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/checkout/success"
-                        element={<CheckoutSuccess />}
-                      />
-                      <Route
-                        path="/checkout/pending"
-                        element={<CheckoutPending />}
-                      />
-                      <Route
-                        path="/checkout/cancel"
-                        element={<CheckoutCancel />}
-                      />
-                      <Route
-                        path="/checkout/email-test"
-                        element={
-                          <ProtectedRoute>
-                            <CheckoutEmailTest />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/notifications"
-                        element={
-                          <ProtectedRoute>
-                            <NotificationsNew />
-                          </ProtectedRoute>
-                        }
-                      />
-                                            <Route
-                        path="/clear-notifications"
-                        element={
-                          <ProtectedRoute>
-                            <ClearNotifications />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/restore-books"
-                        element={
-                          <ProtectedRoute>
-                            <RestoreBooks />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/banking-setup"
-                        element={
-                          <ProtectedRoute>
-                            <BankingSetup />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/user-profile"
-                        element={
-                          <ProtectedRoute>
-                            <UserProfile />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/sell"
-                        element={
-                          <ProtectedRoute>
-                            <CreateListing />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/settings"
-                        element={
-                          <ProtectedRoute>
-                            <Profile />
-                          </ProtectedRoute>
-                        }
-                      />
-                      {/* DISABLED - Locker functionality removed */}
-                      {/* <Route
-                        path="/lockers"
-                        element={<LockerSearchPage />}
-                      /> */}
-
-
-                      
-                      {/* Support Routes */}
-                      <Route path="/contact" element={<ContactUs />} />
-                      <Route path="/faq" element={<FAQ />} />
-                      <Route path="/privacy" element={<Privacy />} />
-                      <Route path="/terms" element={<Terms />} />
-                      <Route path="/policies" element={<Policies />} />
-                      <Route path="/shipping" element={<Shipping />} />
-                      <Route path="/getting-started" element={<GettingStarted />} />
-                      <Route path="/transparency" element={<Transparency />} />
-                      <Route path="/report" element={<Report />} />
-                      <Route path="/webhook-test" element={<WebhookTest />} />
-
-                      {/* 404 Catch All */}
-                      <Route path="*" element={<Index />} />
-                    </Routes>
-                  </Router>
-                </CartProvider>
-              </AuthProvider>
+              <CartProvider>
+                <Router>
+                  <AppRoutes />
+                </Router>
+              </CartProvider>
+            </AuthProvider>
           </ThemeProvider>
         </QueryClientProvider>
         <Analytics />
