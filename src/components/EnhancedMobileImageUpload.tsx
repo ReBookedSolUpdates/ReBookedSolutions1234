@@ -58,6 +58,7 @@ const EnhancedMobileImageUpload = ({
   variant = "object",
   currentImages,
   disabled = false,
+  onAllRequiredImagesReady,
 }: EnhancedMobileImageUploadProps) => {
   const [isUploading, setIsUploading] = useState<{ [key: number]: boolean }>({});
   const [previewImage, setPreviewImage] = useState<string | null>(null);
