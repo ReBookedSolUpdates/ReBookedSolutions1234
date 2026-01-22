@@ -151,9 +151,13 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
         throw error;
       }
 
+      // Update local state to reflect the saved locker
       setSavedLocker(selectedLocker);
+      setWantToChangeLocker(false); // Reset to show saved locker view
+      setSelectedLocker(selectedLocker); // Ensure selected locker is set for proceeding
+
       toast.success("Locker saved! 🎉", {
-        description: `${selectedLocker.name} is now saved to your profile`,
+        description: `${selectedLocker.name} is now your preferred locker. Click Next to continue.`,
       });
     } catch (error) {
       toast.error("Failed to save locker to profile");

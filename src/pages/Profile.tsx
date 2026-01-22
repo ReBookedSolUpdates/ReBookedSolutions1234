@@ -45,7 +45,6 @@ import { useCommit } from "@/hooks/useCommit";
 import EnhancedOrderCommitButton from "@/components/orders/EnhancedOrderCommitButton";
 import BankingProfileTab from "@/components/profile/BankingProfileTab";
 import ShareProfileDialog from "@/components/ShareProfileDialog";
-import ShareReminderBanner from "@/components/ShareReminderBanner";
 import ProfileEditDialog from "@/components/ProfileEditDialog";
 // Transparency moved to standalone page
 import { UserProfile, AddressData, Address } from "@/types/address";
@@ -364,11 +363,29 @@ const Profile = () => {
 
                     {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
-            <ShareReminderBanner
-              userId={user?.id || ""}
-              userName={profile?.full_name || profile?.name || ""}
-              onShare={() => setIsShareDialogOpen(true)}
-            />
+            {/* Share Your Profile */}
+            <Card className="bg-gradient-to-r from-book-50 to-book-100 border-book-200">
+              <CardContent className="pt-6">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-semibold text-book-800">
+                      Share Your ReBooked Mini Page
+                    </h3>
+                    <p className="text-book-700 text-sm">
+                      Share your profile to help your books sell faster! Post it on social media, send to classmates, or share in study groups.
+                    </p>
+                  </div>
+                  <Button
+                    onClick={() => setIsShareDialogOpen(true)}
+                    className="bg-book-600 hover:bg-book-700 text-white w-full md:w-auto flex-shrink-0"
+                  >
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Share Profile
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Card>
                 <CardContent className="pt-6">
@@ -416,29 +433,6 @@ const Profile = () => {
                 </CardContent>
               </Card>
                         </div>
-
-            {/* Share Your Profile */}
-            <Card className="bg-gradient-to-r from-book-50 to-book-100 border-book-200">
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-2">
-                    <h3 className="text-lg font-semibold text-book-800">
-                      Share Your ReBooked Mini Page
-                    </h3>
-                    <p className="text-book-700 text-sm">
-                      Share your profile to help your books sell faster! Post it on social media, send to classmates, or share in study groups.
-                    </p>
-                  </div>
-                  <Button
-                    onClick={() => setIsShareDialogOpen(true)}
-                    className="bg-book-600 hover:bg-book-700 text-white"
-                  >
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Share Profile
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Recent Activity */}
             <Card>
@@ -511,15 +505,8 @@ const Profile = () => {
           {/* Books Tab */}
           <TabsContent value="books" className="space-y-6">
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
+              <CardHeader>
                 <CardTitle>My Books ({activeListings.length})</CardTitle>
-                <Button
-                  onClick={() => navigate("/create-listing")}
-                  className="bg-book-600 hover:bg-book-700"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Book
-                </Button>
               </CardHeader>
               <CardContent>
                 {isLoadingListings ? (

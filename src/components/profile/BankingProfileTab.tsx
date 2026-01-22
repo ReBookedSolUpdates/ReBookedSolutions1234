@@ -274,19 +274,6 @@ const BankingProfileTab = () => {
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </div>
-
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <Shield className="h-5 w-5 text-green-600 mt-0.5" />
-                  <div>
-                    <h4 className="font-medium text-green-900 mb-1">Ready to Get Started?</h4>
-                    <p className="text-sm text-green-800">
-                      Set up your banking details to start selling books and receive payments automatically.
-                      Your information will be encrypted and stored securely.
-                    </p>
-                  </div>
-                </div>
-              </div>
             </div>
           )}
 
