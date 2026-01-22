@@ -505,15 +505,8 @@ const Profile = () => {
           {/* Books Tab */}
           <TabsContent value="books" className="space-y-6">
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
+              <CardHeader>
                 <CardTitle>My Books ({activeListings.length})</CardTitle>
-                <Button
-                  onClick={() => navigate("/create-listing")}
-                  className="bg-book-600 hover:bg-book-700"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Book
-                </Button>
               </CardHeader>
               <CardContent>
                 {isLoadingListings ? (
