@@ -291,7 +291,7 @@ const AIAnalysisModal = ({
       <Label className="text-sm font-medium">{label}</Label>
       <div className="relative">
         {imageUrl ? (
-          <div className="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden">
+          <div className="relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden">
             <img
               src={imageUrl}
               alt={label}
@@ -307,7 +307,7 @@ const AIAnalysisModal = ({
             </button>
           </div>
         ) : (
-          <label className="w-full aspect-square bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors">
+          <label className="w-full h-32 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors">
             <input
               type="file"
               accept="image/*"
