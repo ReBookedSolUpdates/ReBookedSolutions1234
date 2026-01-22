@@ -32,7 +32,6 @@ import { BookInformationForm } from "@/components/create-listing/BookInformation
 import { PricingSection } from "@/components/create-listing/PricingSection";
 import { BookTypeSection } from "@/components/create-listing/BookTypeSection";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { canUserListBooks } from "@/services/addressValidationService";
 import { getSellerDeliveryAddress } from "@/services/simplifiedAddressService";
 import { fallbackAddressService } from "@/services/fallbackAddressService";
 import { Alert, AlertDescription } from "@/components/ui/alert";
