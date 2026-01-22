@@ -360,7 +360,8 @@ export const getBookById = async (id: string): Promise<Book | null> => {
               name: [profileData.first_name, profileData.last_name].filter(Boolean).join(" ") || (profileData as any).name || (profileData.email ? profileData.email.split("@")[0] : ""),
               email: profileData.email,
               preferred_delivery_locker_data: (profileData as any).preferred_delivery_locker_data,
-              has_pickup_address: !!(profileData as any).pickup_address_encrypted
+              has_pickup_address: !!(profileData as any).pickup_address_encrypted,
+              created_at: (profileData as any).created_at
             }
           : null,
       };
