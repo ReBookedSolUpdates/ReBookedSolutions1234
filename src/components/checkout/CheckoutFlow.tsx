@@ -33,6 +33,7 @@ import Step3Payment from "./Step3Payment";
 import Step4Confirmation from "./Step4Confirmation";
 import AddressInput from "./AddressInput";
 import { toast } from "sonner";
+import { ActivityService } from "@/services/activityService";
 
 interface CheckoutFlowProps {
   book: CheckoutBook;
