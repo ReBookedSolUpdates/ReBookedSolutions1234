@@ -91,6 +91,15 @@ const Footer = () => {
                   Sell a Book
                 </Link>
               </li>
+              <li>
+                <Link
+                  to="/policies"
+                  className="text-gray-600 hover:text-book-600 text-sm"
+                  onClick={handleLinkClick}
+                >
+                  Policies & Terms
+                </Link>
+              </li>
             </ul>
           </div>
 
