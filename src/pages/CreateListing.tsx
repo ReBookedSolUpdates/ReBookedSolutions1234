@@ -85,6 +85,7 @@ const CreateListing = () => {
   const [showAIPreview, setShowAIPreview] = useState(false);
   const [showAIReadyButton, setShowAIReadyButton] = useState(false);
   const [showAIWarning, setShowAIWarning] = useState(false);
+  const [showAIAnalysisModal, setShowAIAnalysisModal] = useState(false);
 
   // Check if user can list books on component mount
   useEffect(() => {
