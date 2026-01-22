@@ -1,0 +1,4 @@
+/* Hide the default close button in the Buyers Protection Dialog */
+.buyers-protection-dialog button[aria-label="Close"] {
+  display: none !important;
+}
