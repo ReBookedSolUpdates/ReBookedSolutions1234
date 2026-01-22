@@ -45,7 +45,6 @@ import { useCommit } from "@/hooks/useCommit";
 import EnhancedOrderCommitButton from "@/components/orders/EnhancedOrderCommitButton";
 import BankingProfileTab from "@/components/profile/BankingProfileTab";
 import ShareProfileDialog from "@/components/ShareProfileDialog";
-import ShareReminderBanner from "@/components/ShareReminderBanner";
 import ProfileEditDialog from "@/components/ProfileEditDialog";
 // Transparency moved to standalone page
 import { UserProfile, AddressData, Address } from "@/types/address";
