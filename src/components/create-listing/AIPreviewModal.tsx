@@ -259,11 +259,11 @@ export const AIPreviewModal = ({
                   </div>
                 </div>
               )}
-              <div className="py-3 border-b">
+              <div className="py-2 sm:py-3 border-b">
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                   Estimated Price (ZAR)
                 </p>
-                <div className="flex items-end gap-2 mt-2">
+                <div className="flex items-end gap-2 mt-1 sm:mt-2">
                   <div className="flex-1">
                     <Input
                       type="number"
