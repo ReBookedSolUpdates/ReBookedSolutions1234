@@ -65,16 +65,16 @@ const PreviewField = ({
   isEmpty?: boolean;
 }) => {
   return (
-    <div className="py-2 sm:py-3 border-b last:border-b-0">
+    <div className="py-1.5 sm:py-3 border-b last:border-b-0">
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide text-[10px] sm:text-xs">
             {label}
           </p>
           {isEmpty ? (
-            <p className="text-sm text-gray-400 italic mt-1">Not detected</p>
+            <p className="text-xs sm:text-sm text-gray-400 italic mt-0.5 sm:mt-1">Not detected</p>
           ) : (
-            <p className="text-sm font-medium text-gray-900 mt-1 break-words">
+            <p className="text-xs sm:text-sm font-medium text-gray-900 mt-0.5 sm:mt-1 break-words">
               {value}
             </p>
           )}
