@@ -238,7 +238,8 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
                 name: displayName,
                 email: profile.email || "",
                 preferred_delivery_locker_data: profile.preferred_delivery_locker_data,
-                has_pickup_address: !!profile.pickup_address_encrypted
+                has_pickup_address: !!profile.pickup_address_encrypted,
+                created_at: profile.created_at
               });
             });
           }
