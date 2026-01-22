@@ -431,7 +431,7 @@ const AIAnalysisModal = ({
                     onClick={() =>
                       setState((prev) => ({ ...prev, bookType: "university", step: "details" }))
                     }
-                    className="flex flex-col items-center gap-2 p-3 rounded-lg border-2 border-gray-200 hover:border-book-600 hover:bg-book-50 transition-all"
+                    className="flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-3 rounded-lg border-2 border-gray-200 hover:border-book-600 hover:bg-book-50 transition-all"
                   >
                     <GraduationCap className="h-6 w-6 text-gray-700" />
                     <span className="text-xs font-medium text-gray-700">
@@ -443,7 +443,7 @@ const AIAnalysisModal = ({
                     onClick={() =>
                       setState((prev) => ({ ...prev, bookType: "reader", step: "details" }))
                     }
-                    className="flex flex-col items-center gap-2 p-3 rounded-lg border-2 border-gray-200 hover:border-book-600 hover:bg-book-50 transition-all"
+                    className="flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-3 rounded-lg border-2 border-gray-200 hover:border-book-600 hover:bg-book-50 transition-all"
                   >
                     <BookOpen className="h-6 w-6 text-gray-700" />
                     <span className="text-xs font-medium text-gray-700">
