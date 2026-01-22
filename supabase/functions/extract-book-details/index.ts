@@ -49,36 +49,52 @@ function isValidSupabaseStorageUrl(url: string): boolean {
 
 // System prompt for book extraction
 function getSystemPrompt(): string {
-  return `You are an expert book analyst specialized in South African textbooks. You will analyze three book images (front cover, back cover, inside pages) and extract detailed information.
+  return `You are an expert book analyst specialized in South African textbooks with years of experience in evaluating educational materials. You will analyze three book images (front cover, back cover, inside pages) and extract detailed, comprehensive information.
 
 Your task:
-1. Extract the book title from the cover
-2. Extract the author name
+1. Extract the book title from the cover (be precise, include edition if visible)
+2. Extract the author name(s)
 3. Look for ISBN number (on back cover or inside)
-4. Assess book condition based on visual appearance (New/Good/Better/Average/Below Average)
+4. Assess book condition based on visual appearance using these criteria:
+   - New: Pristine, no visible wear, spine intact, pages crisp
+   - Good: Minimal wear, no markings, pages clean, binding tight
+   - Better: Light wear on cover/spine, minimal page yellowing, no tears
+   - Average: Noticeable wear, some markings possible, pages may be yellowed
+   - Below Average: Significant wear, markings, loose pages, damage visible
 5. Identify grade level if visible (e.g., "Grade 10", "Grade 11", etc.)
 6. Detect curriculum type: CAPS, Cambridge, or IEB (South African curricula)
 7. Determine the subject/category of the book (e.g., Mathematics, English, Biology, etc.)
-8. Generate a brief description based on visible content
+8. **CRITICAL - Generate a rich, detailed description (3-5 sentences) that includes:**
+   - What the book covers (topics, chapters if visible)
+   - The target audience/grade level
+   - **A clear statement about the physical condition** (e.g., "This copy is in Good condition with minimal wear on the spine and clean, unmarked pages.")
+   - Any notable features (color illustrations, practice exercises, exam prep content)
+   - Edition/publication year if visible
 9. Estimate a fair market price in ZAR based on:
    - Grade level (higher grades tend to have higher prices)
    - Curriculum type (IEB/Cambridge may price differently than CAPS)
-   - Book condition (New > Good > Fair > Average > Below Average)
+   - Book condition (New > Good > Better > Average > Below Average)
    - Estimated age/edition
    - Current market rates for similar books
 
 For price estimation guidelines:
 - New textbooks: R150-R800 depending on grade/curriculum
 - Good condition: 70-90% of new price
+- Better condition: 60-80% of new price
 - Average condition: 50-70% of new price
 - Below Average: 30-50% of new price
+
+DESCRIPTION EXAMPLES:
+- Good: "This Grade 11 CAPS Mathematics textbook covers algebra, geometry, trigonometry, and statistics with comprehensive worked examples. This copy is in Good condition with a tight binding, clean pages, and only minor wear on the cover corners. Features full-color diagrams and end-of-chapter exercises ideal for exam preparation."
+- Average: "A comprehensive IEB English Home Language textbook for Grade 10 covering literature analysis, creative writing, and grammar. This copy shows Average condition with visible wear on the spine, some page yellowing, and light pencil markings that can be erased. Includes prescribed poetry and short story selections."
+- Below Average: "Cambridge IGCSE Biology textbook covering cells, genetics, and ecology with detailed laboratory experiment guides. This copy is in Below Average condition with a loose binding, dog-eared pages, and highlighting throughout—recommended for budget-conscious buyers who need the content rather than pristine pages."
 
 Always respond with valid JSON in this exact format:
 {
   "title": "string",
   "author": "string",
   "isbn": "string or null",
-  "description": "string (1-2 sentences describing the book)",
+  "description": "string (3-5 sentences, MUST include condition statement and book content details)",
   "condition": "New|Good|Better|Average|Below Average",
   "grade": "string or null (e.g., 'Grade 10')",
   "curriculum": "CAPS|Cambridge|IEB or null",
@@ -98,22 +114,24 @@ Always respond with valid JSON in this exact format:
 
 // Build vision prompt for images
 function buildVisionPrompt(hint?: { curriculum?: string; grade?: string }): string {
-  let prompt = `Analyze these three book images to extract book details.
+  let prompt = `Analyze these three book images carefully to extract comprehensive book details.
 
-Image 1: Front cover - Extract title, author, and visual indicators
-Image 2: Back cover - Look for ISBN, curriculum indicators, and additional text
-Image 3: Inside pages - Assess condition, look for curriculum type, edition info
+Image 1: Front cover - Extract title, author, edition, grade level, and visual indicators of the book's subject matter
+Image 2: Back cover - Look for ISBN, curriculum indicators, blurb text, and additional information about the book's contents
+Image 3: Inside pages - Assess physical condition (page quality, markings, wear), look for curriculum type, edition info, table of contents, or chapter headings
 
-Extract the following information in JSON format:`;
+Extract ALL the following information in JSON format. Pay special attention to:
+1. Writing a DETAILED description (3-5 sentences) that describes what the book covers AND includes a clear statement about its physical condition
+2. Accurately assessing the book's condition based on visible wear, markings, and page quality`;
 
   if (hint?.curriculum) {
-    prompt += `\n\nHint: User indicated curriculum is likely ${hint.curriculum}. Confirm or correct this.`;
+    prompt += `\n\nHint: User indicated curriculum is likely ${hint.curriculum}. Confirm or correct this based on visual evidence.`;
   }
   if (hint?.grade) {
-    prompt += `\n\nHint: User indicated grade level is likely ${hint.grade}. Confirm or correct this.`;
+    prompt += `\n\nHint: User indicated grade level is likely ${hint.grade}. Confirm or correct this based on visual evidence.`;
   }
 
-  prompt += `\n\nRespond ONLY with valid JSON, no additional text.`;
+  prompt += `\n\nRespond ONLY with valid JSON, no additional text. Ensure the description is rich, informative, and includes condition details.`;
   return prompt;
 }
 
@@ -134,7 +152,7 @@ async function callOpenAIVision(
     },
     body: JSON.stringify({
       model: "gpt-4o",
-      max_tokens: 1024,
+      max_tokens: 1500,
       messages: [
         {
           role: "system",
@@ -255,9 +273,9 @@ serve(async (req) => {
 
   /* -------------------- PROCESS WITH TIMEOUT -------------------- */
   try {
-    // Set 30-second timeout for AI processing
+    // Set 45-second timeout for AI processing (increased for richer descriptions)
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error("AI processing timeout (>30s)")), 30000)
+      setTimeout(() => reject(new Error("AI processing timeout (>45s)")), 45000)
     );
 
     const extractionPromise = (async () => {
@@ -273,6 +291,25 @@ serve(async (req) => {
         throw new Error("Could not extract title or author from images");
       }
 
+      // Ensure description includes condition if AI didn't include it
+      let description = extractedData.description || "Book description not available from images";
+      const conditionKeywords = ["condition", "wear", "pages", "binding", "pristine", "markings"];
+      const hasConditionInfo = conditionKeywords.some(keyword => 
+        description.toLowerCase().includes(keyword)
+      );
+      
+      if (!hasConditionInfo && extractedData.condition) {
+        // Append condition info if missing
+        const conditionDescriptions: Record<string, string> = {
+          "New": "This copy is in New condition with pristine pages and no visible wear.",
+          "Good": "This copy is in Good condition with minimal wear and clean pages.",
+          "Better": "This copy is in Better condition with light wear and well-maintained pages.",
+          "Average": "This copy is in Average condition with noticeable wear but remains fully usable.",
+          "Below Average": "This copy is in Below Average condition with significant wear—ideal for budget-conscious buyers.",
+        };
+        description = `${description} ${conditionDescriptions[extractedData.condition] || ""}`;
+      }
+
       // Build response with extracted data
       const response: BookDetailsResponse = {
         success: true,
@@ -280,7 +317,7 @@ serve(async (req) => {
           title: extractedData.title,
           author: extractedData.author,
           isbn: extractedData.isbn || undefined,
-          description: extractedData.description || "Book description not available from images",
+          description: description,
           condition: extractedData.condition || "Good",
           grade: extractedData.grade || undefined,
           curriculum: extractedData.curriculum || undefined,
