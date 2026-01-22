@@ -171,6 +171,16 @@ const Footer = () => {
                   ReBooked News
                 </a>
               </li>
+              <li>
+                <a
+                  href="https://living.rebookedsolutions.co.za/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-600 hover:text-book-600 text-sm"
+                >
+                  ReBooked Living
+                </a>
+              </li>
             </ul>
           </div>
         </div>
