@@ -544,11 +544,22 @@ const CreateListing = () => {
           <div
             className={`bg-white rounded-lg shadow-md ${isMobile ? "p-4" : "p-8"}`}
           >
-            <h1
-              className="text-xl md:text-3xl font-bold text-book-800 mb-6 text-center"
-            >
-              Create New Listing
-            </h1>
+            <div className="flex items-center justify-between gap-4 mb-6">
+              <h1
+                className="text-xl md:text-3xl font-bold text-book-800 flex-1 text-center"
+              >
+                Create New Listing
+              </h1>
+              <Button
+                type="button"
+                onClick={() => setShowAIAnalysisModal(true)}
+                variant="outline"
+                className="flex items-center gap-2 whitespace-nowrap"
+              >
+                <Sparkles className="h-4 w-4" />
+                Use AI
+              </Button>
+            </div>
 
             <form
               onSubmit={handleSubmit}
