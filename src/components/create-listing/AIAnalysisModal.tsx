@@ -63,6 +63,7 @@ const AIAnalysisModal = ({
 }: AIAnalysisModalProps) => {
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   const [state, setState] = useState<AnalysisState>({
+    step: "bookType",
     bookType: null,
     uploadedImages: {
       frontCover: "",
