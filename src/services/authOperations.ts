@@ -8,6 +8,8 @@ import {
   isNetworkError,
 } from "@/utils/errorUtils";
 import { buildDisplayName } from "@/utils/profileUtils";
+import { ActivityService } from "@/services/activityService";
+import { SessionTrackingUtils } from "@/utils/sessionTrackingUtils";
 
 export interface Profile {
   id: string;
