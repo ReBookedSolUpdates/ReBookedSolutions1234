@@ -23,7 +23,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { compressImage } from "@/utils/imageCompression";
 import { BookFormData } from "@/types/book";
 import { AIPreviewModal } from "./AIPreviewModal";
-import { getCategoriesByBookType } from "@/constants/bookTypeCategories";
 import { UNIVERSITY_YEARS, SOUTH_AFRICAN_UNIVERSITIES_SIMPLE } from "@/constants/universities";
 import { ALL_READER_GENRES } from "@/constants/readerGenres";
 
