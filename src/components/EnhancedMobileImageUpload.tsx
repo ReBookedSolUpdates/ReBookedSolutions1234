@@ -100,6 +100,11 @@ const EnhancedMobileImageUpload = ({
         extra2: newImages[4] || "",
       };
       onImagesChange(bookImages);
+
+      // Check if all 3 required images are ready
+      if (newImages[0] && newImages[1] && newImages[2] && onAllRequiredImagesReady) {
+        onAllRequiredImagesReady();
+      }
     } else {
       onImagesChange(newImages);
     }
