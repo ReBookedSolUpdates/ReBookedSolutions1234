@@ -114,6 +114,8 @@ export const createBook = async (bookData: BookFormData, aiAssisted: boolean = f
       initial_quantity: quantity,
       available_quantity: quantity,
       sold_quantity: 0,
+      // Metadata for AI-assisted tracking
+      metadata: aiAssisted ? { ai_assisted: true } : {},
     };
 
 
