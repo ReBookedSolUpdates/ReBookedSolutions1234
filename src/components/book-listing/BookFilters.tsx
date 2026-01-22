@@ -168,7 +168,6 @@ const BookFilters = ({
 
   const anyActive = Boolean(
     searchQuery ||
-    isbn ||
     selectedCategory ||
     selectedCondition ||
     selectedGrade ||
