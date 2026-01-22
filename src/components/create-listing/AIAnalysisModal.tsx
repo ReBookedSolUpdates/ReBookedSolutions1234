@@ -762,15 +762,28 @@ const AIAnalysisModal = ({
             <Button
               variant="outline"
               onClick={handleClose}
-              disabled={state.isAnalyzing}
+              disabled={state.isAnalyzing || state.step === "analyzing"}
               className="flex-1"
             >
               Cancel
             </Button>
-            {state.bookType && (
+
+            {state.step === "details" && (
+              <Button
+                onClick={() =>
+                  setState((prev) => ({ ...prev, step: "images" }))
+                }
+                disabled={!validateDetailsStep()}
+                className="flex-1 bg-book-600 hover:bg-book-700"
+              >
+                Next
+              </Button>
+            )}
+
+            {state.step === "images" && (
               <Button
                 onClick={handleAnalyze}
-                disabled={!validateForm() || state.isAnalyzing}
+                disabled={!validateImagesStep() || state.isAnalyzing}
                 className="flex-1 bg-book-600 hover:bg-book-700"
               >
                 {state.isAnalyzing ? (
@@ -779,7 +792,7 @@ const AIAnalysisModal = ({
                     Analyzing...
                   </>
                 ) : (
-                  "Generate"
+                  "Analyze"
                 )}
               </Button>
             )}
