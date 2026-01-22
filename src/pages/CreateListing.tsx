@@ -522,6 +522,7 @@ const CreateListing = () => {
                   formData={formData}
                   errors={errors}
                   onInputChange={handleInputChange}
+                  showAIWarning={showAIWarning}
                 />
 
                 <div className="space-y-3 md:space-y-4">
