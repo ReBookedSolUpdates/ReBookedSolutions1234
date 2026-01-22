@@ -354,11 +354,13 @@ const AIAnalysisModal = ({
     imageKey,
     imageUrl,
     isUploading,
+    inputRef,
   }: {
     label: string;
     imageKey: keyof UploadedImages;
     imageUrl: string;
     isUploading: boolean;
+    inputRef?: React.RefObject<HTMLInputElement>;
   }) => (
     <div className="space-y-2">
       <Label className="text-sm font-medium text-xs sm:text-sm">{label}</Label>
