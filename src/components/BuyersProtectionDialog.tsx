@@ -61,16 +61,14 @@ const BuyersProtectionDialog = ({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="rounded-xl p-4 sm:p-8 shadow-2xl w-[calc(100vw-2rem)] sm:w-full max-w-sm sm:max-w-2xl max-h-[90vh] overflow-y-auto mx-auto">
+      <DialogContent className="rounded-lg p-6 w-[calc(100vw-2rem)] sm:w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-3 text-2xl">
-            <div className="flex-shrink-0 p-2 bg-emerald-100 rounded-lg">
-              <ShieldCheck className="h-6 w-6 text-emerald-600" />
-            </div>
+          <DialogTitle className="flex items-center gap-3 text-xl">
+            <ShieldCheck className="h-5 w-5 text-gray-700" />
             <span>Buyer Protection</span>
           </DialogTitle>
-          <DialogDescription className="mt-2 text-base">
-            Your funds are protected on every purchase. We ensure safe, secure transactions for all ReBooked Solutions customers.
+          <DialogDescription className="mt-2 text-sm text-gray-600">
+            Your funds are protected on every purchase through our secure escrow system.
           </DialogDescription>
         </DialogHeader>
 
@@ -160,15 +158,10 @@ const BuyersProtectionDialog = ({
           </div>
         </div>
 
-        <div className="mt-6 flex gap-3 justify-end">
+        <div className="mt-6">
           <DialogClose asChild>
-            <Button variant="outline" size="sm">
-              Close
-            </Button>
-          </DialogClose>
-          <DialogClose asChild>
-            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700">
-              I Understand
+            <Button variant="outline" className="w-full">
+              Got It
             </Button>
           </DialogClose>
         </div>
