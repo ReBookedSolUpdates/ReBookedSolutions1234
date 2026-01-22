@@ -23,10 +23,12 @@ const Checkout: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const location = useLocation();
+  const { user } = useAuth();
   const [book, setBook] = useState<CheckoutBook | null>(null);
   const [cartData, setCartData] = useState<CartCheckoutData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [checkoutStartedTracked, setCheckoutStartedTracked] = useState(false);
 
   useEffect(() => {
     // Reset state when component mounts/changes
