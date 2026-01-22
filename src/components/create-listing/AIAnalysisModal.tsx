@@ -105,7 +105,10 @@ const AIAnalysisModal = ({
       format: "image/webp",
     });
 
-    const fileName = `${Math.random()}.${compressed.extension}`;
+    // Generate unique filename using timestamp + random string
+    const timestamp = Date.now();
+    const randomStr = Math.random().toString(36).substring(2, 11);
+    const fileName = `${timestamp}-${randomStr}.${compressed.extension}`;
     const filePath = `book-images/${fileName}`;
 
     const { error: uploadError } = await supabase.storage
