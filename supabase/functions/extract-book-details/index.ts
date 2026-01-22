@@ -57,8 +57,9 @@ Your task:
 4. Assess book condition based on visual appearance (New/Good/Better/Average/Below Average)
 5. Identify grade level if visible (e.g., "Grade 10", "Grade 11", etc.)
 6. Detect curriculum type: CAPS, Cambridge, or IEB (South African curricula)
-7. Generate a brief description based on visible content
-8. Estimate a fair market price in ZAR based on:
+7. Determine the subject/category of the book (e.g., Mathematics, English, Biology, etc.)
+8. Generate a brief description based on visible content
+9. Estimate a fair market price in ZAR based on:
    - Grade level (higher grades tend to have higher prices)
    - Curriculum type (IEB/Cambridge may price differently than CAPS)
    - Book condition (New > Good > Fair > Average > Below Average)
@@ -80,6 +81,7 @@ Always respond with valid JSON in this exact format:
   "condition": "New|Good|Better|Average|Below Average",
   "grade": "string or null (e.g., 'Grade 10')",
   "curriculum": "CAPS|Cambridge|IEB or null",
+  "category": "string (subject/category of the book)",
   "estimatedPrice": number,
   "confidence": {
     "title": 0-100,
