@@ -157,7 +157,7 @@ export const AIPreviewModal = ({
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
-      <DialogContent className="sm:max-w-sm rounded-2xl p-4 sm:p-6">
+      <DialogContent className="max-w-sm rounded-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CheckCircle className="h-5 w-5 text-green-600" />
