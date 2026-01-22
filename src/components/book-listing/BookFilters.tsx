@@ -43,8 +43,6 @@ interface BookFiltersProps {
 const BookFilters = ({
   searchQuery,
   setSearchQuery,
-  isbn,
-  setIsbn,
   selectedCategory,
   setSelectedCategory,
   selectedCondition,
