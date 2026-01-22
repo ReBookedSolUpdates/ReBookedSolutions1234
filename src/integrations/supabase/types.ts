@@ -688,6 +688,7 @@ export type Database = {
           inside_pages: string | null
           isbn: string | null
           item_type: string | null
+          metadata: Json | null
           pickup_address_encrypted: string | null
           price: number
           province: string | null
@@ -725,6 +726,7 @@ export type Database = {
           inside_pages?: string | null
           isbn?: string | null
           item_type?: string | null
+          metadata?: Json | null
           pickup_address_encrypted?: string | null
           price: number
           province?: string | null
@@ -762,6 +764,7 @@ export type Database = {
           inside_pages?: string | null
           isbn?: string | null
           item_type?: string | null
+          metadata?: Json | null
           pickup_address_encrypted?: string | null
           price?: number
           province?: string | null
