@@ -67,7 +67,7 @@ const PreviewField = ({
   isEmpty?: boolean;
 }) => {
   return (
-    <div className="py-3 border-b last:border-b-0">
+    <div className="py-2 sm:py-3 border-b last:border-b-0">
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
