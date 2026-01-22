@@ -47,6 +47,7 @@ interface EnhancedMobileImageUploadProps {
   variant?: "array" | "object";
   currentImages?: BookImages;
   disabled?: boolean;
+  onAllRequiredImagesReady?: () => void;
 }
 
 const EnhancedMobileImageUpload = ({
