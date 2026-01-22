@@ -466,6 +466,8 @@ const CreateListing = () => {
       });
 
       setErrors({});
+      setShowAIReadyButton(false);
+      setShowAIWarning(false);
     } catch (error) {
       const errorMessage =
         error instanceof Error
