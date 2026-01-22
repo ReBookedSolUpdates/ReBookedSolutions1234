@@ -282,11 +282,11 @@ export const AIPreviewModal = ({
                   )}
                 </div>
               </div>
-              <div className="py-3 border-b last:border-b-0">
+              <div className="py-2 sm:py-3 border-b last:border-b-0">
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                   Description
                 </p>
-                <p className="text-sm text-gray-700 mt-1 line-clamp-4">
+                <p className="text-sm text-gray-700 mt-1 line-clamp-3 sm:line-clamp-4">
                   {extractedData.description}
                 </p>
                 {extractedData.condition && (
