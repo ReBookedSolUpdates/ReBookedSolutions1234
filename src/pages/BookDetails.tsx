@@ -42,6 +42,12 @@ const BookDetails = () => {
 
   const { book, isLoading, error } = useBookDetails(id || "");
 
+  // Track book views and time spent
+  useBookTracking({
+    bookId: id || "",
+    userId: user?.id,
+  });
+
   const handleBuyNow = () => {
     if (!user) {
       toast.error("Please log in to purchase books");
