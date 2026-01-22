@@ -140,7 +140,7 @@ const SavedLockersCard = forwardRef<
                 <img
                   src={locker.image_url || locker.pickup_point_provider_logo_url}
                   alt={locker.name}
-                  className="w-full h-auto max-h-48 object-cover rounded-lg border border-green-200 shadow-sm"
+                  className="w-full h-auto max-h-48 object-cover rounded-lg border border-gray-200 shadow-sm"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';
                   }}
