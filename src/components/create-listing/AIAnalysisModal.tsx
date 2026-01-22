@@ -287,8 +287,6 @@ const AIAnalysisModal = ({
         insidePages: "",
       },
       bookType: null,
-      category: "",
-      condition: "",
       curriculum: undefined,
       grade: undefined,
       university: undefined,
