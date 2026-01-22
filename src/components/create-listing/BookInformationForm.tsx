@@ -3,6 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { BookFormData } from "@/types/book";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { AIWarningBanner } from "./AIWarningBanner";
 
 interface BookInformationFormProps {
   formData: BookFormData;
@@ -10,6 +11,7 @@ interface BookInformationFormProps {
   onInputChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => void;
+  showAIWarning?: boolean;
 }
 
 export const BookInformationForm = ({
