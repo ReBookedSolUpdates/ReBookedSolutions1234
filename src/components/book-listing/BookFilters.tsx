@@ -221,7 +221,7 @@ const BookFilters = ({
             <div className="relative">
               <Input
                 id="search"
-                placeholder="Search by title, author..."
+                placeholder="Search by title, author, ISBN..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pr-10"
@@ -234,23 +234,6 @@ const BookFilters = ({
               </button>
             </div>
           </form>
-
-          {/* ISBN Filter */}
-          <div className="mb-6">
-            <Label
-              htmlFor="isbn"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              ISBN
-            </Label>
-            <Input
-              id="isbn"
-              placeholder="Search by ISBN..."
-              value={isbn}
-              onChange={(e) => setIsbn(e.target.value)}
-              className="w-full"
-            />
-          </div>
 
           {/* Book Type Filter */}
           <div className="mb-6">
