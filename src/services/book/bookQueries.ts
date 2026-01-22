@@ -338,7 +338,7 @@ export const getBookById = async (id: string): Promise<Book | null> => {
       try {
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
-          .select("id, first_name, last_name, email, preferred_delivery_locker_data, pickup_address_encrypted")
+          .select("id, first_name, last_name, email, preferred_delivery_locker_data, pickup_address_encrypted, created_at")
           .eq("id", bookData.seller_id)
           .maybeSingle();
 
