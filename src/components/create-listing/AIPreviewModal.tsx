@@ -163,15 +163,15 @@ export const AIPreviewModal = ({
         </DialogHeader>
 
         {isLoading ? (
-          <div className="py-2 sm:py-8 text-center">
+          <div className="py-1 sm:py-4 text-center">
             <div className="inline-flex items-center justify-center">
-              <div className="h-8 w-8 border-4 border-gray-200 border-t-book-600 rounded-full animate-spin" />
+              <div className="h-6 w-6 sm:h-8 sm:w-8 border-3 sm:border-4 border-gray-200 border-t-book-600 rounded-full animate-spin" />
             </div>
-            <p className="text-xs sm:text-sm text-gray-600 mt-1 sm:mt-4">Processing images...</p>
+            <p className="text-xs text-gray-600 mt-1">Processing...</p>
           </div>
         ) : extractedData ? (
-          <div className="space-y-1 sm:space-y-3">
-            <div className="border rounded-lg p-2 sm:p-4 bg-gray-50">
+          <div className="space-y-0.5 sm:space-y-2">
+            <div className="border rounded p-1.5 sm:p-3 bg-gray-50 text-sm">
               <PreviewField
                 label="Title"
                 value={extractedData.title}
