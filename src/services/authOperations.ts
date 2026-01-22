@@ -92,6 +92,16 @@ export const registerUser = async (
     throw new Error(errorMessage);
   }
 
+  // Track signup activity (non-blocking)
+  if (data.user) {
+    try {
+      await ActivityService.trackSignup(data.user.id);
+    } catch (trackingError) {
+      // Don't fail signup for tracking errors
+      console.error("Error tracking signup:", trackingError);
+    }
+  }
+
   // Check if email verification is working
   if (data.user && !data.session) {
     // Email verification required
