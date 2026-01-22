@@ -200,9 +200,6 @@ const AIAnalysisModal = ({
 
   // Validation function for details step
   const validateDetailsStep = (): boolean => {
-    if (!state.category) return false;
-    if (!state.condition) return false;
-
     if (state.bookType === "school") {
       if (!state.curriculum) return false;
       if (!state.grade) return false;
