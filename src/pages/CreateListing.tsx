@@ -686,6 +686,13 @@ const CreateListing = () => {
             </form>
           </div>
 
+          <AIAnalysisModal
+            open={showAIAnalysisModal}
+            onClose={() => setShowAIAnalysisModal(false)}
+            onAnalysisComplete={handleAIAnalysisComplete}
+            bookType={bookType}
+          />
+
           <FirstUploadSuccessDialog
             isOpen={showFirstUploadDialog}
             onClose={async () => {
