@@ -40,6 +40,7 @@ interface UploadedImages {
 }
 
 interface AnalysisState {
+  step: "bookType" | "details" | "images" | "analyzing";
   bookType: "school" | "university" | "reader" | null;
   uploadedImages: UploadedImages;
   category: string;
