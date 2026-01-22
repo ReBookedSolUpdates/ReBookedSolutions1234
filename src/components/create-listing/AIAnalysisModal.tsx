@@ -68,8 +68,6 @@ const AIAnalysisModal = ({
       backCover: "",
       insidePages: "",
     },
-    category: "",
-    condition: "",
     curriculum: undefined,
     grade: undefined,
     university: undefined,
