@@ -127,6 +127,9 @@ export const AIPreviewModal = ({
     if (extractedData.curriculum) {
       (formDataUpdate as any).curriculum = extractedData.curriculum;
     }
+    if (extractedData.category) {
+      (formDataUpdate as any).category = extractedData.category;
+    }
     if ((extractedData as any).frontCover) {
       formDataUpdate.frontCover = (extractedData as any).frontCover;
     }
