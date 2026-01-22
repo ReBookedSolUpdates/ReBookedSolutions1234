@@ -587,6 +587,9 @@ support@rebookedsolutions.co.za`
 
     const initAuth = async () => {
       try {
+        // Initialize session tracking on app load
+        SessionTrackingUtils.initializeSession();
+
         // Get current session with retry logic for network failures
         let sessionResult;
         let retryCount = 0;
