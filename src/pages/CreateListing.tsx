@@ -89,6 +89,9 @@ const CreateListing = () => {
   const [showAIWarning, setShowAIWarning] = useState(false);
   const [showAIAnalysisModal, setShowAIAnalysisModal] = useState(false);
 
+  // Use ref to prevent multiple address checks
+  const addressCheckDoneRef = useRef(false);
+
   // Check if user can list books on component mount
   useEffect(() => {
     const checkAddressStatus = async () => {
