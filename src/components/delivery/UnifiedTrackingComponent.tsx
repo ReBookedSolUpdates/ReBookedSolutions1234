@@ -257,9 +257,9 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
                     />
                   </div>
                 )}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div className="flex flex-col sm:flex-row items-center sm:items-center gap-4 justify-center">
                   {/* Courier Logo and Info */}
-                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                  <div className="flex items-center gap-3 flex-1 min-w-0 justify-center sm:justify-start">
                     {trackingData.courier_logo ? (
                       <img
                         src={trackingData.courier_logo}
@@ -271,12 +271,12 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
                         <Truck className="h-8 w-8 sm:h-10 sm:w-10 text-gray-400" />
                       </div>
                     )}
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 text-center sm:text-left">
                       <h2 className="text-lg sm:text-2xl font-bold text-gray-900 break-words">
                         {trackingData.courier_name || "BobGo Shipment"}
                       </h2>
                       {trackingData.courier_phone && (
-                        <div className="flex items-center gap-1 mt-1 text-xs sm:text-sm text-gray-600">
+                        <div className="flex items-center gap-1 mt-1 text-xs sm:text-sm text-gray-600 justify-center sm:justify-start">
                           <Phone className="h-3 sm:h-4 w-3 sm:w-4 flex-shrink-0" />
                           <span className="font-medium">{trackingData.courier_phone}</span>
                         </div>
