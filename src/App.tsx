@@ -306,6 +306,8 @@ function App() {
     return <EnvironmentConfigHelper />;
   }
 
+  debugLogger.info("App", "Rendering app with all providers");
+
   return (
     <ErrorBoundary level="app">
       <NetworkErrorBoundary>
