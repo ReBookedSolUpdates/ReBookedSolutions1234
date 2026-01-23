@@ -49,11 +49,11 @@ export const loginUser = async (email: string, password: string) => {
 
   // Track login activity (non-blocking)
   if (data.user) {
+    debugLogger.info("authOperations", "Login successful", { userId: data.user.id });
     try {
       await ActivityService.trackLogin(data.user.id);
     } catch (trackingError) {
-      // Don't fail login for tracking errors
-      console.error("Error tracking login:", trackingError);
+      debugLogger.warn("authOperations", "Error tracking login", trackingError);
     }
   }
 
