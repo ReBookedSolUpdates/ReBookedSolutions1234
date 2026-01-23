@@ -97,6 +97,12 @@ const BookListing = () => {
       const universityYear = searchParams.get("universityYear") || "";
       const province = searchParams.get("province") || "";
 
+      debugLogger.info("BookListing", "Loading books with filters", {
+        search: searchQuery,
+        category,
+        page: currentPage,
+      });
+
       const filters: {
         search?: string;
         category?: string;
