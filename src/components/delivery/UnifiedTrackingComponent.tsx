@@ -303,7 +303,7 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
             <CardContent className="space-y-5 p-4 sm:p-6">
               {/* Merchant/Seller Info */}
               {trackingData.merchant_name && (
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-center bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200 justify-center">
                   {trackingData.merchant_logo && (
                     <img
                       src={trackingData.merchant_logo}
@@ -311,7 +311,7 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
                       className="h-12 w-12 sm:h-14 sm:w-14 object-contain rounded border border-gray-200 bg-white p-0.5 flex-shrink-0"
                     />
                   )}
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 text-center sm:text-left">
                     <p className="text-xs font-semibold text-purple-700 uppercase tracking-wide">Merchant / Seller</p>
                     <p className="text-sm sm:text-base font-bold text-gray-900 break-words">
                       {trackingData.merchant_name}
