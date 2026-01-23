@@ -122,6 +122,10 @@ export interface UnifiedTrackingResponse {
   courier_logo?: string;
   service_level?: string;
   service_level_code?: string;
+  // BobGo branding logos
+  bobgo_logo?: string;
+  bobgo_logo_white?: string;
+  bobgo_logo_black?: string;
   // Merchant/Seller information
   merchant_name?: string;
   merchant_logo?: string;
