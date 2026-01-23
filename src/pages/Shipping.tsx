@@ -24,9 +24,9 @@ const Shipping = () => {
   return (
     <Layout>
       <SEO
-        title="Shipping with BobGo – Reliable Delivery & Tracking"
-        description="We use BobGo to connect to trusted couriers like The Courier Guy and Fastway. Faster pickups, better rates, and real-time tracking for buyers and sellers."
-        keywords="bobgo, courier guy, fastway, delivery tracking, shipping south africa, textbook delivery"
+        title="Shipping & Payments – Reliable Delivery & Secure Payments"
+        description="BobGo shipping with multiple payment options. We connect to trusted couriers and accept EFT, cards, and digital payments through our secure BobPay gateway."
+        keywords="shipping, payments, bobgo, courier guy, fastway, delivery tracking, bobpay, south africa, textbook delivery"
         url="https://www.rebookedsolutions.co.za/shipping"
       />
 
