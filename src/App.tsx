@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { usePageTracking } from "@/hooks/usePageTracking";
 import { useAuth } from "@/contexts/AuthContext";
+import debugLogger from "@/utils/debugLogger";
 
 // Suppress harmless ResizeObserver warnings
 import "./utils/suppressResizeObserverError";
