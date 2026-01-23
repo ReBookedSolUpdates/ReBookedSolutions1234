@@ -208,34 +208,23 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
 
       {/* Loading State */}
       {loading && (
-        <Card className="border-0 shadow-lg">
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center justify-center gap-3 sm:gap-4">
-                <div className="relative flex-shrink-0">
-                  <div className="h-8 sm:h-12 w-8 sm:w-12 rounded-full border-3 sm:border-4 border-gray-200 border-t-blue-600 animate-spin"></div>
-                </div>
-                <div className="min-w-0">
-                  <p className="font-semibold text-gray-900 text-sm sm:text-lg">Tracking your package...</p>
-                  <p className="text-xs sm:text-sm text-gray-600 mt-1">Please wait a moment</p>
-                </div>
-              </div>
-            </CardContent>
-          </div>
-        </Card>
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="h-8 w-8 rounded-full border-3 border-gray-200 border-t-blue-600 animate-spin mb-4"></div>
+          <p className="text-gray-600 font-medium">Tracking your package...</p>
+        </div>
       )}
 
       {/* Error State */}
       {error && (
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="flex flex-col items-center justify-center p-4 sm:p-8">
-            <AlertCircle className="h-10 sm:h-12 w-10 sm:w-12 text-red-500 mb-3 sm:mb-4" />
-            <h3 className="text-base sm:text-lg font-semibold text-red-900 mb-2">
-              Tracking Failed
-            </h3>
-            <p className="text-red-700 text-center text-sm sm:text-base break-words">{error}</p>
-          </CardContent>
-        </Card>
+        <div className="rounded-lg bg-red-50 border border-red-200 p-4">
+          <div className="flex gap-3">
+            <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-red-900 text-sm">Tracking failed</p>
+              <p className="text-red-700 text-sm mt-1">{error}</p>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Tracking Results */}
