@@ -382,13 +382,7 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
               </div>
 
               {/* Current Status & Location */}
-              <div className={`flex items-start sm:items-center space-x-3 sm:space-x-4 p-3 sm:p-5 rounded-xl border-2 ${
-                trackingData.status === "delivered" || trackingData.status === "ready-for-pickup"
-                  ? "bg-green-50 border-green-200"
-                  : trackingData.status === "cancelled"
-                  ? "bg-red-50 border-red-200"
-                  : "bg-blue-50 border-blue-200"
-              }`}>
+              <div className="flex items-start sm:items-center space-x-3 sm:space-x-4 p-4 rounded-lg border border-gray-200 bg-white">
                 <div className="flex-shrink-0">
                   {getStatusIcon(trackingData.status)}
                 </div>
