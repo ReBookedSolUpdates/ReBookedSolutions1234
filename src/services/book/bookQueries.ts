@@ -11,6 +11,7 @@ import {
   getErrorMessage,
   logDatabaseError,
 } from "@/utils/errorUtils";
+import debugLogger from "@/utils/debugLogger";
 import { formatSupabaseError } from "@/utils/safeErrorLogger";
 import { getSafeErrorMessage } from "@/utils/errorMessageUtils";
 // Simple retry function to replace the missing connectionHealthCheck
