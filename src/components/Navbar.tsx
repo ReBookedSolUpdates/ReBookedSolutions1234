@@ -161,7 +161,7 @@ const Navbar = () => {
               }`}
             >
               <Truck className="w-4 h-4" />
-              <span>Shipping</span>
+              <span>Shipping/Payments</span>
             </Link>
 
             <Link
@@ -297,7 +297,7 @@ const Navbar = () => {
                 onClick={() => setIsMenuOpen(false)}
               >
                 <Truck className="w-5 h-5" />
-                <span>Shipping</span>
+                <span>Shipping/Payments</span>
               </Link>
 
               <Link

@@ -122,6 +122,10 @@ export interface UnifiedTrackingResponse {
   courier_logo?: string;
   service_level?: string;
   service_level_code?: string;
+  // BobGo branding logos
+  bobgo_logo?: string;
+  bobgo_logo_white?: string;
+  bobgo_logo_black?: string;
   // Merchant/Seller information
   merchant_name?: string;
   merchant_logo?: string;
@@ -379,6 +383,9 @@ export const trackUnifiedShipment = async (
     courier_logo: t.courier_logo,
     service_level: t.service_level,
     service_level_code: t.service_level_code,
+    bobgo_logo: t.bobgo_logo,
+    bobgo_logo_white: t.bobgo_logo_white,
+    bobgo_logo_black: t.bobgo_logo_black,
     merchant_name: t.merchant_name,
     merchant_logo: t.merchant_logo,
     order_number: t.order_number,
