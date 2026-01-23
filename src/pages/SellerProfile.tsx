@@ -18,6 +18,7 @@ import { Book } from "@/types/book";
 import { toast } from "sonner";
 import { useCart } from "@/contexts/CartContext";
 import Layout from "@/components/Layout";
+import { getProvinceFromLocker } from "@/utils/provinceExtractorUtils";
 
 interface SellerProfile {
   id: string;
