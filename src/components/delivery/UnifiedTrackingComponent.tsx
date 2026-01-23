@@ -325,10 +325,10 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
                 <p className="text-xs font-bold text-gray-700 uppercase tracking-wide text-center">Tracking Details</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {/* Primary Tracking Number */}
-                  <div className="bg-white rounded-lg border border-gray-300 p-3 sm:p-4 hover:border-blue-400 transition">
-                    <p className="text-xs font-semibold text-gray-600 uppercase mb-1">Tracking Number</p>
-                    <div className="flex items-center justify-between gap-2 min-w-0">
-                      <p className="font-mono font-bold text-xs sm:text-sm text-gray-900 break-all">
+                  <div className="bg-white rounded-lg border border-gray-300 p-3 sm:p-4 hover:border-blue-400 transition sm:col-span-2">
+                    <p className="text-xs font-semibold text-gray-600 uppercase mb-1 text-center">Tracking Number</p>
+                    <div className="flex items-center justify-center gap-2 min-w-0">
+                      <p className="font-mono font-bold text-xs sm:text-sm text-gray-900 break-all text-center">
                         {trackingData.tracking_number}
                       </p>
                       <button
@@ -340,25 +340,6 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
                       </button>
                     </div>
                   </div>
-
-                  {/* Shipment ID */}
-                  {trackingData.shipment_id && (
-                    <div className="bg-white rounded-lg border border-gray-300 p-3 sm:p-4 hover:border-blue-400 transition">
-                      <p className="text-xs font-semibold text-gray-600 uppercase mb-1">Shipment ID</p>
-                      <div className="flex items-center justify-between gap-2 min-w-0">
-                        <p className="font-mono font-bold text-xs sm:text-sm text-gray-900 break-all">
-                          {trackingData.shipment_id}
-                        </p>
-                        <button
-                          onClick={() => copyToClipboard(trackingData.shipment_id || "")}
-                          className="text-gray-400 hover:text-gray-600 transition flex-shrink-0"
-                          title="Copy to clipboard"
-                        >
-                          <Copy className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-                  )}
 
                   {/* Custom Tracking Reference */}
                   {trackingData.custom_tracking_reference && (
