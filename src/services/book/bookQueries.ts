@@ -81,9 +81,15 @@ const logDetailedError = (context: string, error: unknown) => {
 };
 
 export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
+  debugLogger.info("bookQueries", "getBooks called", { filters });
+
   try {
     const fetchBooksOperation = async (retryCount = 0): Promise<any[]> => {
       try {
+        if (retryCount === 0) {
+          debugLogger.info("bookQueries", "Executing books query");
+        }
+
         // SIMPLIFIED QUERY: Get ALL books first to debug
         let query = supabase
           .from("books")
