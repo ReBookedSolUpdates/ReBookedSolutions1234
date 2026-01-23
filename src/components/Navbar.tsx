@@ -164,6 +164,16 @@ const Navbar = () => {
               <span>Shipping</span>
             </Link>
 
+            <Link
+              to="/tracking"
+              className={`flex items-center space-x-1 text-sm font-medium transition-colors hover:text-book-600 ${
+                isActive("/tracking") ? "text-book-600" : "text-gray-700"
+              }`}
+            >
+              <PackageSearch className="w-4 h-4" />
+              <span>Track</span>
+            </Link>
+
             {/* DISABLED - Locker functionality removed */}
             {/* <Link
               to="/lockers"
