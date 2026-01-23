@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { getSafeErrorMessage } from "@/utils/errorMessageUtils";
+import debugLogger from "@/utils/debugLogger";
 
 // Utility to properly serialize errors for logging (prevents [object Object])
 const serializeError = (error: any): any => {
