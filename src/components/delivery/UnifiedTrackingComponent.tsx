@@ -469,7 +469,7 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
                 <>
                   <Separator className="my-2" />
                   <div className="space-y-3">
-                    <p className="text-xs font-bold text-gray-700 uppercase tracking-wide">Order Information</p>
+                    <p className="text-xs font-bold text-gray-700 uppercase tracking-wide text-center">Order Information</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {trackingData.order_number && (
                         <div className="bg-white rounded-lg border border-gray-300 p-3 sm:p-4">
