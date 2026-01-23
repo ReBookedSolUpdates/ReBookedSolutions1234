@@ -300,6 +300,19 @@ const Navbar = () => {
                 <span>Shipping</span>
               </Link>
 
+              <Link
+                to="/tracking"
+                className={`flex items-center space-x-3 px-4 py-3 text-base font-medium rounded-md transition-colors min-h-[44px] ${
+                  isActive("/tracking")
+                    ? "bg-book-50 text-book-600"
+                    : "text-gray-700 hover:bg-gray-50 hover:text-book-600"
+                }`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <PackageSearch className="w-5 h-5" />
+                <span>Track Order</span>
+              </Link>
+
               {/* DISABLED - Locker functionality removed */}
               {/* <Link
                 to="/lockers"
