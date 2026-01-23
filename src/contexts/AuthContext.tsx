@@ -104,8 +104,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const login = useCallback(
     async (email: string, password: string) => {
       try {
+        debugLogger.info("AuthContext", "Login attempt initiated", { email });
         setIsLoading(true);
         const result = await loginUser(email, password);
+        debugLogger.info("AuthContext", "Login successful");
 
         // After successful login, give Supabase a moment to update auth state
         if (result && result.user) {
