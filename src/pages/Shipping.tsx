@@ -349,22 +349,6 @@ const Shipping = () => {
               </div>
             </CardContent>
           </Card>
-
-          {/* Track Order Link */}
-          <div className="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-6 sm:p-8 text-center">
-            <PackageSearch className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Need to track an existing order?</h3>
-            <p className="text-gray-600 text-sm mb-4">
-              Visit our dedicated tracking page to get real-time updates on your delivery.
-            </p>
-            <Link
-              to="/tracking"
-              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition"
-            >
-              <PackageSearch className="h-4 w-4" />
-              Track Your Order
-            </Link>
-          </div>
         </div>
       </div>
     </Layout>
