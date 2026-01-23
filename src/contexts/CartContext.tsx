@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { CartItem, CartContextType, SellerCart } from "@/types/cart";
 import { Book } from "@/types/book";
 import { toast } from "sonner";
+import debugLogger from "@/utils/debugLogger";
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
