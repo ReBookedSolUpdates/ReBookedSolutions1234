@@ -17,34 +17,43 @@ export const useCart = () => {
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  debugLogger.info("CartContext", "CartProvider initialized");
+
   const [items, setItems] = useState<CartItem[]>([]);
   const [sellerCarts, setSellerCarts] = useState<SellerCart[]>([]);
   const [activeCartId, setActiveCartId] = useState<string | null>(null);
 
   // Load carts from localStorage on mount
   useEffect(() => {
+    debugLogger.info("CartContext", "Loading carts from localStorage");
+
     const savedCart = localStorage.getItem("cart");
     const savedSellerCarts = localStorage.getItem("sellerCarts");
     const savedActiveCartId = localStorage.getItem("activeCartId");
 
     if (savedCart) {
       try {
-        setItems(JSON.parse(savedCart));
+        const parsedCart = JSON.parse(savedCart);
+        setItems(parsedCart);
+        debugLogger.info("CartContext", `Loaded legacy cart with ${parsedCart.length} items`);
       } catch (error) {
-        // Error loading cart - use empty state
+        debugLogger.warn("CartContext", "Error loading legacy cart from localStorage", error);
       }
     }
 
     if (savedSellerCarts) {
       try {
-        setSellerCarts(JSON.parse(savedSellerCarts));
+        const parsedCarts = JSON.parse(savedSellerCarts);
+        setSellerCarts(parsedCarts);
+        debugLogger.info("CartContext", `Loaded ${parsedCarts.length} seller carts`);
       } catch (error) {
-        // Error loading seller carts - use empty state
+        debugLogger.warn("CartContext", "Error loading seller carts from localStorage", error);
       }
     }
 
     if (savedActiveCartId) {
       setActiveCartId(savedActiveCartId);
+      debugLogger.info("CartContext", "Loaded active cart ID", { activeCartId: savedActiveCartId });
     }
   }, []);
 
