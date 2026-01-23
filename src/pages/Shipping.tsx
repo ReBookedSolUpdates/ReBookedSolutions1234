@@ -222,15 +222,149 @@ const Shipping = () => {
             </CardContent>
           </Card>
 
-          {/* Tracking Section */}
-          <Card className="border-0 shadow-sm ring-1 ring-black/5 bg-gradient-to-br from-blue-50 to-white">
+          {/* Payment Methods Section */}
+          <Card className="border-0 shadow-sm ring-1 ring-black/5 bg-gradient-to-br from-emerald-50 to-white">
             <CardHeader>
-              <SectionTitle subtitle="Enter your tracking number to get real-time delivery updates">Track Your Order</SectionTitle>
+              <SectionTitle subtitle="Multiple payment options powered by BobPay">Secure Payment Methods</SectionTitle>
             </CardHeader>
-            <CardContent>
-              <UnifiedTrackingComponent initialTrackingNumber={initialTracking} provider="bobgo" />
+            <CardContent className="space-y-6">
+              {/* BobPay Introduction */}
+              <div className="rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                  <CreditCard className="h-8 w-8 text-emerald-600 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-bold text-gray-900 text-base sm:text-lg">Powered by BobPay</h3>
+                    <p className="text-gray-700 text-sm mt-1">
+                      We accept multiple payment methods through our secure BobPay gateway. All transactions are encrypted and protected.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Payment Methods Grid */}
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-4">EFT Payment Options</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
+                    <div className="flex items-center justify-center bg-white rounded-lg border border-gray-200 p-3 sm:p-4 hover:border-emerald-300 transition">
+                      <img
+                        src="https://cdn.builder.io/api/v1/image/assets%2Fbe2ca462026542bf80e06aef7423f7d8%2F2b87ac3333ab4c1f93eee9ebbcb5ba96?format=webp&width=800&height=1200"
+                        alt="BobPay Instant EFT"
+                        className="h-12 object-contain"
+                      />
+                    </div>
+                    <div className="flex items-center justify-center bg-white rounded-lg border border-gray-200 p-3 sm:p-4 hover:border-emerald-300 transition">
+                      <img
+                        src="https://cdn.builder.io/api/v1/image/assets%2Fbe2ca462026542bf80e06aef7423f7d8%2Ff86c103bcebd46d09d376400d4b98994?format=webp&width=800&height=1200"
+                        alt="BobPay Manual EFT"
+                        className="h-12 object-contain"
+                      />
+                    </div>
+                    <div className="flex items-center justify-center bg-white rounded-lg border border-gray-200 p-3 sm:p-4 hover:border-emerald-300 transition">
+                      <img
+                        src="https://cdn.builder.io/api/v1/image/assets%2Fbe2ca462026542bf80e06aef7423f7d8%2Fa6df1c109fcb48eb8f700f0ee1ba5838?format=webp&width=800&height=1200"
+                        alt="Nedbank Direct EFT"
+                        className="h-12 object-contain"
+                      />
+                    </div>
+                    <div className="flex items-center justify-center bg-white rounded-lg border border-gray-200 p-3 sm:p-4 hover:border-emerald-300 transition">
+                      <img
+                        src="https://cdn.builder.io/api/v1/image/assets%2Fbe2ca462026542bf80e06aef7423f7d8%2F7b5f53b3422f4126a4e66bf2f2237d2b?format=webp&width=800&height=1200"
+                        alt="Capitec Pay"
+                        className="h-12 object-contain"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-4">Card Payment Methods</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
+                    <div className="flex items-center justify-center bg-white rounded-lg border border-gray-200 p-3 sm:p-4 hover:border-emerald-300 transition">
+                      <img
+                        src="https://cdn.builder.io/api/v1/image/assets%2Fbe2ca462026542bf80e06aef7423f7d8%2F0dcafa29bfc243b6bd9f8ca37848a776?format=webp&width=800&height=1200"
+                        alt="Mastercard"
+                        className="h-12 object-contain"
+                      />
+                    </div>
+                    <div className="flex items-center justify-center bg-white rounded-lg border border-gray-200 p-3 sm:p-4 hover:border-emerald-300 transition">
+                      <img
+                        src="https://cdn.builder.io/api/v1/image/assets%2Fbe2ca462026542bf80e06aef7423f7d8%2Fb4a7128bece94bce91c7dbb723bae4aa?format=webp&width=800&height=1200"
+                        alt="Visa"
+                        className="h-12 object-contain"
+                      />
+                    </div>
+                    <div className="flex items-center justify-center bg-white rounded-lg border border-gray-200 p-3 sm:p-4 hover:border-emerald-300 transition">
+                      <img
+                        src="https://cdn.builder.io/api/v1/image/assets%2Fbe2ca462026542bf80e06aef7423f7d8%2F58416a87bee74a149a037161b4ccecb2?format=webp&width=800&height=1200"
+                        alt="American Express"
+                        className="h-12 object-contain"
+                      />
+                    </div>
+                    <div className="flex items-center justify-center bg-white rounded-lg border border-gray-200 p-3 sm:p-4 hover:border-emerald-300 transition">
+                      <img
+                        src="https://cdn.builder.io/api/v1/image/assets%2Fbe2ca462026542bf80e06aef7423f7d8%2Fdbd88b71b59d4aa29a7fb7d4e1db328e?format=webp&width=800&height=1200"
+                        alt="Diners Club"
+                        className="h-12 object-contain"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-4">Digital Payment Options</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
+                    <div className="flex items-center justify-center bg-white rounded-lg border border-gray-200 p-3 sm:p-4 hover:border-emerald-300 transition">
+                      <img
+                        src="https://cdn.builder.io/api/v1/image/assets%2Fbe2ca462026542bf80e06aef7423f7d8%2Fb66a58cbee0047d4981eb8e5c3c445d4?format=webp&width=800&height=1200"
+                        alt="PayShap"
+                        className="h-12 object-contain"
+                      />
+                    </div>
+                    <div className="flex items-center justify-center bg-white rounded-lg border border-gray-200 p-3 sm:p-4 hover:border-emerald-300 transition">
+                      <img
+                        src="https://cdn.builder.io/api/v1/image/assets%2Fbe2ca462026542bf80e06aef7423f7d8%2F18aac1c1e7ba4b7bb6ea87a8502d3494?format=webp&width=800&height=1200"
+                        alt="Scan to Pay"
+                        className="h-12 object-contain"
+                      />
+                    </div>
+                    <div className="flex items-center justify-center bg-white rounded-lg border border-gray-200 p-3 sm:p-4 hover:border-emerald-300 transition">
+                      <img
+                        src="https://cdn.builder.io/api/v1/image/assets%2Fbe2ca462026542bf80e06aef7423f7d8%2F8c6f5798a2024ce3ae6175c3acdcda15?format=webp&width=800&height=1200"
+                        alt="ABSA Pay"
+                        className="h-12 object-contain"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Security Note */}
+              <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 flex items-start gap-3">
+                <ShieldCheck className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <div className="min-w-0">
+                  <p className="font-medium text-blue-900 text-sm">Bank-grade security</p>
+                  <p className="text-blue-700 text-xs mt-1">All payments are secured with industry-standard encryption. Your financial information is never stored on our servers.</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
+
+          {/* Track Order Link */}
+          <div className="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-6 sm:p-8 text-center">
+            <PackageSearch className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Need to track an existing order?</h3>
+            <p className="text-gray-600 text-sm mb-4">
+              Visit our dedicated tracking page to get real-time updates on your delivery.
+            </p>
+            <Link
+              to="/tracking"
+              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition"
+            >
+              <PackageSearch className="h-4 w-4" />
+              Track Your Order
+            </Link>
+          </div>
         </div>
       </div>
     </Layout>
