@@ -204,14 +204,16 @@ const generateWelcomeEmailText = (name: string, email: string): string => `
 `;
 
 export const logoutUser = async (userId?: string) => {
+  debugLogger.info("authOperations", "logoutUser called", { userId });
+
   // Track logout activity (non-blocking)
   if (userId) {
     try {
       const sessionDuration = SessionTrackingUtils.getSessionDuration();
       await ActivityService.trackLogout(userId, sessionDuration);
+      debugLogger.info("authOperations", "Logout activity tracked", { sessionDuration });
     } catch (trackingError) {
-      // Don't fail logout for tracking errors
-      console.error("Error tracking logout:", trackingError);
+      debugLogger.warn("authOperations", "Error tracking logout", trackingError);
     }
   }
 
@@ -219,15 +221,18 @@ export const logoutUser = async (userId?: string) => {
   try {
     SessionTrackingUtils.clearSession();
   } catch (clearError) {
-    // Ignore session clearing errors
+    debugLogger.warn("authOperations", "Error clearing session", clearError);
   }
 
   const { error } = await supabase.auth.signOut();
   if (error) {
+    debugLogger.error("authOperations", "Logout failed", { error: error.message });
     // Create proper Error object with user-friendly message
     const errorMessage = error.message || 'Logout failed. Please try again.';
     throw new Error(errorMessage);
   }
+
+  debugLogger.info("authOperations", "Logout successful");
 };
 
 export const fetchUserProfileQuick = async (
