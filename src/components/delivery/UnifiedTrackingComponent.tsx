@@ -175,9 +175,9 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 max-w-2xl mx-auto">
       {/* Search Section */}
-      <div>
+      <div className="w-full">
         <div className="flex flex-col gap-3">
           <Input
             placeholder="Enter tracking number (e.g., TRK123456789)"
