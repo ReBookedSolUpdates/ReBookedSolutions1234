@@ -494,9 +494,9 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
 
               {/* Recipient Signature */}
               {trackingData.recipient_signature && (
-                <div className="flex items-center space-x-2 sm:space-x-3 p-3 sm:p-4 bg-green-50 rounded-lg border border-green-200">
+                <div className="flex items-center space-x-2 sm:space-x-3 p-3 sm:p-4 bg-green-50 rounded-lg border border-green-200 justify-center">
                   <User className="h-4 sm:h-5 w-4 sm:w-5 text-green-600 flex-shrink-0" />
-                  <div className="min-w-0">
+                  <div className="min-w-0 text-center">
                     <p className="text-xs font-semibold text-green-700 uppercase">Signed by</p>
                     <p className="font-medium text-gray-900 text-xs sm:text-sm break-words">
                       {trackingData.recipient_signature}
