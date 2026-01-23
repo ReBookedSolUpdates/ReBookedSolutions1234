@@ -151,6 +151,8 @@ const BookListing = () => {
 
       setBooks(paginatedBooks);
 
+      debugLogger.info("BookListing", `Loaded ${paginatedBooks.length} books`, { totalBooks: booksArray.length });
+
       if (booksArray.length === 0) {
         //"��️ BookListing: No books found with current filters");
       }
