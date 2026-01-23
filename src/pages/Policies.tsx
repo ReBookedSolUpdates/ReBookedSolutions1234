@@ -102,13 +102,13 @@ const Policies = () => {
                     <div className="text-blue-800 text-xs sm:text-sm space-y-2">
                       <div className="text-center">
                         <span>
-                          <strong>Effective Date:</strong> 3 December 2025
+                          <strong>Last Updated:</strong> January 2026
                         </span>
                         <span className="mx-2">•</span>
                         <span>
                           <strong>Platform:</strong>{" "}
                           <span className="break-all">
-                            www.rebookedsolutions.co.za
+                            rebookedsolutions.co.za
                           </span>
                         </span>
                       </div>
@@ -119,7 +119,7 @@ const Policies = () => {
                       </div>
                       <div className="text-center">
                         <span>
-                          <strong>Privacy Contact:</strong>{" "}
+                          <strong>Legal Contact:</strong>{" "}
                           <span className="break-all">
                             legal@rebookedsolutions.co.za
                           </span>
@@ -134,7 +134,7 @@ const Policies = () => {
                   </div>
                 </CardHeader>
                 <CardContent className="px-4 sm:px-6">
-                  <div className="prose max-w-none space-y-4 sm:space-y-6">
+                  <div className="prose max-w-none space-y-4 sm:space-y-6 text-gray-700 text-sm sm:text-base">
                     <section>
                       <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
                         <strong>Last updated: 3 December 2025</strong>
