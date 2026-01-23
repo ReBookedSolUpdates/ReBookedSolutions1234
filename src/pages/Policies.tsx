@@ -470,12 +470,12 @@ const Policies = () => {
                     <div className="text-blue-800 text-xs sm:text-sm space-y-2">
                       <div className="text-center">
                         <span>
-                          <strong>Effective Date:</strong> 3 December 2025
+                          <strong>Last Updated:</strong> January 2026
                         </span>
                         <span className="mx-2">•</span>
                         <span>
                           <strong>Platform:</strong>{" "}
-                          <span className="break-all">www.rebookedsolutions.co.za</span>
+                          <span className="break-all">rebookedsolutions.co.za</span>
                         </span>
                       </div>
                       <div className="text-center">
