@@ -7,6 +7,7 @@ import { Search, BookOpen, Laptop, Sigma, Dna, FlaskConical, Telescope, Trending
 import FeaturedBooks from "@/components/home/FeaturedBooks";
 import HowItWorks from "@/components/home/HowItWorks";
 import ReadyToGetStarted from "@/components/home/ReadyToGetStarted";
+import debugLogger from "@/utils/debugLogger";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
