@@ -151,10 +151,25 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
         throw error;
       }
 
-      // Update local state to reflect the saved locker
-      setSavedLocker(selectedLocker);
+      // Refresh the locker from the saved profile to ensure all data is intact
+      const { data: updatedProfile } = await supabase
+        .from("profiles")
+        .select("preferred_delivery_locker_data")
+        .eq("id", user.id)
+        .single();
+
+      if (updatedProfile?.preferred_delivery_locker_data) {
+        const refreshedLocker = updatedProfile.preferred_delivery_locker_data as BobGoLocation;
+        // Update local state with the refreshed locker to ensure consistency
+        setSavedLocker(refreshedLocker);
+        setSelectedLocker(refreshedLocker);
+      } else {
+        // Fallback: use the local selectedLocker if refresh fails
+        setSavedLocker(selectedLocker);
+        setSelectedLocker(selectedLocker);
+      }
+
       setWantToChangeLocker(false); // Reset to show saved locker view
-      setSelectedLocker(selectedLocker); // Ensure selected locker is set for proceeding
 
       toast.success("Locker saved! 🎉", {
         description: `${selectedLocker.name} is now your preferred locker. Click Next to continue.`,
