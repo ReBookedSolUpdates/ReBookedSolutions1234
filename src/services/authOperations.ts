@@ -375,6 +375,8 @@ export const fetchUserProfile = async (user: User): Promise<Profile | null> => {
 };
 
 export const createUserProfile = async (user: User): Promise<Profile> => {
+  debugLogger.info("authOperations", "createUserProfile called", { userId: user.id, email: user.email });
+
   try {
 
     // Check if user should be admin based on email
