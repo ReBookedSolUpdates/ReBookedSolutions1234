@@ -23,12 +23,15 @@ export interface Profile {
 }
 
 export const loginUser = async (email: string, password: string) => {
+  debugLogger.info("authOperations", "loginUser called", { email });
+
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
 
   if (error) {
+    debugLogger.error("authOperations", "Login failed", { email, error: error.message });
     // Create proper Error object with user-friendly message
     let errorMessage = error.message || 'Login failed';
 
