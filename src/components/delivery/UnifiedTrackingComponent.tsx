@@ -523,7 +523,7 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
           {trackingData.events.length > 0 && (
             <Card className="border border-gray-200 shadow-sm">
               <CardHeader className="p-4 sm:p-6 border-b border-gray-200">
-                <CardTitle className="flex items-center space-x-3 text-lg font-bold text-gray-900">
+                <CardTitle className="flex items-center space-x-3 text-lg font-bold text-gray-900 justify-center">
                   <Clock className="h-5 w-5 text-gray-600" />
                   <span>Tracking History ({trackingData.events.length})</span>
                 </CardTitle>
