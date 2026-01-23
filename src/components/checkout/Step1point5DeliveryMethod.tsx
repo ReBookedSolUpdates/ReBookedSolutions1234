@@ -185,13 +185,23 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
     if (deliveryMethod === "home") {
       onSelectDeliveryMethod("home", null);
     } else if (deliveryMethod === "locker") {
-      // Use saved locker if no custom locker selected and we're not changing
+      // Prioritize selectedLocker (newly selected), fallback to savedLocker if not changing
       const lockerToUse = selectedLocker || (savedLocker && !wantToChangeLocker ? savedLocker : null);
 
       if (!lockerToUse) {
         toast.error("Please select a locker location");
         return;
       }
+
+      // Verify the locker has required fields for delivery address extraction
+      const hasRequiredFields = lockerToUse.id && lockerToUse.name &&
+        (lockerToUse.address || lockerToUse.full_address);
+
+      if (!hasRequiredFields) {
+        toast.error("Locker information is incomplete. Please select again.");
+        return;
+      }
+
       onSelectDeliveryMethod("locker", lockerToUse);
     }
   };
