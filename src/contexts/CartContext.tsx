@@ -75,9 +75,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [activeCartId]);
 
   const addToCart = (book: Book) => {
+    debugLogger.info("CartContext", "Adding book to cart", { bookId: book?.id, title: book?.title });
+
     // ✅ VALIDATION CHECKS:
     // - book.id exists
     if (!book || !book.id) {
+      debugLogger.warn("CartContext", "Cannot add to cart: Book ID is missing");
       toast.error("Book ID is missing");
       return;
     }
