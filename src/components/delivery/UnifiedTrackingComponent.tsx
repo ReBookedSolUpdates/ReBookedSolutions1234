@@ -511,17 +511,13 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
 
           {/* Tracking History */}
           {trackingData.events.length > 0 && (
-            <Card className="border-0 shadow-lg">
-              <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-b border-orange-100">
-                <CardHeader className="p-4 sm:p-6">
-                  <CardTitle className="flex items-center space-x-2 sm:space-x-3 text-lg sm:text-xl font-bold text-gray-900">
-                    <div className="bg-white rounded-full p-1.5 sm:p-2 shadow-md flex-shrink-0">
-                      <Clock className="h-4 sm:h-5 w-4 sm:w-5 text-orange-600" />
-                    </div>
-                    <span>Tracking History ({trackingData.events.length})</span>
-                  </CardTitle>
-                </CardHeader>
-              </div>
+            <Card className="border border-gray-200 shadow-sm">
+              <CardHeader className="p-4 sm:p-6 border-b border-gray-200">
+                <CardTitle className="flex items-center space-x-3 text-lg font-bold text-gray-900">
+                  <Clock className="h-5 w-5 text-gray-600" />
+                  <span>Tracking History ({trackingData.events.length})</span>
+                </CardTitle>
+              </CardHeader>
               <CardContent className="p-3 sm:p-6">
                 <div className="space-y-0">
                   {trackingData.events.map((event, index) => (
