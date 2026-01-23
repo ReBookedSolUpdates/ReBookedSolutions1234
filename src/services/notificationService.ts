@@ -131,7 +131,16 @@ export function clearNotificationCache(userId: string): void {
  * Add a notification (wrapper around NotificationService.createNotification)
  */
 export async function addNotification(data: CreateNotificationData): Promise<boolean> {
-  return NotificationService.createNotification(data);
+  debugLogger.info("notificationService", "Adding notification", {
+    userId: data.userId,
+    type: data.type,
+    title: data.title
+  });
+  const result = await NotificationService.createNotification(data);
+  if (result) {
+    debugLogger.info("notificationService", "Notification created successfully");
+  }
+  return result;
 }
 
 /**
