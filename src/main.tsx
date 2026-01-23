@@ -1,5 +1,5 @@
 // Environment debugging (development only)
-
+import debugLogger from "./utils/debugLogger";
 
 // Proper network error handling (not suppression)
 import "./utils/networkErrorHandler";
