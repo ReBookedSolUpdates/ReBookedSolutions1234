@@ -21,8 +21,6 @@ const SectionTitle = ({ children, subtitle }: { children: React.ReactNode; subti
 );
 
 const Shipping = () => {
-  const [searchParams] = useSearchParams();
-  const initialTracking = searchParams.get("tracking") || "";
 
   return (
     <Layout>
