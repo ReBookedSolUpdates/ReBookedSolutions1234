@@ -139,6 +139,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const register = useCallback(
     async (email: string, password: string, firstName: string, lastName: string, phone: string, affiliateCode?: string) => {
       try {
+        debugLogger.info("AuthContext", "Register attempt initiated", { email, firstName, lastName });
         setIsLoading(true);
 
         // Check if user already exists in our profiles table
