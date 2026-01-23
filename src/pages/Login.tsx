@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
+import debugLogger from "@/utils/debugLogger";
 import {
   Mail,
   Lock,
@@ -22,6 +23,8 @@ import {
 } from "lucide-react";
 
 const Login = () => {
+  debugLogger.info("Login", "Login page mounted");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -120,6 +123,8 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    debugLogger.info("Login", "Login attempt submitted", { email });
+
     setIsLoading(true);
     setLoginError(null);
     setErrorType(null);
@@ -129,7 +134,9 @@ const Login = () => {
         throw new Error("Email and password are required");
       }
 
+      debugLogger.info("Login", "Authenticating user");
       const result = await login(email, password);
+      debugLogger.info("Login", "Login successful, redirecting to profile");
 
       // Give a moment for auth state to update, then check if we're authenticated
       setTimeout(() => {

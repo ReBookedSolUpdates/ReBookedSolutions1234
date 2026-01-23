@@ -10,9 +10,12 @@ import { toast } from "sonner";
 import { useCommit } from "@/hooks/useCommit";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import debugLogger from "@/utils/debugLogger";
 
 
 const BookListing = () => {
+  debugLogger.info("BookListing", "BookListing page mounted");
+
   const [searchParams, setSearchParams] = useSearchParams();
   const [books, setBooks] = useState<Book[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -94,6 +97,12 @@ const BookListing = () => {
       const universityYear = searchParams.get("universityYear") || "";
       const province = searchParams.get("province") || "";
 
+      debugLogger.info("BookListing", "Loading books with filters", {
+        search: searchQuery,
+        category,
+        page: currentPage,
+      });
+
       const filters: {
         search?: string;
         category?: string;
@@ -142,10 +151,13 @@ const BookListing = () => {
 
       setBooks(paginatedBooks);
 
+      debugLogger.info("BookListing", `Loaded ${paginatedBooks.length} books`, { totalBooks: booksArray.length });
+
       if (booksArray.length === 0) {
         //"��️ BookListing: No books found with current filters");
       }
     } catch (error) {
+      debugLogger.error("BookListing", "Failed to load books", error);
       const userMessage =
         error instanceof Error && error.message.includes("Failed to fetch")
           ? "Unable to connect to the book database. Please check your internet connection and try again."

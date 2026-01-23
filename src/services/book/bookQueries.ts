@@ -11,6 +11,7 @@ import {
   getErrorMessage,
   logDatabaseError,
 } from "@/utils/errorUtils";
+import debugLogger from "@/utils/debugLogger";
 import { formatSupabaseError } from "@/utils/safeErrorLogger";
 import { getSafeErrorMessage } from "@/utils/errorMessageUtils";
 // Simple retry function to replace the missing connectionHealthCheck
@@ -80,9 +81,15 @@ const logDetailedError = (context: string, error: unknown) => {
 };
 
 export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
+  debugLogger.info("bookQueries", "getBooks called", { filters });
+
   try {
     const fetchBooksOperation = async (retryCount = 0): Promise<any[]> => {
       try {
+        if (retryCount === 0) {
+          debugLogger.info("bookQueries", "Executing books query");
+        }
+
         // SIMPLIFIED QUERY: Get ALL books first to debug
         let query = supabase
           .from("books")
@@ -178,8 +185,11 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
     const booksData = await fetchBooksOperation();
 
     if (!booksData || booksData.length === 0) {
+      debugLogger.info("bookQueries", "No books found matching filters");
       return [];
     }
+
+    debugLogger.info("bookQueries", `Retrieved ${booksData.length} books from database`);
 
     // EMERGENCY: Show ALL books regardless of seller profile or address
     let validBooks = booksData; // Show everything!

@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { usePageTracking } from "@/hooks/usePageTracking";
 import { useAuth } from "@/contexts/AuthContext";
+import debugLogger from "@/utils/debugLogger";
 
 // Suppress harmless ResizeObserver warnings
 import "./utils/suppressResizeObserverError";
@@ -87,7 +88,9 @@ const queryClient = new QueryClient({
 // Wrapper component to use hooks inside Router context
 function AppRoutes() {
   const { user } = useAuth();
-  
+
+  debugLogger.info("AppRoutes", "Routes component mounted", { userId: user?.id });
+
   // Track page views
   usePageTracking(user?.id);
 
@@ -280,6 +283,8 @@ function AppRoutes() {
 }
 
 function App() {
+  debugLogger.info("App", "App component initializing");
+
   // Check environment configuration first
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -293,10 +298,15 @@ function App() {
     supabaseKey !== "undefined"
   );
 
+  debugLogger.info("App", "Environment configuration check", { isEnvironmentConfigured });
+
   // Show configuration helper if environment is not properly set up
   if (!isEnvironmentConfigured) {
+    debugLogger.warn("App", "Environment not properly configured, showing config helper");
     return <EnvironmentConfigHelper />;
   }
+
+  debugLogger.info("App", "Rendering app with all providers");
 
   return (
     <ErrorBoundary level="app">

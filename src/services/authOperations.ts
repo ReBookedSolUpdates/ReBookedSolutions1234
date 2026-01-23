@@ -7,6 +7,7 @@ import {
   withTimeout,
   isNetworkError,
 } from "@/utils/errorUtils";
+import debugLogger from "@/utils/debugLogger";
 import { buildDisplayName } from "@/utils/profileUtils";
 import { ActivityService } from "@/services/activityService";
 import { SessionTrackingUtils } from "@/utils/sessionTrackingUtils";
@@ -22,12 +23,15 @@ export interface Profile {
 }
 
 export const loginUser = async (email: string, password: string) => {
+  debugLogger.info("authOperations", "loginUser called", { email });
+
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
 
   if (error) {
+    debugLogger.error("authOperations", "Login failed", { email, error: error.message });
     // Create proper Error object with user-friendly message
     let errorMessage = error.message || 'Login failed';
 
@@ -45,11 +49,11 @@ export const loginUser = async (email: string, password: string) => {
 
   // Track login activity (non-blocking)
   if (data.user) {
+    debugLogger.info("authOperations", "Login successful", { userId: data.user.id });
     try {
       await ActivityService.trackLogin(data.user.id);
     } catch (trackingError) {
-      // Don't fail login for tracking errors
-      console.error("Error tracking login:", trackingError);
+      debugLogger.warn("authOperations", "Error tracking login", trackingError);
     }
   }
 
@@ -61,6 +65,8 @@ export const registerUser = async (
   email: string,
   password: string,
 ) => {
+  debugLogger.info("authOperations", "registerUser called", { email, name });
+
   // First try the standard Supabase signup
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -74,6 +80,7 @@ export const registerUser = async (
   });
 
   if (error) {
+    debugLogger.error("authOperations", "Registration failed", { email, error: error.message });
     // Create proper Error object with user-friendly message
     let errorMessage = error.message || 'Registration failed';
 
@@ -197,14 +204,16 @@ const generateWelcomeEmailText = (name: string, email: string): string => `
 `;
 
 export const logoutUser = async (userId?: string) => {
+  debugLogger.info("authOperations", "logoutUser called", { userId });
+
   // Track logout activity (non-blocking)
   if (userId) {
     try {
       const sessionDuration = SessionTrackingUtils.getSessionDuration();
       await ActivityService.trackLogout(userId, sessionDuration);
+      debugLogger.info("authOperations", "Logout activity tracked", { sessionDuration });
     } catch (trackingError) {
-      // Don't fail logout for tracking errors
-      console.error("Error tracking logout:", trackingError);
+      debugLogger.warn("authOperations", "Error tracking logout", trackingError);
     }
   }
 
@@ -212,15 +221,18 @@ export const logoutUser = async (userId?: string) => {
   try {
     SessionTrackingUtils.clearSession();
   } catch (clearError) {
-    // Ignore session clearing errors
+    debugLogger.warn("authOperations", "Error clearing session", clearError);
   }
 
   const { error } = await supabase.auth.signOut();
   if (error) {
+    debugLogger.error("authOperations", "Logout failed", { error: error.message });
     // Create proper Error object with user-friendly message
     const errorMessage = error.message || 'Logout failed. Please try again.';
     throw new Error(errorMessage);
   }
+
+  debugLogger.info("authOperations", "Logout successful");
 };
 
 export const fetchUserProfileQuick = async (
@@ -278,6 +290,8 @@ export const fetchUserProfileQuick = async (
 };
 
 export const fetchUserProfile = async (user: User): Promise<Profile | null> => {
+  debugLogger.info("authOperations", "fetchUserProfile called", { userId: user.id, email: user.email });
+
   try {
 
     // Enhanced retry logic with better error handling
@@ -361,6 +375,8 @@ export const fetchUserProfile = async (user: User): Promise<Profile | null> => {
 };
 
 export const createUserProfile = async (user: User): Promise<Profile> => {
+  debugLogger.info("authOperations", "createUserProfile called", { userId: user.id, email: user.email });
+
   try {
 
     // Check if user should be admin based on email

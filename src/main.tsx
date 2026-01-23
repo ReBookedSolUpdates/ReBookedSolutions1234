@@ -1,5 +1,5 @@
 // Environment debugging (development only)
-
+import debugLogger from "./utils/debugLogger";
 
 // Proper network error handling (not suppression)
 import "./utils/networkErrorHandler";
@@ -19,6 +19,7 @@ import "./utils/suppressResizeObserverError";
 
 // Enhanced environment validation with deployment safety
 const validateEnvironment = () => {
+  debugLogger.info("main.tsx", "Starting environment validation");
   try {
     const hasSupabaseUrl =
       import.meta.env.VITE_SUPABASE_URL &&
@@ -36,15 +37,19 @@ const validateEnvironment = () => {
 
     // In development, we're more lenient
     if (import.meta.env.DEV && missing.length > 0) {
+      debugLogger.warn("main.tsx", "Missing environment variables in DEV mode", missing);
       return { isValid: true, missing, isDev: true };
     }
 
     if (missing.length > 0) {
+      debugLogger.error("main.tsx", "Missing critical environment variables", missing);
       return { isValid: false, missing, isDev: false };
     }
 
+    debugLogger.info("main.tsx", "Environment validation passed");
     return { isValid: true, missing: [], isDev: false };
   } catch (error) {
+    debugLogger.error("main.tsx", "Environment validation failed with error", error);
     return { isValid: false, missing: ["VALIDATION_ERROR"], isDev: false };
   }
 };
@@ -66,11 +71,14 @@ try {
 
 // Initialize the React app with enhanced error handling
 const initializeApp = () => {
+  debugLogger.info("main.tsx", "Initializing React app");
   const rootElement = document.getElementById("root");
   if (!rootElement) {
+    debugLogger.error("main.tsx", "Root element #root not found in DOM");
     throw new Error("Root element #root not found in DOM");
   }
 
+  debugLogger.info("main.tsx", "Root element found, creating React root");
   const root = createRoot(rootElement);
 
   // Only show environment error in very specific production cases (disabled for now)
@@ -155,18 +163,23 @@ const initializeApp = () => {
 
   // Render the app with comprehensive error boundaries
   // StrictMode temporarily disabled to prevent double-rendering issues
+  debugLogger.info("main.tsx", "Rendering React app");
   root.render(
     <ErrorBoundary level="app">
       <App />
     </ErrorBoundary>,
   );
+  debugLogger.info("main.tsx", "React app mounted successfully");
 
 };
 
 // Main execution with comprehensive error handling
+debugLogger.info("main.tsx", "Starting app initialization");
 try {
   initializeApp();
+  debugLogger.info("main.tsx", "App initialization completed successfully");
 } catch (error) {
+  debugLogger.error("main.tsx", "App initialization failed", error);
 
   // Emergency fallback UI
   const rootElement = document.getElementById("root");
