@@ -59,9 +59,12 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
  */
 export async function getNotifications(userId: string): Promise<Notification[]> {
   try {
+    debugLogger.info("notificationService", "Getting notifications", { userId });
+
     // Check cache first
     const cached = notificationCache.get(userId);
     if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      debugLogger.info("notificationService", "Using cached notifications", { count: cached.data.length });
       return cached.data;
     }
 
