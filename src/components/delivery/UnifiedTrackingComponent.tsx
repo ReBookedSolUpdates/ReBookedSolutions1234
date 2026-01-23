@@ -244,8 +244,8 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
           )}
 
           {/* Courier Header with Logo */}
-          <Card className="border-0 shadow-lg overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 border-b border-blue-100">
+          <Card className="border border-gray-200 shadow-sm">
+            <div className="bg-white border-b border-gray-200">
               <CardHeader className="p-4 sm:p-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                   {/* Courier Logo and Info */}
