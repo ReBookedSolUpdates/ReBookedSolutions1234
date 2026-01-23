@@ -88,7 +88,9 @@ const queryClient = new QueryClient({
 // Wrapper component to use hooks inside Router context
 function AppRoutes() {
   const { user } = useAuth();
-  
+
+  debugLogger.info("AppRoutes", "Routes component mounted", { userId: user?.id });
+
   // Track page views
   usePageTracking(user?.id);
 
