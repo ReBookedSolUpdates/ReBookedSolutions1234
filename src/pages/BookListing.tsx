@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useCommit } from "@/hooks/useCommit";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import debugLogger from "@/utils/debugLogger";
 
 
 const BookListing = () => {
