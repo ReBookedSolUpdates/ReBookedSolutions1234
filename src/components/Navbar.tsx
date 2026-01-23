@@ -13,6 +13,7 @@ import {
   Truck,
   MapPin,
   ShoppingCart,
+  PackageSearch,
 } from "lucide-react";
 import CartButton from "./CartButton";
 import NotificationBadge from "./NotificationBadge";
