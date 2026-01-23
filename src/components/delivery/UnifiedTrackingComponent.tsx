@@ -247,6 +247,16 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
           <Card className="border border-gray-200 shadow-sm">
             <div className="bg-white border-b border-gray-200">
               <CardHeader className="p-4 sm:p-6">
+                {/* BobGo Logo Banner */}
+                {trackingData.bobgo_logo && (
+                  <div className="flex justify-center mb-4 pb-4 border-b border-gray-200">
+                    <img
+                      src={trackingData.bobgo_logo}
+                      alt="BobGo Logo"
+                      className="h-8 sm:h-10 object-contain"
+                    />
+                  </div>
+                )}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                   {/* Courier Logo and Info */}
                   <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -272,8 +282,8 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
                         </div>
                       )}
                       {trackingData.service_level && (
-                        <p className="text-xs sm:text-sm text-gray-600 mt-1 break-words">
-                          {trackingData.service_level}
+                        <p className="text-xs sm:text-sm text-gray-600 mt-2 break-words font-semibold bg-blue-50 inline-block px-2 py-1 rounded">
+                          Service: {trackingData.service_level}
                         </p>
                       )}
                     </div>
