@@ -7,6 +7,7 @@ import {
   withTimeout,
   isNetworkError,
 } from "@/utils/errorUtils";
+import debugLogger from "@/utils/debugLogger";
 import { buildDisplayName } from "@/utils/profileUtils";
 import { ActivityService } from "@/services/activityService";
 import { SessionTrackingUtils } from "@/utils/sessionTrackingUtils";
