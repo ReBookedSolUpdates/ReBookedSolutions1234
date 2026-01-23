@@ -53,6 +53,7 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Policies from "./pages/Policies";
 import Shipping from "./pages/Shipping";
+import Tracking from "./pages/Tracking";
 import Report from "./pages/Report";
 import SellerProfile from "./pages/SellerProfile";
 import GettingStarted from "./pages/GettingStarted";
@@ -266,6 +267,7 @@ function AppRoutes() {
         <Route path="/terms" element={<Terms />} />
         <Route path="/policies" element={<Policies />} />
         <Route path="/shipping" element={<Shipping />} />
+        <Route path="/tracking" element={<Tracking />} />
         <Route path="/getting-started" element={<GettingStarted />} />
         <Route path="/report" element={<Report />} />
         <Route path="/webhook-test" element={<WebhookTest />} />
