@@ -157,6 +157,7 @@ const BookListing = () => {
         //"��️ BookListing: No books found with current filters");
       }
     } catch (error) {
+      debugLogger.error("BookListing", "Failed to load books", error);
       const userMessage =
         error instanceof Error && error.message.includes("Failed to fetch")
           ? "Unable to connect to the book database. Please check your internet connection and try again."
