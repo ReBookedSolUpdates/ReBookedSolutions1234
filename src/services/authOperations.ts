@@ -65,6 +65,8 @@ export const registerUser = async (
   email: string,
   password: string,
 ) => {
+  debugLogger.info("authOperations", "registerUser called", { email, name });
+
   // First try the standard Supabase signup
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -78,6 +80,7 @@ export const registerUser = async (
   });
 
   if (error) {
+    debugLogger.error("authOperations", "Registration failed", { email, error: error.message });
     // Create proper Error object with user-friendly message
     let errorMessage = error.message || 'Registration failed';
 
