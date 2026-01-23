@@ -392,17 +392,17 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
               </div>
 
               {/* Current Status & Location */}
-              <div className="flex items-start sm:items-center space-x-3 sm:space-x-4 p-4 rounded-lg border border-gray-200 bg-white">
+              <div className="flex items-center space-x-3 sm:space-x-4 p-4 rounded-lg border border-gray-200 bg-white justify-center">
                 <div className="flex-shrink-0">
                   {getStatusIcon(trackingData.status)}
                 </div>
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 text-center">
                   <h4 className="font-bold text-gray-900 text-base sm:text-lg">
                     {getStatusText(trackingData.status)}
                   </h4>
                   {trackingData.current_location && (
-                    <p className="text-xs sm:text-sm text-gray-700 mt-1 flex items-start gap-1 flex-wrap">
-                      <MapPin className="h-3 sm:h-4 w-3 sm:w-4 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs sm:text-sm text-gray-700 mt-1 flex items-center gap-1 flex-wrap justify-center">
+                      <MapPin className="h-3 sm:h-4 w-3 sm:w-4 flex-shrink-0" />
                       <span className="break-words">{trackingData.current_location}</span>
                     </p>
                   )}
