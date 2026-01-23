@@ -322,7 +322,7 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
 
               {/* Tracking Numbers Section */}
               <div className="space-y-3">
-                <p className="text-xs font-bold text-gray-700 uppercase tracking-wide">Tracking Details</p>
+                <p className="text-xs font-bold text-gray-700 uppercase tracking-wide text-center">Tracking Details</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {/* Primary Tracking Number */}
                   <div className="bg-white rounded-lg border border-gray-300 p-3 sm:p-4 hover:border-blue-400 transition">
