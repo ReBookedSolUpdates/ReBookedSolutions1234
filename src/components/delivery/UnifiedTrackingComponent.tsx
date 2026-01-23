@@ -548,7 +548,7 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
 
                         {/* Content */}
                         <div className="flex-1 bg-white rounded-lg border border-gray-200 p-3 sm:p-4 hover:shadow-md transition hover:border-blue-300 min-w-0">
-                          <div className="flex flex-col gap-1 mb-2">
+                          <div className="flex flex-col gap-1 mb-2 items-center text-center">
                             <h4 className="font-bold text-gray-900 text-xs sm:text-sm break-words">
                               {event.description}
                             </h4>
@@ -558,15 +558,15 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
                           </div>
 
                           {event.location && (
-                            <div className="flex items-start text-xs sm:text-sm text-gray-600 mt-2 gap-1">
-                              <MapPin className="h-3 sm:h-4 w-3 sm:w-4 mr-1 flex-shrink-0 text-gray-400 mt-0.5" />
+                            <div className="flex items-center justify-center text-xs sm:text-sm text-gray-600 mt-2 gap-1">
+                              <MapPin className="h-3 sm:h-4 w-3 sm:w-4 flex-shrink-0 text-gray-400" />
                               <span className="font-medium break-words">{event.location}</span>
                             </div>
                           )}
 
                           {event.signature && (
-                            <div className="flex items-center text-xs sm:text-sm text-green-700 bg-green-50 rounded p-2 mt-2 border border-green-200 gap-1">
-                              <CheckCircle className="h-3 sm:h-4 w-3 sm:w-4 mr-1 flex-shrink-0" />
+                            <div className="flex items-center justify-center text-xs sm:text-sm text-green-700 bg-green-50 rounded p-2 mt-2 border border-green-200 gap-1">
+                              <CheckCircle className="h-3 sm:h-4 w-3 sm:w-4 flex-shrink-0" />
                               <span className="font-medium break-words">Signed by: {event.signature}</span>
                             </div>
                           )}
