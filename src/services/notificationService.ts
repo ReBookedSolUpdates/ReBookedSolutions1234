@@ -148,6 +148,8 @@ export async function addNotification(data: CreateNotificationData): Promise<boo
  */
 export async function markNotificationAsRead(notificationId: string): Promise<boolean> {
   try {
+    debugLogger.info("notificationService", "Marking notification as read", { notificationId });
+
     // Try to update in notifications table first
     const { error: notifError } = await supabase
       .from('notifications')
@@ -155,6 +157,7 @@ export async function markNotificationAsRead(notificationId: string): Promise<bo
       .eq('id', notificationId);
 
     if (!notifError) {
+      debugLogger.info("notificationService", "Notification marked as read");
       return true;
     }
 
@@ -165,12 +168,15 @@ export async function markNotificationAsRead(notificationId: string): Promise<bo
       .eq('id', notificationId);
 
     if (!orderNotifError) {
+      debugLogger.info("notificationService", "Order notification marked as read");
       return true;
     }
 
+    debugLogger.warn("notificationService", "Failed to mark notification as read");
     // If both fail, return false
     return false;
   } catch (error) {
+    debugLogger.error("notificationService", "Error marking notification as read", error);
     return false;
   }
 }
