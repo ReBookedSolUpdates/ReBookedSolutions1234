@@ -163,11 +163,13 @@ const initializeApp = () => {
 
   // Render the app with comprehensive error boundaries
   // StrictMode temporarily disabled to prevent double-rendering issues
+  debugLogger.info("main.tsx", "Rendering React app");
   root.render(
     <ErrorBoundary level="app">
       <App />
     </ErrorBoundary>,
   );
+  debugLogger.info("main.tsx", "React app mounted successfully");
 
 };
 
