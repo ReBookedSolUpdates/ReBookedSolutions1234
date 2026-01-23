@@ -53,6 +53,7 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Policies from "./pages/Policies";
 import Shipping from "./pages/Shipping";
+import Tracking from "./pages/Tracking";
 import Report from "./pages/Report";
 import SellerProfile from "./pages/SellerProfile";
 import GettingStarted from "./pages/GettingStarted";
