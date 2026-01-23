@@ -52,10 +52,9 @@ const Shipping = () => {
               Reliable delivery via BobGo and secure payments through our BobPay gateway with multiple options.
             </p>
             <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-              <Pill><Truck className="h-3.5 w-3.5 text-blue-600" /> Door‑to‑door</Pill>
-              <Pill><Clock className="h-3.5 w-3.5 text-emerald-600" /> Fast pickups</Pill>
-              <Pill><ShieldCheck className="h-3.5 w-3.5 text-green-600" /> Reliable tracking</Pill>
-              <Pill><Wallet className="h-3.5 w-3.5 text-amber-600" /> Competitive rates</Pill>
+              <Pill><Truck className="h-3.5 w-3.5 text-blue-600" /> Door‑to‑door delivery</Pill>
+              <Pill><Wallet className="h-3.5 w-3.5 text-emerald-600" /> Multiple payment options</Pill>
+              <Pill><ShieldCheck className="h-3.5 w-3.5 text-green-600" /> Bank-grade security</Pill>
             </div>
           </div>
 
