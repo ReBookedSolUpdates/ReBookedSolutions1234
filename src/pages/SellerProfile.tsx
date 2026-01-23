@@ -57,7 +57,7 @@ const SellerProfile = () => {
       // Fetch seller profile
       const { data: sellerData, error: sellerError } = await supabase
         .from("profiles")
-        .select("id, first_name, last_name, email, bio, profile_picture_url, created_at")
+        .select("id, first_name, last_name, email, bio, profile_picture_url, created_at, preferred_delivery_locker_data")
         .eq("id", sellerId)
         .maybeSingle();
 
