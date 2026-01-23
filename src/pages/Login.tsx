@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 
 const Login = () => {
+  debugLogger.info("Login", "Login page mounted");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
