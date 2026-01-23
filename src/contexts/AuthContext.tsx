@@ -10,6 +10,7 @@ import React, {
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { callEdgeFunction } from "@/utils/edgeFunctionClient";
+import debugLogger from "@/utils/debugLogger";
 import {
   Profile,
   loginUser,
