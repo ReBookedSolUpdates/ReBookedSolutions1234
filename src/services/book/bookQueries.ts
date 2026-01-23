@@ -185,8 +185,11 @@ export const getBooks = async (filters?: BookFilters): Promise<Book[]> => {
     const booksData = await fetchBooksOperation();
 
     if (!booksData || booksData.length === 0) {
+      debugLogger.info("bookQueries", "No books found matching filters");
       return [];
     }
+
+    debugLogger.info("bookQueries", `Retrieved ${booksData.length} books from database`);
 
     // EMERGENCY: Show ALL books regardless of seller profile or address
     let validBooks = booksData; // Show everything!
