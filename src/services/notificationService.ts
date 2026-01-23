@@ -95,10 +95,17 @@ export async function getNotifications(userId: string): Promise<Notification[]> 
     const regularData = regularNotif.data || [];
     const orderData = orderNotif.data || [];
 
+    debugLogger.info("notificationService", "Fetched notifications from database", {
+      regularNotifications: regularData.length,
+      orderNotifications: orderData.length
+    });
+
     // Merge both notification arrays and sort by created_at
     const allNotifications = [...regularData, ...orderData]
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
       .slice(0, 100); // Limit to 100 total notifications
+
+    debugLogger.info("notificationService", `Merged and cached ${allNotifications.length} notifications`);
 
     // Update cache
     notificationCache.set(userId, {
