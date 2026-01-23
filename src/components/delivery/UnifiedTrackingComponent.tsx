@@ -403,10 +403,10 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {/* Created At */}
                 {trackingData.created_at && (
-                  <div className="bg-blue-50 rounded-lg p-3 sm:p-4 border border-blue-200">
+                  <div className="bg-white rounded-lg p-3 sm:p-4 border border-gray-200">
                     <div className="flex items-start space-x-2 mb-2">
-                      <Calendar className="h-4 w-4 text-blue-600 flex-shrink-0 mt-0.5" />
-                      <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Created</p>
+                      <Calendar className="h-4 w-4 text-gray-600 flex-shrink-0 mt-0.5" />
+                      <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Created</p>
                     </div>
                     <p className="font-bold text-gray-900 text-xs sm:text-sm break-words">
                       {formatDateTime(trackingData.created_at)}
@@ -416,10 +416,10 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
 
                 {/* Estimated Delivery */}
                 {trackingData.estimated_delivery && trackingData.estimated_delivery.trim() && (
-                  <div className="bg-orange-50 rounded-lg p-3 sm:p-4 border border-orange-200">
+                  <div className="bg-white rounded-lg p-3 sm:p-4 border border-gray-200">
                     <div className="flex items-start space-x-2 mb-2">
-                      <Clock className="h-4 w-4 text-orange-600 flex-shrink-0 mt-0.5" />
-                      <p className="text-xs font-semibold text-orange-700 uppercase tracking-wide">Est. Delivery</p>
+                      <Clock className="h-4 w-4 text-gray-600 flex-shrink-0 mt-0.5" />
+                      <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Est. Delivery</p>
                     </div>
                     <p className="font-bold text-gray-900 text-xs sm:text-sm break-words">
                       {formatDateTime(trackingData.estimated_delivery)}
@@ -429,10 +429,10 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
 
                 {/* Actual Delivery */}
                 {trackingData.actual_delivery && trackingData.actual_delivery.trim() && (
-                  <div className="bg-green-50 rounded-lg p-3 sm:p-4 border border-green-200">
+                  <div className="bg-white rounded-lg p-3 sm:p-4 border border-gray-200">
                     <div className="flex items-start space-x-2 mb-2">
-                      <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
-                      <p className="text-xs font-semibold text-green-700 uppercase tracking-wide">Delivered</p>
+                      <CheckCircle className="h-4 w-4 text-gray-600 flex-shrink-0 mt-0.5" />
+                      <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Delivered</p>
                     </div>
                     <p className="font-bold text-gray-900 text-xs sm:text-sm break-words">
                       {formatDateTime(trackingData.actual_delivery)}
