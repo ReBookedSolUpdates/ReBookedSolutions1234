@@ -19,6 +19,7 @@ import "./utils/suppressResizeObserverError";
 
 // Enhanced environment validation with deployment safety
 const validateEnvironment = () => {
+  debugLogger.info("main.tsx", "Starting environment validation");
   try {
     const hasSupabaseUrl =
       import.meta.env.VITE_SUPABASE_URL &&
@@ -36,15 +37,19 @@ const validateEnvironment = () => {
 
     // In development, we're more lenient
     if (import.meta.env.DEV && missing.length > 0) {
+      debugLogger.warn("main.tsx", "Missing environment variables in DEV mode", missing);
       return { isValid: true, missing, isDev: true };
     }
 
     if (missing.length > 0) {
+      debugLogger.error("main.tsx", "Missing critical environment variables", missing);
       return { isValid: false, missing, isDev: false };
     }
 
+    debugLogger.info("main.tsx", "Environment validation passed");
     return { isValid: true, missing: [], isDev: false };
   } catch (error) {
+    debugLogger.error("main.tsx", "Environment validation failed with error", error);
     return { isValid: false, missing: ["VALIDATION_ERROR"], isDev: false };
   }
 };
