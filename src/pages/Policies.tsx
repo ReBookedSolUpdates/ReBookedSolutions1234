@@ -136,17 +136,8 @@ const Policies = () => {
                 <CardContent className="px-4 sm:px-6">
                   <div className="prose max-w-none space-y-4 sm:space-y-6 text-gray-700 text-sm sm:text-base">
                     <section>
-                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
-                        <strong>Last updated: 3 December 2025</strong>
-                      </p>
-                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
-                        ReBooked Solutions (Pty) Ltd, registration number 2025/452062/07, principal place of business info@rebookedsolutions.co.za, email legal@rebookedsolutions.co.za, processes personal data of persons using the peer-to-peer textbook marketplace Platform (rebookedsolutions.co.za and mobile application).
-                      </p>
-                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 sm:mb-4">
-                        ReBooked Solutions ensures personal data processing complies with the Protection of Personal Information Act 4 of 2013 (POPIA), any applicable legislation, and good practices. Privacy of individuals and data protection is prioritised with measures to secure the Platform.
-                      </p>
-                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
-                        Read this Privacy Policy with any supplemental notices provided during data collection. It supplements but does not override other notices. By using the Platform, you accept these provisions.
+                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-4">
+                        ReBooked Solutions (Pty) Ltd ("ReBooked Solutions", "we", "our", or "us") is a "Responsible Party" as defined by the Protection of Personal Information Act (POPIA). <strong>We are committed to absolute transparency regarding how your data is harvested, stored, and utilized to power our marketplace.</strong>
                       </p>
                     </section>
 
