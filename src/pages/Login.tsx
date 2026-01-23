@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
+import debugLogger from "@/utils/debugLogger";
 import {
   Mail,
   Lock,
