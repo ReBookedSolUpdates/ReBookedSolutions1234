@@ -290,6 +290,8 @@ export const fetchUserProfileQuick = async (
 };
 
 export const fetchUserProfile = async (user: User): Promise<Profile | null> => {
+  debugLogger.info("authOperations", "fetchUserProfile called", { userId: user.id, email: user.email });
+
   try {
 
     // Enhanced retry logic with better error handling
