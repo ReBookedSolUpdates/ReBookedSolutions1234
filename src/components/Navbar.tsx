@@ -297,7 +297,7 @@ const Navbar = () => {
                 onClick={() => setIsMenuOpen(false)}
               >
                 <Truck className="w-5 h-5" />
-                <span>Shipping</span>
+                <span>Shipping/Payments</span>
               </Link>
 
               <Link
