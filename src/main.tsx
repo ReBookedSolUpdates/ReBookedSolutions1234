@@ -71,11 +71,14 @@ try {
 
 // Initialize the React app with enhanced error handling
 const initializeApp = () => {
+  debugLogger.info("main.tsx", "Initializing React app");
   const rootElement = document.getElementById("root");
   if (!rootElement) {
+    debugLogger.error("main.tsx", "Root element #root not found in DOM");
     throw new Error("Root element #root not found in DOM");
   }
 
+  debugLogger.info("main.tsx", "Root element found, creating React root");
   const root = createRoot(rootElement);
 
   // Only show environment error in very specific production cases (disabled for now)
