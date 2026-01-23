@@ -137,6 +137,11 @@ serve(async (req) => {
           courier_logo: shipmentData.courier_logo,
           service_level: shipmentData.service_level,
 
+          // BobGo branding logos
+          bobgo_logo: shipmentData.bob_go_logo,
+          bobgo_logo_white: shipmentData.bob_go_logo_white,
+          bobgo_logo_black: shipmentData.bob_go_logo_black,
+
           // Location
           current_location: latestCheckpoint?.location || latestCheckpoint?.city || "Unknown",
 
