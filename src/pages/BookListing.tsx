@@ -14,6 +14,8 @@ import debugLogger from "@/utils/debugLogger";
 
 
 const BookListing = () => {
+  debugLogger.info("BookListing", "BookListing page mounted");
+
   const [searchParams, setSearchParams] = useSearchParams();
   const [books, setBooks] = useState<Book[]>([]);
   const [isLoading, setIsLoading] = useState(true);
