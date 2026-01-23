@@ -174,9 +174,12 @@ const initializeApp = () => {
 };
 
 // Main execution with comprehensive error handling
+debugLogger.info("main.tsx", "Starting app initialization");
 try {
   initializeApp();
+  debugLogger.info("main.tsx", "App initialization completed successfully");
 } catch (error) {
+  debugLogger.error("main.tsx", "App initialization failed", error);
 
   // Emergency fallback UI
   const rootElement = document.getElementById("root");
