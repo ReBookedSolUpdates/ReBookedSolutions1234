@@ -123,6 +123,8 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    debugLogger.info("Login", "Login attempt submitted", { email });
+
     setIsLoading(true);
     setLoginError(null);
     setErrorType(null);
@@ -132,7 +134,9 @@ const Login = () => {
         throw new Error("Email and password are required");
       }
 
+      debugLogger.info("Login", "Authenticating user");
       const result = await login(email, password);
+      debugLogger.info("Login", "Login successful, redirecting to profile");
 
       // Give a moment for auth state to update, then check if we're authenticated
       setTimeout(() => {
