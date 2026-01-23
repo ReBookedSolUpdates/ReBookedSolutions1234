@@ -18,6 +18,7 @@ import { Book } from "@/types/book";
 import { toast } from "sonner";
 import { useCart } from "@/contexts/CartContext";
 import Layout from "@/components/Layout";
+import { getProvinceFromLocker } from "@/utils/provinceExtractorUtils";
 
 interface SellerProfile {
   id: string;
@@ -56,7 +57,7 @@ const SellerProfile = () => {
       // Fetch seller profile
       const { data: sellerData, error: sellerError } = await supabase
         .from("profiles")
-        .select("id, first_name, last_name, email, bio, profile_picture_url, created_at")
+        .select("id, first_name, last_name, email, bio, profile_picture_url, created_at, preferred_delivery_locker_data")
         .eq("id", sellerId)
         .maybeSingle();
 
@@ -112,10 +113,21 @@ const SellerProfile = () => {
 
       setBooks(transformedBooks);
 
-      // Fallback province from books if profile missing it
-      const fallbackProvince = transformedBooks.find((b) => !!b.province)?.province;
-      if (fallbackProvince) {
-        setSeller((prev) => (prev ? { ...prev, province: fallbackProvince } : prev));
+      // Resolve province with proper fallback logic (same as bookMapper)
+      let resolvedProvince: string | null = null;
+
+      // First, try to get province from seller's locker data
+      if (sellerData?.preferred_delivery_locker_data) {
+        resolvedProvince = getProvinceFromLocker(sellerData.preferred_delivery_locker_data);
+      }
+
+      // Fallback to first book's province if no locker province
+      if (!resolvedProvince) {
+        resolvedProvince = transformedBooks.find((b) => !!b.province)?.province || null;
+      }
+
+      if (resolvedProvince) {
+        setSeller((prev) => (prev ? { ...prev, province: resolvedProvince } : prev));
       }
 
       if (!sellerData && transformedBooks.length === 0) {

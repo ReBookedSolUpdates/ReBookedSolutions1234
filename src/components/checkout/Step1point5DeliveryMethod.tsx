@@ -151,10 +151,25 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
         throw error;
       }
 
-      // Update local state to reflect the saved locker
-      setSavedLocker(selectedLocker);
+      // Refresh the locker from the saved profile to ensure all data is intact
+      const { data: updatedProfile } = await supabase
+        .from("profiles")
+        .select("preferred_delivery_locker_data")
+        .eq("id", user.id)
+        .single();
+
+      if (updatedProfile?.preferred_delivery_locker_data) {
+        const refreshedLocker = updatedProfile.preferred_delivery_locker_data as BobGoLocation;
+        // Update local state with the refreshed locker to ensure consistency
+        setSavedLocker(refreshedLocker);
+        setSelectedLocker(refreshedLocker);
+      } else {
+        // Fallback: use the local selectedLocker if refresh fails
+        setSavedLocker(selectedLocker);
+        setSelectedLocker(selectedLocker);
+      }
+
       setWantToChangeLocker(false); // Reset to show saved locker view
-      setSelectedLocker(selectedLocker); // Ensure selected locker is set for proceeding
 
       toast.success("Locker saved! 🎉", {
         description: `${selectedLocker.name} is now your preferred locker. Click Next to continue.`,
@@ -170,13 +185,23 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
     if (deliveryMethod === "home") {
       onSelectDeliveryMethod("home", null);
     } else if (deliveryMethod === "locker") {
-      // Use saved locker if no custom locker selected and we're not changing
+      // Prioritize selectedLocker (newly selected), fallback to savedLocker if not changing
       const lockerToUse = selectedLocker || (savedLocker && !wantToChangeLocker ? savedLocker : null);
 
       if (!lockerToUse) {
         toast.error("Please select a locker location");
         return;
       }
+
+      // Verify the locker has required fields for delivery address extraction
+      const hasRequiredFields = lockerToUse.id && lockerToUse.name &&
+        (lockerToUse.address || lockerToUse.full_address);
+
+      if (!hasRequiredFields) {
+        toast.error("Locker information is incomplete. Please select again.");
+        return;
+      }
+
       onSelectDeliveryMethod("locker", lockerToUse);
     }
   };
