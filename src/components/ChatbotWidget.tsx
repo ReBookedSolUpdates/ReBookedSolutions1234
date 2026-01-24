@@ -40,7 +40,7 @@ export const ChatbotWidget: React.FC = () => {
 
       {/* Chat Modal */}
       {chatbot.isOpen && (
-        <div className="fixed inset-4 sm:inset-auto sm:bottom-24 sm:right-6 sm:w-96 w-full h-full sm:h-[600px] sm:max-h-[calc(100vh-200px)] bg-white rounded-xl sm:rounded-lg shadow-2xl border border-gray-200 flex flex-col z-50 animate-in slide-in-from-bottom-2 duration-300">
+        <div className="fixed bottom-20 right-4 left-4 sm:bottom-24 sm:right-6 sm:left-auto sm:w-96 h-[70vh] sm:h-[600px] max-h-[calc(100vh-140px)] sm:max-h-[calc(100vh-200px)] bg-white rounded-xl sm:rounded-lg shadow-2xl border border-gray-200 flex flex-col z-50 animate-in slide-in-from-bottom-2 duration-300">
           <ChatInterface
             messages={chatbot.messages}
             isLoading={chatbot.isLoading}
