@@ -613,14 +613,16 @@ const CreateListing = () => {
               <div
                 className="grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-8 lg:gap-10"
               >
-                <BookInformationForm
-                  formData={formData}
-                  errors={errors}
-                  onInputChange={handleInputChange}
-                  showAIWarning={showAIWarning}
-                />
+                <div className="md:col-span-2">
+                  <BookInformationForm
+                    formData={formData}
+                    errors={errors}
+                    onInputChange={handleInputChange}
+                    showAIWarning={showAIWarning}
+                  />
+                </div>
 
-                <div className="space-y-3 md:space-y-4">
+                <div className="space-y-3 md:space-y-4 md:col-span-1">
                   <PricingSection
                     formData={formData}
                     errors={errors}
