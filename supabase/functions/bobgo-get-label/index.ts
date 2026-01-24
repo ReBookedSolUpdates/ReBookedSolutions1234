@@ -21,10 +21,11 @@ serve(async (req) => {
       );
     }
 
-    const BOBGO_API_KEY = Deno.env.get("BOBGO_API_KEY");
+    const isProduction = Deno.env.get("VITE_PRODUCTION") === "true";
+    const BOBGO_API_KEY = Deno.env.get(isProduction ? "BOBGO_API_KEY" : "PRODUCTION_BOBGO_API_KEY");
 
     function resolveBaseUrl() {
-      const env = (Deno.env.get("BOBGO_BASE_URL") || "").trim().replace(/\/+$/, "");
+      const env = (Deno.env.get(isProduction ? "BOBGO_BASE_URL" : "PRODUCTION_BOBGO_BASE_URL") || "").trim().replace(/\/+$/, "");
       if (!env) return "https://api.bobgo.co.za/v2";
       if (env.includes("sandbox.bobgo.co.za") && !env.includes("api.sandbox.bobgo.co.za")) {
         return "https://api.sandbox.bobgo.co.za/v2";
