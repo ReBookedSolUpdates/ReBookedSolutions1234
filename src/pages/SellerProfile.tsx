@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { useCart } from "@/contexts/CartContext";
 import Layout from "@/components/Layout";
 import { getProvinceFromLocker } from "@/utils/provinceExtractorUtils";
+import SellerRating from "@/components/reviews/SellerRating";
 
 interface SellerProfile {
   id: string;
@@ -275,10 +276,16 @@ const SellerProfile = () => {
 
                 {/* Stats + Actions */}
                 <div className="flex flex-col sm:flex-row md:flex-col items-stretch sm:items-start md:items-start gap-3 md:gap-4">
-                  <div className="flex sm:block justify-between text-left sm:text-left">
+                  <div className="flex sm:block justify-between text-left sm:text-left gap-4 sm:gap-0">
                     <div>
                       <div className="text-xs sm:text-sm text-gray-500">Books Available</div>
                       <div className="text-xl sm:text-2xl font-bold text-book-700">{books.length}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs sm:text-sm text-gray-500">Seller Rating</div>
+                      <div className="mt-1">
+                        <SellerRating sellerId={seller.id} showLabel={false} />
+                      </div>
                     </div>
                   </div>
                   <Button
@@ -381,6 +388,7 @@ const SellerProfile = () => {
               </div>
             </>
           )}
+
         </div>
       </div>
     </Layout>

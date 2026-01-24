@@ -24,25 +24,41 @@ const Policies = () => {
           <p className="text-lg text-gray-600 mb-6 max-w-3xl mx-auto">
             Complete policy documentation for ReBooked Solutions
           </p>
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 sm:p-6 mt-6 max-w-5xl mx-auto shadow-sm">
-            <div className="text-blue-900 text-xs sm:text-sm leading-snug">
-              <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
-                <span className="whitespace-nowrap"><strong>Effective Date:</strong> 3 December 2025</span>
-                <span className="hidden sm:inline">•</span>
-                <span className="whitespace-nowrap"><strong>Platform:</strong> rebookedsolutions.co.za</span>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4 mt-6 max-w-5xl mx-auto shadow-sm">
+            <div className="text-blue-900 text-xs sm:text-sm space-y-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div>
+                  <div className="font-semibold text-blue-700 text-xs">Effective Date</div>
+                  <div className="text-blue-900 text-xs">3 Dec 2025</div>
+                </div>
+                <div>
+                  <div className="font-semibold text-blue-700 text-xs">Platform</div>
+                  <div className="text-blue-900 text-xs break-all">rebookedsolutions.co.za</div>
+                </div>
+                <div>
+                  <div className="font-semibold text-blue-700 text-xs">Operator</div>
+                  <div className="text-blue-900 text-xs">ReBooked (Pty) Ltd</div>
+                </div>
+                <div>
+                  <div className="font-semibold text-blue-700 text-xs">Support</div>
+                  <div className="text-blue-900 text-xs break-all">legal@rebookedsolutions.co.za</div>
+                </div>
               </div>
-              <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 mt-1">
-                <span className="whitespace-nowrap"><strong>Operator:</strong> ReBooked Solutions (Pty) Ltd</span>
-                <span className="hidden sm:inline">•</span>
-                <span className="whitespace-nowrap break-all"><strong>Support:</strong> legal@rebookedsolutions.co.za</span>
-              </div>
-              <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 mt-1">
-                <span className="whitespace-nowrap"><strong>Jurisdiction:</strong> Republic of South Africa</span>
-              </div>
-              <div className="mt-1 text-center">
-                <span className="block sm:inline break-words max-w-[62ch] mx-auto">
-                  <strong>Regulatory Compliance:</strong> Consumer Protection Act (Act 68 of 2008) • Electronic Communications and Transactions Act (Act 25 of 2002) • Protection of Personal Information Act (Act 4 of 2013)
-                </span>
+              <div className="border-t border-blue-200 pt-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <div className="font-semibold text-blue-700 text-xs">Jurisdiction</div>
+                    <div className="text-blue-900 text-xs">Republic of South Africa</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-blue-700 text-xs">Regulatory Compliance</div>
+                    <div className="text-blue-900 text-xs space-y-0.5">
+                      <div>• CPA (Act 68 of 2008)</div>
+                      <div>• ECTA (Act 25 of 2002)</div>
+                      <div>• POPIA (Act 4 of 2013)</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
