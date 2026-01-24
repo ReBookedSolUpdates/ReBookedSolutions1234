@@ -40,18 +40,18 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   return (
     <div className="flex flex-col h-full bg-white">
       {/* Header */}
-      <div className="bg-gradient-to-r from-book-600 to-book-700 text-white p-3 sm:p-4 rounded-t-xl sm:rounded-t-lg">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base sm:text-lg font-semibold">ReBooked Assistant</h2>
+      <div className="bg-gradient-to-r from-book-600 to-book-700 text-white p-2 sm:p-4 rounded-t-xl sm:rounded-t-lg">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-sm sm:text-lg font-semibold truncate">ReBooked Assistant</h2>
           <button
             onClick={onClearHistory}
-            className="p-1 hover:bg-book-500 rounded transition-colors"
+            className="p-1 hover:bg-book-500 rounded transition-colors flex-shrink-0"
             title="Clear chat history"
           >
-            <Trash2 size={18} />
+            <Trash2 size={16} className="sm:w-5 sm:h-5" />
           </button>
         </div>
-        <p className="text-xs sm:text-sm text-book-100 mt-1">Ask anything about buying, selling, or ReBooked</p>
+        <p className="text-xs text-book-100 mt-1 leading-tight">Ask anything about buying, selling, or ReBooked</p>
       </div>
 
       {/* Messages Container */}
