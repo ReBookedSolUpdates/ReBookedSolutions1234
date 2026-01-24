@@ -90,10 +90,10 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
         {/* Typing Indicator */}
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-book-50 text-gray-900 px-4 py-2 rounded-lg rounded-bl-none border border-book-200">
+            <div className="bg-book-50 text-gray-900 px-3 py-2 rounded-lg rounded-bl-none border border-book-200">
               <div className="flex items-center gap-1">
-                <Loader2 size={16} className="animate-spin text-book-600" />
-                <span className="text-sm text-gray-600">Thinking...</span>
+                <Loader2 size={14} className="animate-spin text-book-600 flex-shrink-0" />
+                <span className="text-xs sm:text-sm text-gray-600">Thinking...</span>
               </div>
             </div>
           </div>
@@ -102,15 +102,15 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
         {/* Error Message */}
         {error && (
           <div className="flex justify-start">
-            <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-2 rounded-lg rounded-bl-none max-w-xs lg:max-w-md">
+            <div className="bg-red-50 border border-red-200 text-red-800 px-3 py-2 rounded-lg rounded-bl-none max-w-[85%] sm:max-w-xs lg:max-w-md">
               <div className="flex gap-2">
-                <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
+                <AlertCircle size={14} className="flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium">Error</p>
-                  <p className="text-xs mt-1">{error}</p>
+                  <p className="text-xs font-medium">Error</p>
+                  <p className="text-xs mt-0.5">{error}</p>
                   <button
                     onClick={onClearError}
-                    className="text-xs text-red-600 hover:text-red-800 mt-2 underline"
+                    className="text-xs text-red-600 hover:text-red-800 mt-1 underline"
                   >
                     Dismiss
                   </button>
