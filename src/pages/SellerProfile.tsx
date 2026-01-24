@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import {
   User,
   MapPin,
@@ -13,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { Book } from "@/types/book";
 import { toast } from "sonner";
@@ -20,6 +22,7 @@ import { useCart } from "@/contexts/CartContext";
 import Layout from "@/components/Layout";
 import { getProvinceFromLocker } from "@/utils/provinceExtractorUtils";
 import SellerRating from "@/components/reviews/SellerRating";
+import ReviewList from "@/components/reviews/ReviewList";
 
 interface SellerProfile {
   id: string;
