@@ -18,7 +18,7 @@ const SellerInfo = ({ seller, onViewProfile }: SellerInfoProps) => {
   const navigate = useNavigate();
 
   const handleViewReviews = () => {
-    navigate(`/seller/${seller.id}`, { state: { tab: "reviews" } });
+    navigate(`/profile`, { state: { tab: "reviews", sellerId: seller.id } });
   };
 
   return (
