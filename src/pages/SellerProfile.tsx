@@ -307,92 +307,121 @@ const SellerProfile = () => {
           </div>
         </div>
 
-        {/* Content */}
+        {/* Content with Tabs */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {books.length === 0 ? (
-            <Card>
-              <CardContent className="p-12 text-center">
-                <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  No Books Available
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  {seller.name} doesn't have any books for sale at the moment.
-                </p>
-                <Button onClick={() => navigate("/books")} variant="outline">
-                  Browse Other Books
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            {/* Tab Navigation */}
+            <TabsList className="grid w-full max-w-xs grid-cols-2 mb-6">
+              <TabsTrigger value="books" className="flex items-center gap-2">
+                <BookOpen className="h-4 w-4" />
+                Books {books.length > 0 && `(${books.length})`}
+              </TabsTrigger>
+              <TabsTrigger value="reviews" className="flex items-center gap-2">
+                <Star className="h-4 w-4" />
+                Reviews
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Books Tab */}
+            <TabsContent value="books" className="space-y-6">
+              {books.length === 0 ? (
+                <Card>
+                  <CardContent className="p-12 text-center">
+                    <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      No Books Available
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                      {seller.name} doesn't have any books for sale at the moment.
+                    </p>
+                    <Button onClick={() => navigate("/books")} variant="outline">
+                      Browse Other Books
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <>
+                  <div className="mb-6">
+                    <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                      Books for Sale
+                    </h2>
+                    <p className="text-gray-600">
+                      All books listed by {seller.name}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {books.map((book) => (
+                      <Card
+                        key={book.id}
+                        className="hover:shadow-lg transition-shadow cursor-pointer group"
+                        onClick={() => handleBookClick(book.id)}
+                      >
+                        <CardContent className="p-4">
+                          <img
+                            src={book.frontCover || book.imageUrl}
+                            alt={book.title}
+                            className="w-full h-48 object-cover rounded-lg mb-4 group-hover:scale-105 transition-transform duration-200"
+                          />
+
+                          <h3 className="font-semibold text-lg mb-2 line-clamp-2">
+                            {book.title}
+                          </h3>
+
+                          <p className="text-gray-600 text-sm mb-3">
+                            by {book.author}
+                          </p>
+
+                          <div className="flex flex-wrap gap-2 mb-4">
+                            <Badge variant="secondary" className="text-xs">
+                              {book.condition} {book.itemType === "reader" && "reader"}
+                            </Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {book.category}
+                            </Badge>
+                            {book.grade && (
+                              <Badge variant="outline" className="text-xs">
+                                Grade {book.grade}
+                              </Badge>
+                            )}
+                          </div>
+
+                          <div className="flex items-center justify-between">
+                            <span className="text-lg font-bold text-book-600">
+                              R{book.price}
+                            </span>
+                            <Button
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleAddToCart(book);
+                              }}
+                              className="bg-book-600 hover:bg-book-700"
+                            >
+                              Add to Cart
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </>
+              )}
+            </TabsContent>
+
+            {/* Reviews Tab */}
+            <TabsContent value="reviews" className="space-y-6">
               <div className="mb-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                  Books for Sale ({books.length})
+                  Seller Reviews
                 </h2>
                 <p className="text-gray-600">
-                  All books listed by {seller.name}
+                  What buyers say about {seller.name}
                 </p>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {books.map((book) => (
-                  <Card
-                    key={book.id}
-                    className="hover:shadow-lg transition-shadow cursor-pointer group"
-                    onClick={() => handleBookClick(book.id)}
-                  >
-                    <CardContent className="p-4">
-                      <img
-                        src={book.frontCover || book.imageUrl}
-                        alt={book.title}
-                        className="w-full h-48 object-cover rounded-lg mb-4 group-hover:scale-105 transition-transform duration-200"
-                      />
-
-                      <h3 className="font-semibold text-lg mb-2 line-clamp-2">
-                        {book.title}
-                      </h3>
-
-                      <p className="text-gray-600 text-sm mb-3">
-                        by {book.author}
-                      </p>
-
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        <Badge variant="secondary" className="text-xs">
-                          {book.condition} {book.itemType === "reader" && "reader"}
-                        </Badge>
-                        <Badge variant="outline" className="text-xs">
-                          {book.category}
-                        </Badge>
-                        {book.grade && (
-                          <Badge variant="outline" className="text-xs">
-                            Grade {book.grade}
-                          </Badge>
-                        )}
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg font-bold text-book-600">
-                          R{book.price}
-                        </span>
-                        <Button
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleAddToCart(book);
-                          }}
-                          className="bg-book-600 hover:bg-book-700"
-                        >
-                          Add to Cart
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </>
-          )}
-
+              <ReviewList sellerId={seller.id} />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </Layout>
