@@ -611,18 +611,16 @@ const CreateListing = () => {
               className="space-y-4 md:space-y-6"
             >
               <div
-                className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8"
+                className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8"
               >
-                <div className="lg:col-span-2">
-                  <BookInformationForm
-                    formData={formData}
-                    errors={errors}
-                    onInputChange={handleInputChange}
-                    showAIWarning={showAIWarning}
-                  />
-                </div>
+                <BookInformationForm
+                  formData={formData}
+                  errors={errors}
+                  onInputChange={handleInputChange}
+                  showAIWarning={showAIWarning}
+                />
 
-                <div className="space-y-3 md:space-y-4 lg:col-span-1">
+                <div className="space-y-3 md:space-y-4">
                   <PricingSection
                     formData={formData}
                     errors={errors}
