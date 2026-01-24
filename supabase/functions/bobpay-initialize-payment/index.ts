@@ -55,8 +55,9 @@ Deno.serve(async (req) => {
     const paymentData: PaymentInitRequest = await req.json();
 
     // Get BobPay credentials from environment
-    const bobpayApiUrl = Deno.env.get('BOBPAY_API_URL');
-    const bobpayApiToken = Deno.env.get('BOBPAY_API_TOKEN');
+    const isProduction = Deno.env.get('VITE_PRODUCTION') === 'true';
+    const bobpayApiUrl = Deno.env.get(isProduction ? 'BOBPAY_API_URL' : 'PRODUCTION_BOBPAY_API_URL');
+    const bobpayApiToken = Deno.env.get(isProduction ? 'BOBPAY_API_TOKEN' : 'PRODUCTION_BOBPAY_API_TOKEN');
     const bobpayAccountCode = Deno.env.get('BOBPAY_ACCOUNT_CODE');
 
     if (!bobpayApiUrl || !bobpayApiToken || !bobpayAccountCode) {
