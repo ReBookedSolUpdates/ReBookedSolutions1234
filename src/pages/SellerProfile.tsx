@@ -389,33 +389,6 @@ const SellerProfile = () => {
             </>
           )}
 
-          {/* Reviews Section */}
-          <div className="mt-12 pt-8 border-t">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Review Form */}
-              <div className="lg:col-span-1">
-                <ReviewForm
-                  sellerId={seller.id}
-                  onReviewSubmitted={() => {
-                    // Could refresh reviews here if needed
-                  }}
-                />
-              </div>
-
-              {/* Reviews List */}
-              <div className="lg:col-span-2">
-                <div className="mb-6">
-                  <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-                    Customer Reviews
-                  </h2>
-                  <p className="text-gray-600">
-                    See what buyers think about this seller
-                  </p>
-                </div>
-                <ReviewList sellerId={seller.id} />
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </Layout>
