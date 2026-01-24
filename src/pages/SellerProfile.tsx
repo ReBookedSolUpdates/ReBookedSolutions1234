@@ -19,8 +19,6 @@ import { toast } from "sonner";
 import { useCart } from "@/contexts/CartContext";
 import Layout from "@/components/Layout";
 import { getProvinceFromLocker } from "@/utils/provinceExtractorUtils";
-import ReviewList from "@/components/reviews/ReviewList";
-import ReviewForm from "@/components/reviews/ReviewForm";
 import SellerRating from "@/components/reviews/SellerRating";
 
 interface SellerProfile {
