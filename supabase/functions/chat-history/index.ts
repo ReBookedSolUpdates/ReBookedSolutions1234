@@ -4,7 +4,7 @@ import { corsHeaders } from "../_shared/cors.ts";
 
 interface ChatHistoryRequest {
   user_id: string;
-  limit: number;
+  limit?: number;
 }
 
 interface ChatHistoryMessage {
@@ -23,13 +23,13 @@ interface ChatHistoryResponse {
 serve(async (req) => {
   // Handle CORS
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders });
   }
 
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), {
       status: 405,
-      headers: corsHeaders,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 
@@ -39,10 +39,8 @@ serve(async (req) => {
     // Validate required fields
     if (!body.user_id) {
       return new Response(
-        JSON.stringify({
-          error: "user_id is required",
-        }),
-        { status: 400, headers: corsHeaders },
+        JSON.stringify({ error: "user_id is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -50,40 +48,28 @@ serve(async (req) => {
     const authHeader = req.headers.get("authorization");
     if (!authHeader) {
       return new Response(
-        JSON.stringify({
-          error: "Unauthorized",
-        }),
-        { status: 401, headers: corsHeaders },
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Initialize Supabase client with service role
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-
-    if (!supabaseUrl || !supabaseServiceKey) {
-      return new Response(
-        JSON.stringify({
-          error: "Service configuration error",
-        }),
-        { status: 500, headers: corsHeaders },
-      );
-    }
+    // Initialize Supabase client with service role (auto-provided by Supabase)
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Initialize Supabase client with user token to verify ownership
     const token = authHeader.replace("Bearer ", "");
-    const supabaseUser = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY") || "");
+    const supabaseUser = createClient(supabaseUrl, supabaseAnonKey);
     const { data: userData } = await supabaseUser.auth.getUser(token);
 
     // Verify that the requested user_id matches the authenticated user
     if (!userData.user || userData.user.id !== body.user_id) {
       return new Response(
-        JSON.stringify({
-          error: "Unauthorized",
-        }),
-        { status: 403, headers: corsHeaders },
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -101,17 +87,14 @@ serve(async (req) => {
     if (error) {
       console.error("Database error:", error);
       return new Response(
-        JSON.stringify({
-          error: "Failed to fetch history",
-        }),
-        { status: 500, headers: corsHeaders },
+        JSON.stringify({ error: "Failed to fetch history" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     // Transform logs to chat history format
     const messages: ChatHistoryMessage[] = (logs || [])
       .filter((log) => {
-        // Only include logs with valid chat metadata
         return (
           log.metadata &&
           typeof log.metadata === "object" &&
@@ -130,21 +113,17 @@ serve(async (req) => {
         };
       });
 
-    // Return response
+    console.log(`Fetched ${messages.length} chat messages for user ${body.user_id}`);
+
     return new Response(
-      JSON.stringify({
-        messages,
-        total: count || 0,
-      } as ChatHistoryResponse),
-      { status: 200, headers: corsHeaders },
+      JSON.stringify({ messages, total: count || 0 } as ChatHistoryResponse),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
     console.error("Chat history error:", error);
     return new Response(
-      JSON.stringify({
-        error: "An error occurred",
-      }),
-      { status: 500, headers: corsHeaders },
+      JSON.stringify({ error: "An error occurred" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
