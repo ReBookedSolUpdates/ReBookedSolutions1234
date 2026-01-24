@@ -1,6 +1,8 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { User, Calendar, Store } from "lucide-react";
+import { User, Calendar, Store, Star } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import SellerRating from "@/components/reviews/SellerRating";
 
 interface SellerInfoProps {
   seller: {
@@ -13,6 +15,12 @@ interface SellerInfoProps {
 }
 
 const SellerInfo = ({ seller, onViewProfile }: SellerInfoProps) => {
+  const navigate = useNavigate();
+
+  const handleViewReviews = () => {
+    navigate(`/seller/${seller.id}`, { state: { tab: "reviews" } });
+  };
+
   return (
     <Card>
       <CardContent className="p-4">
@@ -31,6 +39,10 @@ const SellerInfo = ({ seller, onViewProfile }: SellerInfoProps) => {
               }) : "Unknown"}
             </span>
           </div>
+          <div className="flex items-center gap-2 pt-2">
+            <Star className="h-4 w-4 text-gray-500" />
+            <SellerRating sellerId={seller.id} showLabel={true} />
+          </div>
         </div>
         <div className="mt-4 space-y-3">
           <Button
@@ -39,6 +51,14 @@ const SellerInfo = ({ seller, onViewProfile }: SellerInfoProps) => {
           >
             <Store className="h-4 w-4 mr-2" />
             View {seller?.name}'s ReBooked Mini
+          </Button>
+          <Button
+            onClick={handleViewReviews}
+            variant="outline"
+            className="w-full border-book-300 text-book-700 hover:bg-book-50"
+          >
+            <Star className="h-4 w-4 mr-2" />
+            See Reviews
           </Button>
           <div className="p-3 bg-book-50 rounded-lg">
             <p className="text-sm text-book-800">
