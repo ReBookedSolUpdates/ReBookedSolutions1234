@@ -611,7 +611,7 @@ const CreateListing = () => {
               className="space-y-4 md:space-y-6"
             >
               <div
-                className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6"
+                className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8"
               >
                 <BookInformationForm
                   formData={formData}

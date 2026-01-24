@@ -208,14 +208,6 @@ const BankingProfileTab = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <Alert>
-            <Shield className="h-4 w-4" />
-            <AlertDescription>
-              Banking information is required to list books for sale. Your
-              information is stored securely and encrypted for safe payment processing.
-            </AlertDescription>
-          </Alert>
-
           {!hasBankingSetup && (
             <div className="space-y-6">
               <div className="bg-gradient-to-r from-book-50 to-green-50 p-6 rounded-lg border border-book-200">
@@ -414,7 +406,7 @@ const BankingProfileTab = () => {
                     <h4 className="font-medium text-green-900 mb-1">Security & Privacy</h4>
                     <p className="text-sm text-green-800">
                       Your banking details are encrypted at rest and only decrypted when you explicitly
-                      click "View Details". All payments are processed through Paystack's secure infrastructure.
+                      click "View Details".
                     </p>
                   </div>
                 </div>
@@ -426,29 +418,42 @@ const BankingProfileTab = () => {
 
 
       <Dialog open={showUpdateDialog} onOpenChange={handleCancelUpdate}>
-        <DialogContent className="w-[88vw] max-w-sm sm:max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl mx-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {!isPasswordVerified ? "Security Verification" : "Update Banking Details"}
-            </DialogTitle>
-            <DialogDescription>
-              {!isPasswordVerified
-                ? "Please verify your password to access and update your banking information."
-                : "Update your banking information securely. All changes are encrypted and stored safely."
-              }
-            </DialogDescription>
+        <DialogContent className="w-[90vw] max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border border-gray-200 shadow-xl mx-auto">
+          <DialogHeader className="pb-4 border-b border-gray-100">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-50 rounded-lg">
+                {!isPasswordVerified ? (
+                  <Shield className="h-5 w-5 text-blue-600" />
+                ) : (
+                  <CreditCard className="h-5 w-5 text-blue-600" />
+                )}
+              </div>
+              <div>
+                <DialogTitle className="text-lg font-semibold">
+                  {!isPasswordVerified ? "Verify Your Password" : "Update Banking Details"}
+                </DialogTitle>
+                <DialogDescription className="text-sm text-gray-600 mt-1">
+                  {!isPasswordVerified
+                    ? "Enter your password to proceed"
+                    : "Securely update your banking information"
+                  }
+                </DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
-          {!isPasswordVerified ? (
-            <PasswordVerificationForm
-              onVerified={handlePasswordVerified}
-              onCancel={handleCancelUpdate}
-            />
-          ) : (
-            <BankingForm
-              onSuccess={handleUpdateSuccess}
-              onCancel={handleCancelUpdate}
-            />
-          )}
+          <div className="pt-4">
+            {!isPasswordVerified ? (
+              <PasswordVerificationForm
+                onVerified={handlePasswordVerified}
+                onCancel={handleCancelUpdate}
+              />
+            ) : (
+              <BankingForm
+                onSuccess={handleUpdateSuccess}
+                onCancel={handleCancelUpdate}
+              />
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -472,36 +477,42 @@ const BankingProfileTab = () => {
       </Dialog>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2 text-red-600">
-              <AlertTriangle className="h-5 w-5" />
-              Delete Banking Details
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-base mt-2">
-              Are you sure you want to delete your banking details? This action cannot be undone. You will need to set up your banking information again to sell books.
+        <AlertDialogContent className="rounded-2xl border border-red-100 shadow-xl max-w-sm">
+          <AlertDialogHeader className="pb-4 border-b border-red-50">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-red-50 rounded-lg">
+                <Trash2 className="h-5 w-5 text-red-600" />
+              </div>
+              <div>
+                <AlertDialogTitle className="text-lg font-semibold text-gray-900">
+                  Delete Banking Details
+                </AlertDialogTitle>
+              </div>
+            </div>
+            <AlertDialogDescription className="text-sm text-gray-600 mt-3 leading-relaxed">
+              This will permanently remove your banking information. You won't be able to accept payments or sell books until you set up banking again.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="flex gap-3 pt-4 border-t border-red-50">
             <AlertDialogCancel
               disabled={isDeletingBanking}
-              className="bg-green-600 text-white border-green-600 hover:bg-green-700 hover:text-white"
+              className="flex-1 h-10 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 font-medium"
             >
-              Cancel
+              Keep It
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteBankingDetails}
               disabled={isDeletingBanking}
-              className="bg-white text-red-600 border border-red-300 hover:bg-red-50"
+              className="flex-1 h-10 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium flex items-center justify-center gap-2"
             >
               {isDeletingBanking ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   Deleting...
                 </>
               ) : (
                 <>
-                  <Trash2 className="h-4 w-4 mr-2" />
+                  <Trash2 className="h-4 w-4" />
                   Delete
                 </>
               )}

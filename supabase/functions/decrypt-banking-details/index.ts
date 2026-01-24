@@ -6,6 +6,25 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+function getEnv(name: string): string {
+  const v = Deno.env.get(name)
+  if (!v) throw new Error(`MISSING_ENV_${name}`)
+  return v
+}
+
+function getSupabaseClient(req?: Request) {
+  // Prefer anon key so we don't require service-role secrets; include the caller JWT for RLS.
+  const url = getEnv('SUPABASE_URL')
+  const anonKey = getEnv('SUPABASE_ANON_KEY')
+
+  const authHeader = req?.headers.get('Authorization') ?? ''
+  return createClient(url, anonKey, {
+    global: {
+      headers: authHeader ? { Authorization: authHeader } : {},
+    },
+  })
+}
+
 interface EncryptedBundle {
   ciphertext: string
   iv: string
@@ -140,12 +159,10 @@ async function getUserFromRequest(req: Request) {
     return null
   }
 
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-  )
-
   const token = authHeader.replace('Bearer ', '')
+
+  // Use anon key + token to validate user; no service-role key required.
+  const supabase = getSupabaseClient(req)
   const { data: { user }, error } = await supabase.auth.getUser(token)
 
   if (error) {
@@ -182,10 +199,7 @@ serve(async (req) => {
       )
     }
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    const supabase = getSupabaseClient(req)
 
     let targetUserId = user.id
     let body: { user_id?: string } = {}

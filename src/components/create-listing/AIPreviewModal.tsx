@@ -95,9 +95,9 @@ export const AIPreviewModal = ({
   onCancel,
   onRetry,
 }: AIPreviewModalProps) => {
-  const [adjustedPrice, setAdjustedPrice] = useState<string>("");
+  const [adjustedPrice, setAdjustedPrice] = useState<string | null>(null);
 
-  const displayPrice = adjustedPrice ? parseFloat(adjustedPrice) : (extractedData?.estimatedPrice || 0);
+  const displayPrice = adjustedPrice !== null ? parseFloat(adjustedPrice) : (extractedData?.estimatedPrice || 0);
 
   const handleAccept = () => {
     if (!extractedData) return;
@@ -106,7 +106,7 @@ export const AIPreviewModal = ({
       title: extractedData.title,
       author: extractedData.author,
       description: extractedData.description,
-      price: adjustedPrice ? parseFloat(adjustedPrice) : (extractedData.estimatedPrice || 0),
+      price: adjustedPrice !== null ? parseFloat(adjustedPrice) : (extractedData.estimatedPrice || 0),
       condition: extractedData.condition,
       quantity: extractedData.quantity,
     };
@@ -261,7 +261,7 @@ export const AIPreviewModal = ({
                     type="number"
                     min="0"
                     step="0.01"
-                    value={adjustedPrice || (extractedData.estimatedPrice || "")}
+                    value={adjustedPrice !== null ? adjustedPrice : (extractedData.estimatedPrice || "")}
                     onChange={(e) => setAdjustedPrice(e.target.value)}
                     placeholder="Enter price"
                     className="text-xs sm:text-sm w-full h-8 sm:h-10"

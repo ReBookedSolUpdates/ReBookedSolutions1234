@@ -65,21 +65,11 @@ export default function PasswordVerificationForm({ onVerified, onCancel }: Passw
   };
 
   return (
-    <div className="space-y-6">
-      {/* Security Notice */}
-      <Alert className="border-yellow-200 bg-yellow-50">
-        <Shield className="h-4 w-4 text-yellow-600" />
-        <AlertDescription className="text-yellow-800">
-          <strong>Security Verification Required</strong>
-          <br />
-          Please confirm your password to access banking details for security purposes.
-        </AlertDescription>
-      </Alert>
-
-      <form onSubmit={handleVerifyPassword} className="space-y-4">
+    <div className="space-y-5">
+      <form onSubmit={handleVerifyPassword} className="space-y-5">
         <div className="space-y-2">
-          <Label htmlFor="password" className="text-sm font-medium">
-            Confirm Your Password *
+          <Label htmlFor="password" className="text-sm font-medium text-gray-900">
+            Confirm Your Password
           </Label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -88,10 +78,12 @@ export default function PasswordVerificationForm({ onVerified, onCancel }: Passw
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className={`pl-10 pr-10 h-11 rounded-lg border-2 focus:border-blue-600 focus:ring-blue-600 ${
-                error ? "border-red-300 focus:border-red-500" : ""
+              className={`pl-10 pr-10 h-11 rounded-lg border transition-colors ${
+                error
+                  ? "border-red-300 focus:border-red-500 focus:ring-red-500"
+                  : "border-gray-200 focus:border-blue-500 focus:ring-blue-500"
               }`}
-              placeholder="Enter your current password"
+              placeholder="Enter your password"
               required
               disabled={isVerifying}
             />
@@ -107,15 +99,15 @@ export default function PasswordVerificationForm({ onVerified, onCancel }: Passw
             </Button>
           </div>
           {error && (
-            <p className="text-sm text-red-600 mt-1">{error}</p>
+            <p className="text-sm text-red-600 font-medium">{error}</p>
           )}
         </div>
 
-        <div className="flex gap-3 pt-2">
-          <Button 
-            type="submit" 
+        <div className="flex gap-3 pt-3">
+          <Button
+            type="submit"
             disabled={isVerifying || !password.trim()}
-            className="flex-1 bg-blue-600 hover:bg-blue-700"
+            className="flex-1 h-10 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg"
           >
             {isVerifying ? (
               <>
@@ -123,28 +115,24 @@ export default function PasswordVerificationForm({ onVerified, onCancel }: Passw
                 Verifying...
               </>
             ) : (
-              <>
-                <Lock className="h-4 w-4 mr-2" />
-                Verify Password
-              </>
+              "Verify & Continue"
             )}
           </Button>
-          <Button 
-            type="button" 
-            variant="outline" 
+          <Button
+            type="button"
+            variant="outline"
             onClick={onCancel}
             disabled={isVerifying}
+            className="flex-1 h-10 rounded-lg"
           >
             Cancel
           </Button>
         </div>
       </form>
 
-      <div className="text-center">
-        <p className="text-xs text-gray-500">
-          This is the same password you use to log into your account
-        </p>
-      </div>
+      <p className="text-xs text-gray-500 text-center leading-relaxed">
+        We need to verify your password for security before updating banking details
+      </p>
     </div>
   );
 }
