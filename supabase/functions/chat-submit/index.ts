@@ -92,7 +92,7 @@ serve(async (req) => {
     ];
 
     // 4. Call OpenAI API (model defaults to gpt-3.5-turbo if OPENAI_MODEL not set)
-    const model = Deno.env.get("OPENAI_MODEL") || "gpt-3.5-turbo";
+    const model = Deno.env.get("OPENAI_MODEL") || "gpt-4o-mini-2024-07-18";
     const openAIResult = await callOpenAI(messagesForOpenAI, apiKey, model);
 
     if (!openAIResult.success) {
