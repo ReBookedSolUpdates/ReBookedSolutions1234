@@ -24,13 +24,13 @@ interface ChatSubmitResponse {
 serve(async (req) => {
   // Handle CORS
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders });
   }
 
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), {
       status: 405,
-      headers: corsHeaders,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 
@@ -46,8 +46,8 @@ serve(async (req) => {
           is_flagged: false,
           flag_reason: null,
           message_id: "",
-        }),
-        { status: 400, headers: corsHeaders },
+        } as ChatSubmitResponse),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -61,22 +61,15 @@ serve(async (req) => {
           is_flagged: true,
           flag_reason: inputModerationResult.reason,
           message_id: "",
-        }),
-        { status: 200, headers: corsHeaders },
+        } as ChatSubmitResponse),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // 2. Prepare messages for OpenAI (include conversation history for context)
-    const messagesForOpenAI: OpenAIMessage[] = [
-      ...body.conversation_history,
-      { role: "user", content: body.message },
-    ];
-
-    // 3. Call OpenAI API
+    // 2. Check for OPENAI_API_KEY (the only required secret)
     const apiKey = Deno.env.get("OPENAI_API_KEY");
-    const model = Deno.env.get("OPENAI_MODEL") || "gpt-3.5-turbo";
-
     if (!apiKey) {
+      console.error("OPENAI_API_KEY is not configured");
       return new Response(
         JSON.stringify({
           success: false,
@@ -84,11 +77,22 @@ serve(async (req) => {
           is_flagged: false,
           flag_reason: null,
           message_id: "",
-        }),
-        { status: 503, headers: corsHeaders },
+        } as ChatSubmitResponse),
+        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
+    // 3. Prepare messages for OpenAI (include conversation history for context)
+    const messagesForOpenAI: OpenAIMessage[] = [
+      ...body.conversation_history.map(msg => ({
+        role: msg.role as "user" | "assistant",
+        content: msg.content,
+      })),
+      { role: "user" as const, content: body.message },
+    ];
+
+    // 4. Call OpenAI API (model defaults to gpt-3.5-turbo if OPENAI_MODEL not set)
+    const model = Deno.env.get("OPENAI_MODEL") || "gpt-3.5-turbo";
     const openAIResult = await callOpenAI(messagesForOpenAI, apiKey, model);
 
     if (!openAIResult.success) {
@@ -99,12 +103,12 @@ serve(async (req) => {
           is_flagged: false,
           flag_reason: null,
           message_id: "",
-        }),
-        { status: 500, headers: corsHeaders },
+        } as ChatSubmitResponse),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // 4. Moderate bot response
+    // 5. Moderate bot response
     const responseModerationResult = shouldFlagResponse(openAIResult.response);
     if (responseModerationResult.is_flagged) {
       return new Response(
@@ -114,15 +118,15 @@ serve(async (req) => {
           is_flagged: true,
           flag_reason: responseModerationResult.reason,
           message_id: "",
-        }),
-        { status: 200, headers: corsHeaders },
+        } as ChatSubmitResponse),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // 5. Generate message ID
+    // 6. Generate message ID
     const messageId = crypto.randomUUID();
 
-    // 6. Log to activity_logs (background task - don't block response)
+    // 7. Log to activity_logs (background task - don't block response)
     try {
       const supabaseUrl = Deno.env.get("SUPABASE_URL");
       const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -156,13 +160,15 @@ serve(async (req) => {
           ip_address: clientIp,
           user_agent: userAgent,
         });
+
+        console.log(`Logged chatbot interaction for session ${body.session_id}`);
       }
     } catch (logError) {
       console.error("Failed to log chatbot interaction:", logError);
       // Don't fail the response if logging fails
     }
 
-    // 7. Return successful response
+    // 8. Return successful response
     return new Response(
       JSON.stringify({
         success: true,
@@ -170,8 +176,8 @@ serve(async (req) => {
         is_flagged: false,
         flag_reason: null,
         message_id: messageId,
-      }),
-      { status: 200, headers: corsHeaders },
+      } as ChatSubmitResponse),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
     console.error("Chat submit error:", error);
@@ -182,8 +188,8 @@ serve(async (req) => {
         is_flagged: false,
         flag_reason: null,
         message_id: "",
-      }),
-      { status: 500, headers: corsHeaders },
+      } as ChatSubmitResponse),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
