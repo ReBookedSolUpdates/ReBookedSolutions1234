@@ -485,36 +485,42 @@ const BankingProfileTab = () => {
       </Dialog>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2 text-red-600">
-              <AlertTriangle className="h-5 w-5" />
-              Delete Banking Details
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-base mt-2">
-              Are you sure you want to delete your banking details? This action cannot be undone. You will need to set up your banking information again to sell books.
+        <AlertDialogContent className="rounded-2xl border border-red-100 shadow-xl max-w-sm">
+          <AlertDialogHeader className="pb-4 border-b border-red-50">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-red-50 rounded-lg">
+                <Trash2 className="h-5 w-5 text-red-600" />
+              </div>
+              <div>
+                <AlertDialogTitle className="text-lg font-semibold text-gray-900">
+                  Delete Banking Details
+                </AlertDialogTitle>
+              </div>
+            </div>
+            <AlertDialogDescription className="text-sm text-gray-600 mt-3 leading-relaxed">
+              This will permanently remove your banking information. You won't be able to accept payments or sell books until you set up banking again.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="flex gap-3 pt-4 border-t border-red-50">
             <AlertDialogCancel
               disabled={isDeletingBanking}
-              className="bg-green-600 text-white border-green-600 hover:bg-green-700 hover:text-white"
+              className="flex-1 h-10 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 font-medium"
             >
-              Cancel
+              Keep It
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteBankingDetails}
               disabled={isDeletingBanking}
-              className="bg-white text-red-600 border border-red-300 hover:bg-red-50"
+              className="flex-1 h-10 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium flex items-center justify-center gap-2"
             >
               {isDeletingBanking ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   Deleting...
                 </>
               ) : (
                 <>
-                  <Trash2 className="h-4 w-4 mr-2" />
+                  <Trash2 className="h-4 w-4" />
                   Delete
                 </>
               )}
