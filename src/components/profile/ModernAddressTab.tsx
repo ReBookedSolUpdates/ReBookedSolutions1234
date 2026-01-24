@@ -92,23 +92,47 @@ const ModernAddressTab = ({
           setPreferredPickupMethod(profile.preferred_pickup_method);
           setHasSavedLocker(!!profile.preferred_delivery_locker_data);
 
-          // Auto-select locker if it's the only option (has locker, no pickup address)
-          if (profile.preferred_delivery_locker_data && !pickupAddress) {
-            if (!profile.preferred_pickup_method) {
-              await (async () => {
-                try {
-                  const { error: updateError } = await supabase
-                    .from("profiles")
-                    .update({ preferred_pickup_method: "locker" })
-                    .eq("id", user.id);
+          // Auto-select preference based on available options
+          const hasLocker = !!profile.preferred_delivery_locker_data;
+          const hasPickupAddress = !!pickupAddress;
+          const hasExistingPreference = !!profile.preferred_pickup_method;
 
-                  if (!updateError) {
-                    setPreferredPickupMethod("locker");
-                  }
-                } catch (e) {
-                  // Silently fail - preference will remain unset
-                }
-              })();
+          // Case 1: Has preference already set - do nothing
+          if (hasExistingPreference) {
+            // Just use the existing preference
+          }
+          // Case 2: Has both locker and pickup address - show dialog to choose
+          else if (hasLocker && hasPickupAddress) {
+            setShowPreferenceDialog(true);
+          }
+          // Case 3: Has only locker - auto-select locker
+          else if (hasLocker && !hasPickupAddress) {
+            try {
+              const { error: updateError } = await supabase
+                .from("profiles")
+                .update({ preferred_pickup_method: "locker" })
+                .eq("id", user.id);
+
+              if (!updateError) {
+                setPreferredPickupMethod("locker");
+              }
+            } catch (e) {
+              // Silently fail - preference will remain unset
+            }
+          }
+          // Case 4: Has only pickup address - auto-select pickup
+          else if (hasPickupAddress && !hasLocker) {
+            try {
+              const { error: updateError } = await supabase
+                .from("profiles")
+                .update({ preferred_pickup_method: "pickup" })
+                .eq("id", user.id);
+
+              if (!updateError) {
+                setPreferredPickupMethod("pickup");
+              }
+            } catch (e) {
+              // Silently fail - preference will remain unset
             }
           }
         }
