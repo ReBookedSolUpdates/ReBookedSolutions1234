@@ -124,11 +124,11 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-gray-200 p-4 bg-gray-50 rounded-b-lg">
+      <div className="border-t border-gray-200 p-3 sm:p-4 bg-gray-50 rounded-b-xl sm:rounded-b-lg">
         <form onSubmit={handleSubmit} className="flex gap-2">
           <Input
             type="text"
-            placeholder="Type your question..."
+            placeholder="Ask anything..."
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             disabled={isLoading}
@@ -138,16 +138,16 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
           <Button
             type="submit"
             disabled={isLoading || !inputValue.trim()}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2"
+            className="bg-book-600 hover:bg-book-700 text-white px-3 sm:px-4 py-2 transition-all active:scale-95"
           >
             {isLoading ? (
-              <Loader2 size={18} className="animate-spin" />
+              <Loader2 size={16} className="sm:w-5 sm:h-5 animate-spin" />
             ) : (
-              <Send size={18} />
+              <Send size={16} className="sm:w-5 sm:h-5" />
             )}
           </Button>
         </form>
-        <p className="text-xs text-gray-500 mt-2">Messages are saved locally for 30 days</p>
+        <p className="text-xs text-gray-500 mt-2">Saved locally for 30 days</p>
       </div>
     </div>
   );
