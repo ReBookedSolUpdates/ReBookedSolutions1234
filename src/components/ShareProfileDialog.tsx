@@ -117,11 +117,13 @@ const ShareProfileDialog = ({
             document.execCommand('copy');
             textArea.remove();
           }
-          // Track share (non-blocking)
-          try {
-            await ActivityService.trackSocialShare(userId, undefined, platform);
-          } catch (trackingError) {
-            console.error("Error tracking social share:", trackingError);
+          // Track share (non-blocking) - only if user is signed in
+          if (currentUserId) {
+            try {
+              await ActivityService.trackSocialShare(userId, currentUserId, platform);
+            } catch (trackingError) {
+              console.error("Error tracking social share:", trackingError);
+            }
           }
           toast.success(
             "Text and link copied! Paste it in your Instagram story or post.",
@@ -135,11 +137,13 @@ const ShareProfileDialog = ({
         return;
     }
 
-    // Track share (non-blocking)
-    try {
-      await ActivityService.trackSocialShare(userId, undefined, platform);
-    } catch (trackingError) {
-      console.error("Error tracking social share:", trackingError);
+    // Track share (non-blocking) - only if user is signed in
+    if (currentUserId) {
+      try {
+        await ActivityService.trackSocialShare(userId, currentUserId, platform);
+      } catch (trackingError) {
+        console.error("Error tracking social share:", trackingError);
+      }
     }
 
     window.open(shareUrl, "_blank", "width=600,height=400");
