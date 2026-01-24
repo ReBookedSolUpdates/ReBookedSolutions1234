@@ -90,10 +90,10 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
         {/* Typing Indicator */}
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-gray-200 text-gray-900 px-4 py-2 rounded-lg rounded-bl-none">
+            <div className="bg-book-50 text-gray-900 px-4 py-2 rounded-lg rounded-bl-none border border-book-200">
               <div className="flex items-center gap-1">
-                <Loader2 size={16} className="animate-spin" />
-                <span className="text-sm">Thinking...</span>
+                <Loader2 size={16} className="animate-spin text-book-600" />
+                <span className="text-sm text-gray-600">Thinking...</span>
               </div>
             </div>
           </div>
