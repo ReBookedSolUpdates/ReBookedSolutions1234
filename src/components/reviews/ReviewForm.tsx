@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { reviewService } from "@/services/reviewService";
 import { useAuth } from "@/contexts/AuthContext";
-import { Star, AlertCircle } from "lucide-react";
+import { Star, AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface ReviewFormProps {
