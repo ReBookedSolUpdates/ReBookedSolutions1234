@@ -25,22 +25,22 @@ export const ChatbotWidget: React.FC = () => {
       {/* Floating Button */}
       <button
         onClick={chatbot.toggleOpen}
-        className={`fixed bottom-6 right-6 w-14 h-14 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-40 ${
-          chatbot.isOpen ? "scale-90 opacity-75" : "scale-100 opacity-100 hover:scale-110"
+        className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-book-600 hover:bg-book-700 text-white shadow-lg hover:shadow-2xl transition-all duration-200 flex items-center justify-center z-40 ${
+          chatbot.isOpen ? "scale-75 opacity-60" : "scale-100 opacity-100 hover:scale-125 active:scale-95"
         }`}
-        title="Open chat assistant"
-        aria-label="Open chat assistant"
+        title="Open ReBooked Assistant"
+        aria-label="Open ReBooked Assistant"
       >
         {chatbot.isOpen ? (
-          <X size={24} />
+          <X size={20} className="sm:w-6 sm:h-6" />
         ) : (
-          <MessageCircle size={24} />
+          <MessageCircle size={20} className="sm:w-6 sm:h-6" />
         )}
       </button>
 
       {/* Chat Modal */}
       {chatbot.isOpen && (
-        <div className="fixed bottom-24 right-6 w-96 max-w-[calc(100vw-32px)] h-[600px] max-h-[calc(100vh-200px)] bg-white rounded-lg shadow-2xl border border-gray-200 flex flex-col z-50 animate-in slide-in-from-bottom-4">
+        <div className="fixed inset-4 sm:inset-auto sm:bottom-24 sm:right-6 sm:w-96 w-full h-full sm:h-[600px] sm:max-h-[calc(100vh-200px)] bg-white rounded-xl sm:rounded-lg shadow-2xl border border-gray-200 flex flex-col z-50 animate-in slide-in-from-bottom-2 duration-300">
           <ChatInterface
             messages={chatbot.messages}
             isLoading={chatbot.isLoading}
@@ -55,7 +55,7 @@ export const ChatbotWidget: React.FC = () => {
       {/* Background overlay for mobile */}
       {chatbot.isOpen && (
         <div
-          className="fixed inset-0 bg-black/20 z-30 md:hidden"
+          className="fixed inset-0 bg-black/30 z-30 sm:hidden"
           onClick={chatbot.close}
           aria-hidden="true"
         />
