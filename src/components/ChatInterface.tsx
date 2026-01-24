@@ -55,11 +55,11 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
       </div>
 
       {/* Messages Container */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3">
         {messages.length === 0 ? (
-          <div className="text-center text-gray-500 mt-8">
-            <p className="text-sm">👋 Hello! I'm here to help.</p>
-            <p className="text-xs mt-2">Ask me anything about ReBooked Solutions, our FAQ, policies, or terms.</p>
+          <div className="text-center text-gray-500 mt-6 sm:mt-8">
+            <p className="text-sm font-medium">Hello! I'm here to help.</p>
+            <p className="text-xs mt-2 text-gray-600">Ask me anything about buying, selling, or ReBooked.</p>
           </div>
         ) : (
           messages.map((message) => (
