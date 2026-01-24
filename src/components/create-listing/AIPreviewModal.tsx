@@ -95,7 +95,7 @@ export const AIPreviewModal = ({
   onCancel,
   onRetry,
 }: AIPreviewModalProps) => {
-  const [adjustedPrice, setAdjustedPrice] = useState<string>("");
+  const [adjustedPrice, setAdjustedPrice] = useState<string | null>(null);
 
   const displayPrice = adjustedPrice ? parseFloat(adjustedPrice) : (extractedData?.estimatedPrice || 0);
 
