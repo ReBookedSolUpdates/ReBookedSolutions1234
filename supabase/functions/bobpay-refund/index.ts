@@ -124,8 +124,9 @@ Deno.serve(async (req) => {
     }
 
     // Get BobPay credentials
-    const bobpayApiUrl = Deno.env.get('BOBPAY_API_URL');
-    const bobpayApiToken = Deno.env.get('BOBPAY_API_TOKEN');
+    const isProduction = Deno.env.get('VITE_PRODUCTION') === 'true';
+    const bobpayApiUrl = Deno.env.get(isProduction ? 'BOBPAY_API_URL' : 'PRODUCTION_BOBPAY_API_URL');
+    const bobpayApiToken = Deno.env.get(isProduction ? 'BOBPAY_API_TOKEN' : 'PRODUCTION_BOBPAY_API_TOKEN');
     const apiBase = (bobpayApiUrl || '').replace(/\/v2\/?$/, '');
 
     let refundResult = null;
