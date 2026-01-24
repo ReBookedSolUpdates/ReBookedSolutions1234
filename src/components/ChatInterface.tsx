@@ -124,30 +124,30 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-gray-200 p-3 sm:p-4 bg-gray-50 rounded-b-xl sm:rounded-b-lg">
-        <form onSubmit={handleSubmit} className="flex gap-2">
+      <div className="border-t border-gray-200 p-2 sm:p-4 bg-gray-50 rounded-b-xl sm:rounded-b-lg">
+        <form onSubmit={handleSubmit} className="flex gap-1 sm:gap-2">
           <Input
             type="text"
-            placeholder="Ask anything..."
+            placeholder="Ask..."
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             disabled={isLoading}
-            className="flex-1 text-sm"
+            className="flex-1 text-sm h-9 sm:h-10"
             autoFocus
           />
           <Button
             type="submit"
             disabled={isLoading || !inputValue.trim()}
-            className="bg-book-600 hover:bg-book-700 text-white px-3 sm:px-4 py-2 transition-all active:scale-95"
+            className="bg-book-600 hover:bg-book-700 text-white px-2 sm:px-4 py-2 h-9 sm:h-10 transition-all active:scale-95"
           >
             {isLoading ? (
-              <Loader2 size={16} className="sm:w-5 sm:h-5 animate-spin" />
+              <Loader2 size={16} className="animate-spin" />
             ) : (
-              <Send size={16} className="sm:w-5 sm:h-5" />
+              <Send size={16} />
             )}
           </Button>
         </form>
-        <p className="text-xs text-gray-500 mt-2">Saved locally for 30 days</p>
+        <p className="text-xs text-gray-500 mt-1">Saved 30 days</p>
       </div>
     </div>
   );
