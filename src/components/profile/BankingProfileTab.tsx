@@ -426,29 +426,42 @@ const BankingProfileTab = () => {
 
 
       <Dialog open={showUpdateDialog} onOpenChange={handleCancelUpdate}>
-        <DialogContent className="w-[88vw] max-w-sm sm:max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl mx-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {!isPasswordVerified ? "Security Verification" : "Update Banking Details"}
-            </DialogTitle>
-            <DialogDescription>
-              {!isPasswordVerified
-                ? "Please verify your password to access and update your banking information."
-                : "Update your banking information securely. All changes are encrypted and stored safely."
-              }
-            </DialogDescription>
+        <DialogContent className="w-[90vw] max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border border-gray-200 shadow-xl mx-auto">
+          <DialogHeader className="pb-4 border-b border-gray-100">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-50 rounded-lg">
+                {!isPasswordVerified ? (
+                  <Shield className="h-5 w-5 text-blue-600" />
+                ) : (
+                  <CreditCard className="h-5 w-5 text-blue-600" />
+                )}
+              </div>
+              <div>
+                <DialogTitle className="text-lg font-semibold">
+                  {!isPasswordVerified ? "Verify Your Password" : "Update Banking Details"}
+                </DialogTitle>
+                <DialogDescription className="text-sm text-gray-600 mt-1">
+                  {!isPasswordVerified
+                    ? "Enter your password to proceed"
+                    : "Securely update your banking information"
+                  }
+                </DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
-          {!isPasswordVerified ? (
-            <PasswordVerificationForm
-              onVerified={handlePasswordVerified}
-              onCancel={handleCancelUpdate}
-            />
-          ) : (
-            <BankingForm
-              onSuccess={handleUpdateSuccess}
-              onCancel={handleCancelUpdate}
-            />
-          )}
+          <div className="pt-4">
+            {!isPasswordVerified ? (
+              <PasswordVerificationForm
+                onVerified={handlePasswordVerified}
+                onCancel={handleCancelUpdate}
+              />
+            ) : (
+              <BankingForm
+                onSuccess={handleUpdateSuccess}
+                onCancel={handleCancelUpdate}
+              />
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 
