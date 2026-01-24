@@ -892,6 +892,76 @@ const ModernAddressTab = ({
           </CardContent>
         </Card>
       )}
+
+      {/* Preference Selection Dialog - Only show when both locker and pickup address exist */}
+      <Dialog open={showPreferenceDialog} onOpenChange={setShowPreferenceDialog}>
+        <DialogContent className="w-[90vw] max-w-md">
+          <DialogHeader>
+            <DialogTitle>Choose Your Preferred Pickup Method</DialogTitle>
+            <DialogDescription>
+              You have both a locker and a home address. Which would you prefer for book pickups?
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <Button
+              onClick={async () => {
+                setDialogLoading(true);
+                try {
+                  await savePreferredPickupMethod("locker");
+                  setShowPreferenceDialog(false);
+                } finally {
+                  setDialogLoading(false);
+                }
+              }}
+              disabled={dialogLoading}
+              className="w-full h-auto py-4 flex flex-col items-start gap-2 bg-purple-50 hover:bg-purple-100 border border-purple-300 text-purple-900 justify-start"
+              variant="outline"
+            >
+              <div className="flex items-center gap-2 font-semibold">
+                <Package className="h-5 w-5" />
+                BobGo Locker
+              </div>
+              <span className="text-sm font-normal text-purple-700">Convenient locker-based pickup</span>
+            </Button>
+
+            <Button
+              onClick={async () => {
+                setDialogLoading(true);
+                try {
+                  await savePreferredPickupMethod("pickup");
+                  setShowPreferenceDialog(false);
+                } finally {
+                  setDialogLoading(false);
+                }
+              }}
+              disabled={dialogLoading}
+              className="w-full h-auto py-4 flex flex-col items-start gap-2 bg-blue-50 hover:bg-blue-100 border border-blue-300 text-blue-900 justify-start"
+              variant="outline"
+            >
+              <div className="flex items-center gap-2 font-semibold">
+                <Home className="h-5 w-5" />
+                Home Address
+              </div>
+              <span className="text-sm font-normal text-blue-700">Direct pickup from your location</span>
+            </Button>
+          </div>
+
+          <DialogFooter>
+            <Button
+              onClick={() => {
+                // Default to locker if user dismisses the dialog
+                savePreferredPickupMethod("locker");
+                setShowPreferenceDialog(false);
+              }}
+              variant="outline"
+              disabled={dialogLoading}
+            >
+              Use Locker (Default)
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
