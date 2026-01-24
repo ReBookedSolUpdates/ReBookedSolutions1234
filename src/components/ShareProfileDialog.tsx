@@ -30,7 +30,24 @@ const ShareProfileDialog = ({
   userName,
   isOwnProfile,
 }: ShareProfileDialogProps) => {
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const profileUrl = `${window.location.origin}/seller/${userId}`;
+
+  // Get current authenticated user's ID for activity tracking
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        setCurrentUserId(user?.id || null);
+      } catch (error) {
+        setCurrentUserId(null);
+      }
+    };
+
+    if (isOpen) {
+      getCurrentUser();
+    }
+  }, [isOpen]);
 
   const copyProfileLink = async () => {
     try {
