@@ -99,6 +99,7 @@ function AppRoutes() {
     <>
       <AuthErrorHandler />
       <ScrollToTop />
+      <ChatbotWidget />
 
       <Routes>
         {/* Main Application Routes */}
