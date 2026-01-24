@@ -137,7 +137,7 @@ const ReviewEditDialog: React.FC<ReviewEditDialogProps> = ({
           <Button onClick={handleSubmit} disabled={isSubmitting}>
             {isSubmitting ? (
               <>
-                <LoadingSpinner className="mr-2 h-4 w-4" />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Saving...
               </>
             ) : (
