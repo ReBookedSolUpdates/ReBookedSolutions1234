@@ -22,6 +22,13 @@ export const BookInformationForm = ({
 }: BookInformationFormProps) => {
   const isMobile = useIsMobile();
 
+  const handleISBNChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Allow only numeric input for ISBN
+    const filteredValue = e.target.value.replace(/[^0-9]/g, "");
+    e.target.value = filteredValue;
+    onInputChange(e);
+  };
+
   return (
     <div className="space-y-3 md:space-y-4">
       <AIWarningBanner visible={showAIWarning} />
