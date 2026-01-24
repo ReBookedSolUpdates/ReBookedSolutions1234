@@ -84,6 +84,12 @@ const UserProfileTabs = ({
     ...(isOwnProfile
       ? [
           {
+            id: "reviews",
+            label: "Reviews",
+            icon: Star,
+            description: "Seller reviews & ratings",
+          },
+          {
             id: "account",
             label: "Account",
             icon: User,
