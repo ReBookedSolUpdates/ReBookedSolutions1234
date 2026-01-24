@@ -5,6 +5,14 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
   MapPin,
   Plus,
   Edit,
@@ -58,6 +66,8 @@ const ModernAddressTab = ({
   const [isLoadingPreference, setIsLoadingPreference] = useState(true);
   const [hasSavedLocker, setHasSavedLocker] = useState(false);
   const [isSavingPreference, setIsSavingPreference] = useState(false);
+  const [showPreferenceDialog, setShowPreferenceDialog] = useState(false);
+  const [dialogLoading, setDialogLoading] = useState(false);
 
   useEffect(() => {
     if (addressData) {
@@ -90,23 +100,47 @@ const ModernAddressTab = ({
           setPreferredPickupMethod(profile.preferred_pickup_method);
           setHasSavedLocker(!!profile.preferred_delivery_locker_data);
 
-          // Auto-select locker if it's the only option (has locker, no pickup address)
-          if (profile.preferred_delivery_locker_data && !pickupAddress) {
-            if (!profile.preferred_pickup_method) {
-              await (async () => {
-                try {
-                  const { error: updateError } = await supabase
-                    .from("profiles")
-                    .update({ preferred_pickup_method: "locker" })
-                    .eq("id", user.id);
+          // Auto-select preference based on available options
+          const hasLocker = !!profile.preferred_delivery_locker_data;
+          const hasPickupAddress = !!pickupAddress;
+          const hasExistingPreference = !!profile.preferred_pickup_method;
 
-                  if (!updateError) {
-                    setPreferredPickupMethod("locker");
-                  }
-                } catch (e) {
-                  // Silently fail - preference will remain unset
-                }
-              })();
+          // Case 1: Has preference already set - do nothing
+          if (hasExistingPreference) {
+            // Just use the existing preference
+          }
+          // Case 2: Has both locker and pickup address - show dialog to choose
+          else if (hasLocker && hasPickupAddress) {
+            setShowPreferenceDialog(true);
+          }
+          // Case 3: Has only locker - auto-select locker
+          else if (hasLocker && !hasPickupAddress) {
+            try {
+              const { error: updateError } = await supabase
+                .from("profiles")
+                .update({ preferred_pickup_method: "locker" })
+                .eq("id", user.id);
+
+              if (!updateError) {
+                setPreferredPickupMethod("locker");
+              }
+            } catch (e) {
+              // Silently fail - preference will remain unset
+            }
+          }
+          // Case 4: Has only pickup address - auto-select pickup
+          else if (hasPickupAddress && !hasLocker) {
+            try {
+              const { error: updateError } = await supabase
+                .from("profiles")
+                .update({ preferred_pickup_method: "pickup" })
+                .eq("id", user.id);
+
+              if (!updateError) {
+                setPreferredPickupMethod("pickup");
+              }
+            } catch (e) {
+              // Silently fail - preference will remain unset
             }
           }
         }
@@ -858,6 +892,76 @@ const ModernAddressTab = ({
           </CardContent>
         </Card>
       )}
+
+      {/* Preference Selection Dialog - Only show when both locker and pickup address exist */}
+      <Dialog open={showPreferenceDialog} onOpenChange={setShowPreferenceDialog}>
+        <DialogContent className="w-[90vw] max-w-md">
+          <DialogHeader>
+            <DialogTitle>Choose Your Preferred Pickup Method</DialogTitle>
+            <DialogDescription>
+              You have both a locker and a home address. Which would you prefer for book pickups?
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <Button
+              onClick={async () => {
+                setDialogLoading(true);
+                try {
+                  await savePreferredPickupMethod("locker");
+                  setShowPreferenceDialog(false);
+                } finally {
+                  setDialogLoading(false);
+                }
+              }}
+              disabled={dialogLoading}
+              className="w-full h-auto py-4 flex flex-col items-start gap-2 bg-purple-50 hover:bg-purple-100 border border-purple-300 text-purple-900 justify-start"
+              variant="outline"
+            >
+              <div className="flex items-center gap-2 font-semibold">
+                <Package className="h-5 w-5" />
+                BobGo Locker
+              </div>
+              <span className="text-sm font-normal text-purple-700">Convenient locker-based pickup</span>
+            </Button>
+
+            <Button
+              onClick={async () => {
+                setDialogLoading(true);
+                try {
+                  await savePreferredPickupMethod("pickup");
+                  setShowPreferenceDialog(false);
+                } finally {
+                  setDialogLoading(false);
+                }
+              }}
+              disabled={dialogLoading}
+              className="w-full h-auto py-4 flex flex-col items-start gap-2 bg-blue-50 hover:bg-blue-100 border border-blue-300 text-blue-900 justify-start"
+              variant="outline"
+            >
+              <div className="flex items-center gap-2 font-semibold">
+                <Home className="h-5 w-5" />
+                Home Address
+              </div>
+              <span className="text-sm font-normal text-blue-700">Direct pickup from your location</span>
+            </Button>
+          </div>
+
+          <DialogFooter>
+            <Button
+              onClick={() => {
+                // Default to locker if user dismisses the dialog
+                savePreferredPickupMethod("locker");
+                setShowPreferenceDialog(false);
+              }}
+              variant="outline"
+              disabled={dialogLoading}
+            >
+              Use Locker (Default)
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

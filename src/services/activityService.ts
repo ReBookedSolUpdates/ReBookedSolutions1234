@@ -94,6 +94,12 @@ export class ActivityService {
     metadata?: Record<string, unknown>
   ): Promise<{ success: boolean; error?: string }> {
     try {
+      // Gracefully handle unsigned users by silently returning success
+      // This allows the application to continue functioning without errors for anonymous users
+      if (!userId) {
+        return { success: true };
+      }
+
       const sessionId = this.getSessionId();
 
       const activityLog: ActivityLogEntry = {

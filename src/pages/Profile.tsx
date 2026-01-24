@@ -219,10 +219,20 @@ const Profile = () => {
       await loadUserAddresses();
 
       // Update all user's book listings with the new pickup address and province
-      try {
-        const updateResult = await updateBooksPickupAddress(user.id, pickup);
-      } catch (bookUpdateError) {
-        // Don't fail the whole operation if book updates fail
+      // Only update books if the pickup address is valid (not being deleted)
+      const isPickupAddressValid = !!(
+        (pickup.street || pickup.streetAddress || pickup.street_address) &&
+        pickup.city &&
+        pickup.province &&
+        (pickup.postalCode || pickup.postal_code)
+      );
+
+      if (isPickupAddressValid) {
+        try {
+          const updateResult = await updateBooksPickupAddress(user.id, pickup);
+        } catch (bookUpdateError) {
+          // Don't fail the whole operation if book updates fail
+        }
       }
 
       toast.success("Addresses saved successfully");

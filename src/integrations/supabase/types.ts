@@ -50,6 +50,51 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_audit_logs: {
+        Row: {
+          action_type: string
+          actor_id: string
+          actor_role: string
+          created_at: string
+          id: string
+          ip_address: unknown
+          metadata: Json | null
+          outcome: string
+          resource_id: string | null
+          resource_type: string
+          target_user_id: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action_type: string
+          actor_id: string
+          actor_role: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          outcome: string
+          resource_id?: string | null
+          resource_type: string
+          target_user_id?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action_type?: string
+          actor_id?: string
+          actor_role?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          outcome?: string
+          resource_id?: string | null
+          resource_type?: string
+          target_user_id?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       affiliate_applications: {
         Row: {
           created_at: string
@@ -277,6 +322,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      analytics_events: {
+        Row: {
+          browser: string | null
+          created_at: string
+          device_type: string | null
+          entity_id: string | null
+          entity_type: string | null
+          event_category: string
+          event_name: string
+          id: string
+          ip_address: unknown
+          metadata: Json | null
+          page_url: string | null
+          platform: string | null
+          referrer: string | null
+          session_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          browser?: string | null
+          created_at?: string
+          device_type?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          event_category: string
+          event_name: string
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          page_url?: string | null
+          platform?: string | null
+          referrer?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          browser?: string | null
+          created_at?: string
+          device_type?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          event_category?: string
+          event_name?: string
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          page_url?: string | null
+          platform?: string | null
+          referrer?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       announcements: {
         Row: {
@@ -635,33 +737,6 @@ export type Database = {
           subaccount_code?: string | null
           updated_at?: string | null
           user_id?: string | null
-        }
-        Relationships: []
-      }
-      bobbox_webhooks: {
-        Row: {
-          created_at: string | null
-          event_type: string
-          id: string
-          payload: Json
-          processed: boolean | null
-          received_at: string
-        }
-        Insert: {
-          created_at?: string | null
-          event_type: string
-          id?: string
-          payload: Json
-          processed?: boolean | null
-          received_at?: string
-        }
-        Update: {
-          created_at?: string | null
-          event_type?: string
-          id?: string
-          payload?: Json
-          processed?: boolean | null
-          received_at?: string
         }
         Relationships: []
       }
@@ -1266,149 +1341,77 @@ export type Database = {
           },
         ]
       }
-      email_notifications: {
-        Row: {
-          created_at: string
-          email: string
-          id: string
-        }
-        Insert: {
-          created_at?: string
-          email: string
-          id?: string
-        }
-        Update: {
-          created_at?: string
-          email?: string
-          id?: string
-        }
-        Relationships: []
-      }
-      mail_queue: {
-        Row: {
-          body: string
-          created_at: string | null
-          email: string
-          error_message: string | null
-          id: string
-          retry_count: number | null
-          sent_at: string | null
-          status: string | null
-          subject: string
-          user_id: string | null
-        }
-        Insert: {
-          body: string
-          created_at?: string | null
-          email: string
-          error_message?: string | null
-          id?: string
-          retry_count?: number | null
-          sent_at?: string | null
-          status?: string | null
-          subject: string
-          user_id?: string | null
-        }
-        Update: {
-          body?: string
-          created_at?: string | null
-          email?: string
-          error_message?: string | null
-          id?: string
-          retry_count?: number | null
-          sent_at?: string | null
-          status?: string | null
-          subject?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      notification_preferences: {
+      documents: {
         Row: {
           created_at: string | null
-          email_notifications: boolean | null
+          created_by: string | null
+          curriculum: Database["public"]["Enums"]["curriculum_type"] | null
+          description: string | null
+          file_url: string | null
+          grade: number | null
           id: string
-          marketing_emails: boolean | null
-          push_notifications: boolean | null
-          sms_notifications: boolean | null
+          is_memo: boolean | null
+          is_past_paper: boolean | null
+          is_published: boolean | null
+          memo_for_document_id: string | null
+          paper_number: number | null
+          subject_id: string | null
+          title: string
           updated_at: string | null
-          user_id: string | null
+          year: number | null
         }
         Insert: {
           created_at?: string | null
-          email_notifications?: boolean | null
+          created_by?: string | null
+          curriculum?: Database["public"]["Enums"]["curriculum_type"] | null
+          description?: string | null
+          file_url?: string | null
+          grade?: number | null
           id?: string
-          marketing_emails?: boolean | null
-          push_notifications?: boolean | null
-          sms_notifications?: boolean | null
+          is_memo?: boolean | null
+          is_past_paper?: boolean | null
+          is_published?: boolean | null
+          memo_for_document_id?: string | null
+          paper_number?: number | null
+          subject_id?: string | null
+          title: string
           updated_at?: string | null
-          user_id?: string | null
+          year?: number | null
         }
         Update: {
           created_at?: string | null
-          email_notifications?: boolean | null
+          created_by?: string | null
+          curriculum?: Database["public"]["Enums"]["curriculum_type"] | null
+          description?: string | null
+          file_url?: string | null
+          grade?: number | null
           id?: string
-          marketing_emails?: boolean | null
-          push_notifications?: boolean | null
-          sms_notifications?: boolean | null
+          is_memo?: boolean | null
+          is_past_paper?: boolean | null
+          is_published?: boolean | null
+          memo_for_document_id?: string | null
+          paper_number?: number | null
+          subject_id?: string | null
+          title?: string
           updated_at?: string | null
-          user_id?: string | null
+          year?: number | null
         }
-        Relationships: []
-      }
-      notification_requests: {
-        Row: {
-          course_code: string | null
-          created_at: string
-          id: string
-          message: string | null
-          metadata: Json | null
-          notification_type: string
-          notified_at: string | null
-          program_id: string | null
-          program_name: string | null
-          status: string
-          university_id: string | null
-          university_name: string | null
-          updated_at: string
-          user_email: string
-          user_id: string
-        }
-        Insert: {
-          course_code?: string | null
-          created_at?: string
-          id?: string
-          message?: string | null
-          metadata?: Json | null
-          notification_type: string
-          notified_at?: string | null
-          program_id?: string | null
-          program_name?: string | null
-          status?: string
-          university_id?: string | null
-          university_name?: string | null
-          updated_at?: string
-          user_email: string
-          user_id: string
-        }
-        Update: {
-          course_code?: string | null
-          created_at?: string
-          id?: string
-          message?: string | null
-          metadata?: Json | null
-          notification_type?: string
-          notified_at?: string | null
-          program_id?: string | null
-          program_name?: string | null
-          status?: string
-          university_id?: string | null
-          university_name?: string | null
-          updated_at?: string
-          user_email?: string
-          user_id?: string
-        }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "documents_memo_for_document_id_fkey"
+            columns: ["memo_for_document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {
@@ -1938,6 +1941,48 @@ export type Database = {
         }
         Relationships: []
       }
+      paystack_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          metadata: Json | null
+          paystack_response: Json | null
+          reference: string
+          status: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          id?: string
+          metadata?: Json | null
+          paystack_response?: Json | null
+          reference: string
+          status?: string
+          type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          metadata?: Json | null
+          paystack_response?: Json | null
+          reference?: string
+          status?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address_encryption_version: number | null
@@ -1967,12 +2012,20 @@ export type Database = {
           preferred_delivery_locker_location_id: number | null
           preferred_delivery_locker_provider_slug: string | null
           preferred_delivery_locker_saved_at: string | null
+          preferred_pickup_locker_data: Json | null
+          preferred_pickup_locker_location_id: number | null
+          preferred_pickup_locker_provider_slug: string | null
           preferred_pickup_locker_saved_at: string | null
           preferred_pickup_method: string | null
           profile_picture_url: string | null
+          renewal_date: string | null
           role: string | null
           shipping_address_encrypted: string | null
           status: string | null
+          subscription_status: string | null
+          subscription_tier:
+            | Database["public"]["Enums"]["subscription_tier"]
+            | null
           suspended_at: string | null
           suspension_reason: string | null
           total_affiliate_earnings: number
@@ -2008,12 +2061,20 @@ export type Database = {
           preferred_delivery_locker_location_id?: number | null
           preferred_delivery_locker_provider_slug?: string | null
           preferred_delivery_locker_saved_at?: string | null
+          preferred_pickup_locker_data?: Json | null
+          preferred_pickup_locker_location_id?: number | null
+          preferred_pickup_locker_provider_slug?: string | null
           preferred_pickup_locker_saved_at?: string | null
           preferred_pickup_method?: string | null
           profile_picture_url?: string | null
+          renewal_date?: string | null
           role?: string | null
           shipping_address_encrypted?: string | null
           status?: string | null
+          subscription_status?: string | null
+          subscription_tier?:
+            | Database["public"]["Enums"]["subscription_tier"]
+            | null
           suspended_at?: string | null
           suspension_reason?: string | null
           total_affiliate_earnings?: number
@@ -2049,12 +2110,20 @@ export type Database = {
           preferred_delivery_locker_location_id?: number | null
           preferred_delivery_locker_provider_slug?: string | null
           preferred_delivery_locker_saved_at?: string | null
+          preferred_pickup_locker_data?: Json | null
+          preferred_pickup_locker_location_id?: number | null
+          preferred_pickup_locker_provider_slug?: string | null
           preferred_pickup_locker_saved_at?: string | null
           preferred_pickup_method?: string | null
           profile_picture_url?: string | null
+          renewal_date?: string | null
           role?: string | null
           shipping_address_encrypted?: string | null
           status?: string | null
+          subscription_status?: string | null
+          subscription_tier?:
+            | Database["public"]["Enums"]["subscription_tier"]
+            | null
           suspended_at?: string | null
           suspension_reason?: string | null
           total_affiliate_earnings?: number
@@ -2260,6 +2329,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      subjects: {
+        Row: {
+          code: string | null
+          created_at: string | null
+          curriculum: Database["public"]["Enums"]["curriculum_type"] | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string | null
+          curriculum?: Database["public"]["Enums"]["curriculum_type"] | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string | null
+          created_at?: string | null
+          curriculum?: Database["public"]["Enums"]["curriculum_type"] | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       transactions: {
         Row: {
@@ -2640,6 +2736,10 @@ export type Database = {
           success: boolean
         }[]
       }
+      current_user_has_role: {
+        Args: { _role: Database["public"]["Enums"]["app_role"] }
+        Returns: boolean
+      }
       delete_user_address: {
         Args: { address_type: string; target_user_id: string }
         Returns: Json
@@ -2837,15 +2937,15 @@ export type Database = {
         }[]
       }
       has_role:
-      | {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
-      | { Args: { role_name: string; user_id: number }; Returns: boolean }
-      | { Args: { role_name: string; user_id: string }; Returns: boolean }
+        | {
+            Args: {
+              _role: Database["public"]["Enums"]["app_role"]
+              _user_id: string
+            }
+            Returns: boolean
+          }
+        | { Args: { role_name: string; user_id: number }; Returns: boolean }
+        | { Args: { role_name: string; user_id: string }; Returns: boolean }
       is_admin: { Args: { uid: string }; Returns: boolean }
       is_current_user_admin: { Args: never; Returns: boolean }
       is_seller_ready_for_orders: {
@@ -2976,8 +3076,10 @@ export type Database = {
       broadcast_priority: "low" | "normal" | "medium" | "high" | "urgent"
       broadcast_target_audience: "all" | "users" | "admin"
       broadcast_type: "info" | "warning" | "success" | "error"
+      curriculum_type: "CAPS" | "IEB" | "Cambridge" | "Other"
       meetup_status: "active" | "complete" | "canceled" | "expired"
       message_type: "text" | "time_location" | "system"
+      subscription_tier: "free" | "tier1" | "tier2"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2991,116 +3093,116 @@ type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-  | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-  : never = never,
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
-  ? R
-  : never
+    ? R
+    : never
   : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-    DefaultSchema["Views"])
-  ? (DefaultSchema["Tables"] &
-    DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-      Row: infer R
-    }
-  ? R
-  : never
-  : never
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-  | keyof DefaultSchema["Tables"]
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-  : never = never,
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-    Insert: infer I
-  }
-  ? I
-  : never
+      Insert: infer I
+    }
+    ? I
+    : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-    Insert: infer I
-  }
-  ? I
-  : never
-  : never
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-  | keyof DefaultSchema["Tables"]
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-  : never = never,
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-    Update: infer U
-  }
-  ? U
-  : never
+      Update: infer U
+    }
+    ? U
+    : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-    Update: infer U
-  }
-  ? U
-  : never
-  : never
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-  | keyof DefaultSchema["Enums"]
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-  : never = never,
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-  ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-  : never
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-  | keyof DefaultSchema["CompositeTypes"]
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-  : never = never,
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-  ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-  : never
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
 
 export const Constants = {
   public: {
@@ -3109,8 +3211,10 @@ export const Constants = {
       broadcast_priority: ["low", "normal", "medium", "high", "urgent"],
       broadcast_target_audience: ["all", "users", "admin"],
       broadcast_type: ["info", "warning", "success", "error"],
+      curriculum_type: ["CAPS", "IEB", "Cambridge", "Other"],
       meetup_status: ["active", "complete", "canceled", "expired"],
       message_type: ["text", "time_location", "system"],
+      subscription_tier: ["free", "tier1", "tier2"],
     },
   },
 } as const
