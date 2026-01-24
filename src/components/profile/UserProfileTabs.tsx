@@ -25,6 +25,8 @@ import BankingProfileTab from "@/components/profile/BankingProfileTab";
 import CommitTab from "@/components/profile/CommitTab";
 import AccountInformation from "@/components/profile/AccountInformation";
 import ModernAddressTab from "@/components/profile/ModernAddressTab";
+import ReviewList from "@/components/reviews/ReviewList";
+import ReviewForm from "@/components/reviews/ReviewForm";
 import { UserProfile, AddressData, Address } from "@/types/address";
 
 interface UserProfileTabsProps {
