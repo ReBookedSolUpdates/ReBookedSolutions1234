@@ -97,7 +97,7 @@ export const AIPreviewModal = ({
 }: AIPreviewModalProps) => {
   const [adjustedPrice, setAdjustedPrice] = useState<string | null>(null);
 
-  const displayPrice = adjustedPrice ? parseFloat(adjustedPrice) : (extractedData?.estimatedPrice || 0);
+  const displayPrice = adjustedPrice !== null ? parseFloat(adjustedPrice) : (extractedData?.estimatedPrice || 0);
 
   const handleAccept = () => {
     if (!extractedData) return;
