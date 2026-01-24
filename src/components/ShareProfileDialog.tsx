@@ -67,11 +67,13 @@ const ShareProfileDialog = ({
         textArea.remove();
       }
 
-      // Track link copy (non-blocking)
-      try {
-        await ActivityService.trackMiniLinkShare(userId, undefined);
-      } catch (trackingError) {
-        console.error("Error tracking link share:", trackingError);
+      // Track link copy (non-blocking) - only if user is signed in
+      if (currentUserId) {
+        try {
+          await ActivityService.trackMiniLinkShare(userId, currentUserId);
+        } catch (trackingError) {
+          console.error("Error tracking link share:", trackingError);
+        }
       }
 
       toast.success("Profile link copied! 📋 Share it everywhere to sell faster!");
