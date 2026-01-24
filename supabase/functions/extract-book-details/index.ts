@@ -49,57 +49,74 @@ function isValidSupabaseStorageUrl(url: string): boolean {
 
 // System prompt for book extraction
 function getSystemPrompt(): string {
-  return `You are an expert book analyst specialized in South African textbooks with years of experience in evaluating educational materials. You will analyze three book images (front cover, back cover, inside pages) and extract detailed, comprehensive information.
+  return `You are an expert book analyst specialized in South African SECOND-HAND textbooks. You evaluate used educational materials for resale on the secondary market.
+
+CRITICAL: These are USED books being resold. Prices must reflect the SECOND-HAND market, NOT new retail prices.
 
 Your task:
 1. Extract the book title from the cover (be precise, include edition if visible)
 2. Extract the author name(s)
 3. Look for ISBN number (on back cover or inside)
-4. Assess book condition based on visual appearance using these criteria:
-   - New: Pristine, no visible wear, spine intact, pages crisp
-   - Good: Minimal wear, no markings, pages clean, binding tight
-   - Better: Light wear on cover/spine, minimal page yellowing, no tears
-   - Average: Noticeable wear, some markings possible, pages may be yellowed
-   - Below Average: Significant wear, markings, loose pages, damage visible
-5. Identify grade level if visible (e.g., "Grade 10", "Grade 11", etc.)
-6. Detect curriculum type: CAPS, Cambridge, or IEB (South African curricula)
-7. Determine the subject/category of the book (e.g., Mathematics, English, Biology, etc.)
-8. **CRITICAL - Generate a rich, detailed description (3-5 sentences) that includes:**
-   - What the book covers (topics, chapters if visible)
-   - The target audience/grade level
-   - **A clear statement about the physical condition** (e.g., "This copy is in Good condition with minimal wear on the spine and clean, unmarked pages.")
-   - Any notable features (color illustrations, practice exercises, exam prep content)
-   - Edition/publication year if visible
-9. Estimate a fair market price in ZAR based on:
-   - Grade level (higher grades tend to have higher prices)
-   - Curriculum type (IEB/Cambridge may price differently than CAPS)
-   - Book condition (New > Good > Better > Average > Below Average)
-   - Estimated age/edition
-   - Current market rates for similar books
+4. **CAREFULLY assess book condition based on ALL visible wear, damage, and use:**
+   - New: Pristine, absolutely no wear, looks unread, spine uncracked
+   - Good: Very light wear on cover edges, no markings inside, pages white, binding tight
+   - Better: Some wear on cover/spine, pages may have slight yellowing, no significant markings
+   - Average: Obvious wear, light pencil marks possible, page yellowing, cover scuffs
+   - Below Average: Heavy wear, pen/highlighter marks, loose pages, torn cover, water damage
+5. Identify grade level if visible
+6. Detect curriculum type: CAPS, Cambridge, or IEB
+7. Determine the subject/category
 
-For price estimation guidelines:
-- New textbooks: R150-R800 depending on grade/curriculum
-- Good condition: 70-90% of new price
-- Better condition: 60-80% of new price
-- Average condition: 50-70% of new price
-- Below Average: 30-50% of new price
+8. **DESCRIPTION MUST INCLUDE DETAILED CONDITION ASSESSMENT:**
+   Write 3-5 sentences that MUST cover:
+   - Sentence 1-2: What the book covers (topics, subject matter)
+   - Sentence 3: DETAILED physical condition description (specific wear patterns, page quality, binding state, any markings/damage)
+   - Sentence 4-5: Any notable features and who this book suits
 
-DESCRIPTION EXAMPLES:
-- Good: "This Grade 11 CAPS Mathematics textbook covers algebra, geometry, trigonometry, and statistics with comprehensive worked examples. This copy is in Good condition with a tight binding, clean pages, and only minor wear on the cover corners. Features full-color diagrams and end-of-chapter exercises ideal for exam preparation."
-- Average: "A comprehensive IEB English Home Language textbook for Grade 10 covering literature analysis, creative writing, and grammar. This copy shows Average condition with visible wear on the spine, some page yellowing, and light pencil markings that can be erased. Includes prescribed poetry and short story selections."
-- Below Average: "Cambridge IGCSE Biology textbook covering cells, genetics, and ecology with detailed laboratory experiment guides. This copy is in Below Average condition with a loose binding, dog-eared pages, and highlighting throughout—recommended for budget-conscious buyers who need the content rather than pristine pages."
+9. **REALISTIC SECOND-HAND PRICING (in ZAR):**
+   
+   BASE PRICES FOR USED TEXTBOOKS:
+   - Grade 1-3 workbooks: R30-R60
+   - Grade 4-7 textbooks: R40-R80
+   - Grade 8-9 textbooks: R50-R100
+   - Grade 10-12 textbooks: R60-R150
+   - IEB/Cambridge may be 10-20% higher
+   
+   CONDITION MULTIPLIERS (apply to base price):
+   - New (unused): 80-100% of base (rare for used books)
+   - Good: 60-80% of base
+   - Better: 45-65% of base
+   - Average: 30-50% of base
+   - Below Average: 15-35% of base
+   
+   TYPICAL FINAL PRICES:
+   - Most primary school books: R25-R60
+   - Most high school books: R40-R120
+   - Matric textbooks in Good condition: R80-R150
+   - Workbooks with writing: R15-R35
+   - Damaged books: R10-R30
+   
+   DO NOT exceed R200 unless it's a specialty/rare textbook in New condition.
 
-Always respond with valid JSON in this exact format:
+CONDITION DESCRIPTION EXAMPLES:
+
+Good condition: "This copy shows minimal signs of use with a tight binding and clean, unmarked pages. The cover has very light shelf wear on the corners but no creases or tears. Pages remain white with no yellowing or markings—an excellent second-hand find."
+
+Average condition: "This copy has been well-used with noticeable wear on the spine and cover edges. Pages show some yellowing and there are light pencil notes in margins that can be erased. The binding remains intact but is slightly loose. A functional copy at a budget-friendly price."
+
+Below Average condition: "This copy shows significant wear from extensive use. The cover has creases and scuff marks, several pages have highlighting and pen markings, and the binding is loose with some pages coming free. Best suited for buyers needing the content on a tight budget."
+
+RESPOND ONLY WITH VALID JSON:
 {
   "title": "string",
   "author": "string",
   "isbn": "string or null",
-  "description": "string (3-5 sentences, MUST include condition statement and book content details)",
+  "description": "string (3-5 sentences with DETAILED condition assessment)",
   "condition": "New|Good|Better|Average|Below Average",
   "grade": "string or null (e.g., 'Grade 10')",
   "curriculum": "CAPS|Cambridge|IEB or null",
-  "category": "string (subject/category of the book)",
-  "estimatedPrice": number,
+  "category": "string (subject)",
+  "estimatedPrice": number (REALISTIC second-hand price, usually R30-R150),
   "confidence": {
     "title": 0-100,
     "author": 0-100,
@@ -114,24 +131,26 @@ Always respond with valid JSON in this exact format:
 
 // Build vision prompt for images
 function buildVisionPrompt(hint?: { curriculum?: string; grade?: string }): string {
-  let prompt = `Analyze these three book images carefully to extract comprehensive book details.
+  let prompt = `Analyze these three book images to extract details for a SECOND-HAND book listing.
 
-Image 1: Front cover - Extract title, author, edition, grade level, and visual indicators of the book's subject matter
-Image 2: Back cover - Look for ISBN, curriculum indicators, blurb text, and additional information about the book's contents
-Image 3: Inside pages - Assess physical condition (page quality, markings, wear), look for curriculum type, edition info, table of contents, or chapter headings
+Image 1: Front cover - Extract title, author, edition, grade level
+Image 2: Back cover - Look for ISBN, curriculum indicators, blurb
+Image 3: Inside pages - CRITICALLY assess physical condition (wear, markings, page quality, binding)
 
-Extract ALL the following information in JSON format. Pay special attention to:
-1. Writing a DETAILED description (3-5 sentences) that describes what the book covers AND includes a clear statement about its physical condition
-2. Accurately assessing the book's condition based on visible wear, markings, and page quality`;
+IMPORTANT INSTRUCTIONS:
+1. Examine ALL images carefully for signs of wear, damage, markings, and use
+2. Price this as a USED book for resale - NOT at new retail prices
+3. Your description MUST include specific observations about the book's physical condition
+4. Typical used textbook prices are R30-R150, rarely exceeding R200`;
 
   if (hint?.curriculum) {
-    prompt += `\n\nHint: User indicated curriculum is likely ${hint.curriculum}. Confirm or correct this based on visual evidence.`;
+    prompt += `\n\nHint: User indicated curriculum is likely ${hint.curriculum}. Confirm or correct based on visual evidence.`;
   }
   if (hint?.grade) {
-    prompt += `\n\nHint: User indicated grade level is likely ${hint.grade}. Confirm or correct this based on visual evidence.`;
+    prompt += `\n\nHint: User indicated grade level is likely ${hint.grade}. Confirm or correct based on visual evidence.`;
   }
 
-  prompt += `\n\nRespond ONLY with valid JSON, no additional text. Ensure the description is rich, informative, and includes condition details.`;
+  prompt += `\n\nRespond ONLY with valid JSON. Be REALISTIC about condition and pricing for the second-hand market.`;
   return prompt;
 }
 
@@ -183,7 +202,6 @@ async function callOpenAIVision(
 
 function parseExtractedData(rawText: string): any {
   try {
-    // Try to extract JSON from the response (in case there's extra text)
     const jsonMatch = rawText.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       throw new Error("No JSON found in response");
@@ -192,6 +210,43 @@ function parseExtractedData(rawText: string): any {
   } catch (err) {
     throw new Error(`Failed to parse extracted data: ${err instanceof Error ? err.message : "Unknown error"}`);
   }
+}
+
+// Validate and cap prices to realistic second-hand ranges
+function validatePrice(price: number, condition: string, grade?: string): number {
+  // Define maximum prices based on condition
+  const maxPrices: Record<string, number> = {
+    "New": 200,
+    "Good": 150,
+    "Better": 120,
+    "Average": 80,
+    "Below Average": 50,
+  };
+  
+  // Define minimum prices
+  const minPrices: Record<string, number> = {
+    "New": 60,
+    "Good": 40,
+    "Better": 30,
+    "Average": 20,
+    "Below Average": 10,
+  };
+  
+  const maxPrice = maxPrices[condition] || 150;
+  const minPrice = minPrices[condition] || 20;
+  
+  // If price seems too high, cap it
+  if (price > maxPrice) {
+    console.log(`Price ${price} exceeded max ${maxPrice} for ${condition} condition, capping`);
+    return maxPrice;
+  }
+  
+  // If price seems too low, set minimum
+  if (price < minPrice) {
+    return minPrice;
+  }
+  
+  return Math.round(price);
 }
 
 serve(async (req) => {
@@ -273,7 +328,6 @@ serve(async (req) => {
 
   /* -------------------- PROCESS WITH TIMEOUT -------------------- */
   try {
-    // Set 45-second timeout for AI processing (increased for richer descriptions)
     const timeoutPromise = new Promise((_, reject) =>
       setTimeout(() => reject(new Error("AI processing timeout (>45s)")), 45000)
     );
@@ -286,31 +340,35 @@ serve(async (req) => {
 
       const extractedData = parseExtractedData(rawContent);
 
-      // Validate extracted data structure
       if (!extractedData.title || !extractedData.author) {
         throw new Error("Could not extract title or author from images");
       }
 
-      // Ensure description includes condition if AI didn't include it
-      let description = extractedData.description || "Book description not available from images";
-      const conditionKeywords = ["condition", "wear", "pages", "binding", "pristine", "markings"];
+      // Build rich condition-aware description
+      let description = extractedData.description || "";
+      const conditionKeywords = ["condition", "wear", "pages", "binding", "pristine", "markings", "yellowing", "damage", "creases", "scuffs"];
       const hasConditionInfo = conditionKeywords.some(keyword => 
         description.toLowerCase().includes(keyword)
       );
       
       if (!hasConditionInfo && extractedData.condition) {
-        // Append condition info if missing
         const conditionDescriptions: Record<string, string> = {
-          "New": "This copy is in New condition with pristine pages and no visible wear.",
-          "Good": "This copy is in Good condition with minimal wear and clean pages.",
-          "Better": "This copy is in Better condition with light wear and well-maintained pages.",
-          "Average": "This copy is in Average condition with noticeable wear but remains fully usable.",
-          "Below Average": "This copy is in Below Average condition with significant wear—ideal for budget-conscious buyers.",
+          "New": "This copy is in New condition—pages are crisp and unmarked, the binding is tight, and the cover shows no wear. An exceptional find for the second-hand market.",
+          "Good": "This copy is in Good condition with minimal wear on the cover, clean unmarked pages, and a tight binding. A great second-hand purchase.",
+          "Better": "This copy is in Better condition showing light wear on the cover and spine. Pages may have slight yellowing but no markings. Solid value for a used textbook.",
+          "Average": "This copy is in Average condition with visible wear on the cover and spine. Some page yellowing and light pencil marks may be present. A budget-friendly option.",
+          "Below Average": "This copy is in Below Average condition with significant wear, possible markings, and a loose binding. Ideal for buyers focused on content over appearance.",
         };
         description = `${description} ${conditionDescriptions[extractedData.condition] || ""}`;
       }
 
-      // Build response with extracted data
+      // Validate and cap the price to realistic second-hand ranges
+      const validatedPrice = validatePrice(
+        extractedData.estimatedPrice || 50,
+        extractedData.condition || "Average",
+        extractedData.grade
+      );
+
       const response: BookDetailsResponse = {
         success: true,
         data: {
@@ -318,11 +376,11 @@ serve(async (req) => {
           author: extractedData.author,
           isbn: extractedData.isbn || undefined,
           description: description,
-          condition: extractedData.condition || "Good",
+          condition: extractedData.condition || "Average",
           grade: extractedData.grade || undefined,
           curriculum: extractedData.curriculum || undefined,
           category: extractedData.category || undefined,
-          estimatedPrice: extractedData.estimatedPrice || 0,
+          estimatedPrice: validatedPrice,
           quantity: 1,
           confidence: extractedData.confidence,
         },
@@ -340,7 +398,6 @@ serve(async (req) => {
     const errorMessage = err instanceof Error ? err.message : "Unknown error";
     console.error("Extraction error:", errorMessage);
     
-    // Provide helpful error context
     let message = errorMessage;
     if (errorMessage.includes("timeout")) {
       message = "AI processing took too long. Please try again or enter details manually.";
