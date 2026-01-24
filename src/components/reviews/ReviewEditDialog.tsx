@@ -10,9 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { SellerReview, reviewService } from "@/services/reviewService";
-import { Star } from "lucide-react";
+import { Star, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface ReviewEditDialogProps {
