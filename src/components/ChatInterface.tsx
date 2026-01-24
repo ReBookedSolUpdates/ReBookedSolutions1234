@@ -65,13 +65,13 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
           messages.map((message) => (
             <div key={message.id} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
               <div
-                className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                className={`max-w-[85%] sm:max-w-xs lg:max-w-md px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-sm ${
                   message.role === "user"
                     ? "bg-book-600 text-white rounded-br-none"
                     : "bg-gray-100 text-gray-900 rounded-bl-none border border-gray-200"
                 }`}
               >
-                <p className="text-sm break-words whitespace-pre-wrap">{message.content}</p>
+                <p className="break-words whitespace-pre-wrap">{message.content}</p>
                 <p
                   className={`text-xs mt-1 ${
                     message.role === "user" ? "text-book-100" : "text-gray-500"
