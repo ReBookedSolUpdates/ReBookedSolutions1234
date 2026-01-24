@@ -70,9 +70,7 @@ export const BookSchema = z.object({
   universityYear: z.string().optional(),
   university: z.string().optional(),
   grade: z.string().optional(),
-  curriculum: z.enum(['CAPS', 'Cambridge', 'IEB'], {
-    errorMap: () => ({ message: 'Curriculum is required' })
-  }),
+  curriculum: z.enum(['CAPS', 'Cambridge', 'IEB']).optional(),
   isbn: z.string()
     .min(1, 'ISBN is required')
     .refine(
