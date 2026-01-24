@@ -208,14 +208,6 @@ const BankingProfileTab = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <Alert>
-            <Shield className="h-4 w-4" />
-            <AlertDescription>
-              Banking information is required to list books for sale. Your
-              information is stored securely and encrypted for safe payment processing.
-            </AlertDescription>
-          </Alert>
-
           {!hasBankingSetup && (
             <div className="space-y-6">
               <div className="bg-gradient-to-r from-book-50 to-green-50 p-6 rounded-lg border border-book-200">
