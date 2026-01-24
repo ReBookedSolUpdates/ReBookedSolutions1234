@@ -43,6 +43,7 @@ const SellerProfile = () => {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("books");
 
   useEffect(() => {
     if (!sellerId) {
