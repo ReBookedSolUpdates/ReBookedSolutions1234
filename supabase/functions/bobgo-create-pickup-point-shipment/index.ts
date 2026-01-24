@@ -181,7 +181,8 @@ serve(async (req) => {
     }
 
     // Make request to BobGo API
-    const bobgoApiKey = Deno.env.get("BOBGO_API_KEY");
+    const isProduction = Deno.env.get("VITE_PRODUCTION") === "true";
+    const bobgoApiKey = Deno.env.get(isProduction ? "BOBGO_API_KEY" : "PRODUCTION_BOBGO_API_KEY");
     if (!bobgoApiKey) {
       throw new Error("BOBGO_API_KEY not configured");
     }

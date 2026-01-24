@@ -4,7 +4,8 @@ import { corsHeaders } from "../_shared/cors.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const WEBHOOK_SECRET = Deno.env.get("BOBGO_WEBHOOK_SECRET") || "";
+const isProductionEnv = Deno.env.get("VITE_PRODUCTION") === "true";
+const WEBHOOK_SECRET = Deno.env.get(isProductionEnv ? "BOBGO_WEBHOOK_SECRET" : "PRODUCTION_BOBGO_WEBHOOK_SECRET") || "";
 
 async function verifySignature(rawBody: string, signatureHeader?: string | null): Promise<boolean> {
   if (!WEBHOOK_SECRET) return true;

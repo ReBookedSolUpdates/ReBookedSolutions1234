@@ -5,8 +5,10 @@ import { corsHeaders } from "../_shared/cors.ts";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
+const isProductionEnv = Deno.env.get("VITE_PRODUCTION") === "true";
+
 function resolveBaseUrl() {
-  const env = (Deno.env.get("BOBGO_BASE_URL") || "").trim().replace(/\/+$/, "");
+  const env = (Deno.env.get(isProductionEnv ? "BOBGO_BASE_URL" : "PRODUCTION_BOBGO_BASE_URL") || "").trim().replace(/\/+$/, "");
   if (!env) return "https://api.bobgo.co.za/v2";
   if (env.includes("sandbox.bobgo.co.za") && !env.includes("api.sandbox.bobgo.co.za")) {
     return "https://api.sandbox.bobgo.co.za/v2";
@@ -18,7 +20,7 @@ function resolveBaseUrl() {
 }
 
 const BOBGO_BASE_URL = resolveBaseUrl();
-const BOBGO_API_KEY = (Deno.env.get("BOBGO_API_KEY") || "").trim();
+const BOBGO_API_KEY = (Deno.env.get(isProductionEnv ? "BOBGO_API_KEY" : "PRODUCTION_BOBGO_API_KEY") || "").trim();
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
