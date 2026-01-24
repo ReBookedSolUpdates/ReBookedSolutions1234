@@ -20,6 +20,7 @@ import { CartProvider } from "./contexts/CartContext";
 import AuthErrorHandler from "./components/AuthErrorHandler";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ScrollToTop from "./components/ScrollToTop";
+import { ChatbotWidget } from "./components/ChatbotWidget";
 
 // Main Pages
 import Index from "./pages/Index";
