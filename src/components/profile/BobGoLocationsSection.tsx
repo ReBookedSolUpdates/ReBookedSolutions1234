@@ -78,7 +78,11 @@ const BobGoLocationsSection: React.FC<BobGoLocationsSectionProps> = ({ onLockerS
       if (details && details.lat && details.lng) {
         // Fetch nearby BobGo locations
         const nearbyLocations = await getBobGoLocations(details.lat, details.lng, 5);
-        setLocations(nearbyLocations);
+        // Filter out Pargo provider locations
+        const filteredLocations = nearbyLocations.filter(
+          (location) => location.pickup_point_provider_name?.toLowerCase() !== 'pargo'
+        );
+        setLocations(filteredLocations);
         setShowLocations(true);
       } else {
         setLocations([]);
