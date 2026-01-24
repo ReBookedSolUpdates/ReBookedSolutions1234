@@ -121,8 +121,10 @@ export const BookInformationForm = ({
         <Input
           id="isbn"
           name="isbn"
+          type="text"
+          inputMode="numeric"
           value={(formData as any).isbn || ""}
-          onChange={onInputChange}
+          onChange={handleISBNChange}
           placeholder="Enter ISBN (e.g., 9780123456789)"
           className={`${errors.isbn ? "border-red-500" : ""} ${isMobile ? "h-12 text-base" : ""}`}
           style={{ fontSize: isMobile ? "16px" : undefined }}
