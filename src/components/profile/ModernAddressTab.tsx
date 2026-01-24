@@ -58,6 +58,8 @@ const ModernAddressTab = ({
   const [isLoadingPreference, setIsLoadingPreference] = useState(true);
   const [hasSavedLocker, setHasSavedLocker] = useState(false);
   const [isSavingPreference, setIsSavingPreference] = useState(false);
+  const [showPreferenceDialog, setShowPreferenceDialog] = useState(false);
+  const [dialogLoading, setDialogLoading] = useState(false);
 
   useEffect(() => {
     if (addressData) {
