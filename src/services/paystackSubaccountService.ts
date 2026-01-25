@@ -80,10 +80,10 @@ export class PaystackSubaccountService {
         .eq("id", userId);
 
       if (error) {
-        console.warn("Failed to update profile subaccount:", error);
+        debugLogger.warn("paystackSubaccountService", "Failed to update profile subaccount:", error);
       }
     } catch (error) {
-      console.warn("Error updating profile subaccount:", error);
+      debugLogger.warn("paystackSubaccountService", "Error updating profile subaccount:", error);
     }
   }
 
@@ -334,17 +334,19 @@ export class PaystackSubaccountService {
     email?: string;
   }> {
     try {
-      console.log("🔍 getUserSubaccountStatus: Starting check...", { userId });
+      debugLogger.info("paystackSubaccountService", "🔍 getUserSubaccountStatus: Starting check...", { userId });
 
       if (!userId) {
-        console.log(
+        debugLogger.info(
+          "paystackSubaccountService",
           "📝 getUserSubaccountStatus: No userId provided, getting from auth...",
         );
         const {
           data: { user },
         } = await supabase.auth.getUser();
         if (!user) {
-          console.log(
+          debugLogger.info(
+            "paystackSubaccountService",
             "❌ getUserSubaccountStatus: No authenticated user found",
           );
           return { hasSubaccount: false, canEdit: false };
@@ -354,7 +356,7 @@ export class PaystackSubaccountService {
       }
 
       // First, check the profile table for subaccount_code
-      console.log("���� getUserSubaccountStatus: Checking profile table...");
+      debugLogger.info("paystackSubaccountService", "🔑 getUserSubaccountStatus: Checking profile table...");
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("subaccount_code, preferences")
@@ -362,7 +364,8 @@ export class PaystackSubaccountService {
         .single();
 
       if (profileError) {
-        console.warn(
+        debugLogger.warn(
+          "paystackSubaccountService",
           "❌ getUserSubaccountStatus: Error checking profile:",
           profileError,
         );
@@ -400,7 +403,8 @@ export class PaystackSubaccountService {
         .maybeSingle();
 
       if (subaccountError) {
-        console.warn(
+        debugLogger.warn(
+          "paystackSubaccountService",
           "Error fetching banking details (table may not exist):",
           subaccountError,
         );
@@ -451,7 +455,7 @@ export class PaystackSubaccountService {
         canEdit: true, // But form will show contact support message
       };
     } catch (error) {
-      console.error("Error in getUserSubaccountStatus:", error);
+      debugLogger.error("paystackSubaccountService", "Error in getUserSubaccountStatus:", error);
       return { hasSubaccount: false, canEdit: false };
     }
   }

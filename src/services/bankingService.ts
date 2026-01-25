@@ -454,7 +454,7 @@ export class BankingService {
 
       return status;
     } catch (error) {
-      console.error("Error checking banking requirements:", JSON.stringify(error, null, 2));
+      debugLogger.error("bankingService", "Error checking banking requirements:", JSON.stringify(error, null, 2));
 
       let missingRequirements = ["Unable to verify requirements"];
       if (error instanceof Error) {

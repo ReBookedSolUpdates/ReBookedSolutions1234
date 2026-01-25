@@ -5,6 +5,7 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { reviewService, SellerReview } from "@/services/reviewService";
 import ReviewCard from "./ReviewCard";
 import { ChevronDown } from "lucide-react";
+import debugLogger from "@/utils/debugLogger";
 
 interface ReviewListProps {
   sellerId: string;
@@ -33,7 +34,7 @@ const ReviewList: React.FC<ReviewListProps> = ({
         setReviews(fetchedReviews);
         setTotal(totalReviews);
       } catch (error) {
-        console.error("Error loading reviews:", error);
+        debugLogger.error("ReviewList", "Error loading reviews:", error);
       } finally {
         setIsLoading(false);
       }

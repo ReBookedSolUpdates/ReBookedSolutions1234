@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { reviewService, SellerRatingSummary } from "@/services/reviewService";
 import { Star } from "lucide-react";
+import debugLogger from "@/utils/debugLogger";
 
 interface SellerRatingProps {
   sellerId: string;
@@ -23,7 +24,7 @@ const SellerRating: React.FC<SellerRatingProps> = ({
         const ratingData = await reviewService.getSellerAverageRating(sellerId);
         setRating(ratingData);
       } catch (error) {
-        console.error("Error fetching seller rating:", error);
+        debugLogger.error("SellerRating", "Error fetching seller rating:", error);
       } finally {
         setIsLoading(false);
       }

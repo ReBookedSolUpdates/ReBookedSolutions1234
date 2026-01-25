@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { SellerReview, reviewService } from "@/services/reviewService";
 import { Star, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import debugLogger from "@/utils/debugLogger";
 
 interface ReviewEditDialogProps {
   review: SellerReview;
@@ -50,7 +51,7 @@ const ReviewEditDialog: React.FC<ReviewEditDialogProps> = ({
       onReviewUpdated?.();
       onClose();
     } catch (error) {
-      console.error("Error updating review:", error);
+      debugLogger.error("ReviewEditDialog", "Error updating review:", error);
       toast.error("Failed to update review");
     } finally {
       setIsSubmitting(false);

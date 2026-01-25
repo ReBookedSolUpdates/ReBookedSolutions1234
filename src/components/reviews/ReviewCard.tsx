@@ -9,6 +9,7 @@ import { Star, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import ReviewEditDialog from "./ReviewEditDialog";
 import { formatDistanceToNow } from "date-fns";
+import debugLogger from "@/utils/debugLogger";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,7 +42,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
       setIsDeleted(true);
       onReviewUpdated?.();
     } catch (error) {
-      console.error("Error deleting review:", error);
+      debugLogger.error("ReviewCard", "Error deleting review:", error);
       toast.error("Failed to delete review");
     } finally {
       setIsDeleting(false);

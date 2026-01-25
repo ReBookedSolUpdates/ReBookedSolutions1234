@@ -33,10 +33,10 @@ const sendWebhook = async (eventType: string, data: any) => {
       },
     });
     if (error) {
-      console.error(`Webhook error for ${eventType}:`, error);
+      debugLogger.error("reportService", `Webhook error for ${eventType}:`, error);
     }
   } catch (error) {
-    console.error(`Error sending webhook for ${eventType}:`, error);
+    debugLogger.error("reportService", `Error sending webhook for ${eventType}:`, error);
   }
 };
 

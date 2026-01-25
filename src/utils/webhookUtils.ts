@@ -1,5 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
+import debugLogger from "@/utils/debugLogger";
+
 export const sendPurchaseWebhook = async (orderData: any) => {
   try {
     const webhookPayload = {
@@ -44,9 +46,9 @@ export const sendPurchaseWebhook = async (orderData: any) => {
     });
 
     if (error) {
-      console.error("Error invoking webhook function:", error);
+      debugLogger.error("webhookUtils", "Error invoking webhook function:", error);
     }
   } catch (error) {
-    console.error("Error sending purchase webhook:", error);
+    debugLogger.error("webhookUtils", "Error sending purchase webhook:", error);
   }
 };

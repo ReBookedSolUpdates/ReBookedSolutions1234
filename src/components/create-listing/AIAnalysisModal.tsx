@@ -21,6 +21,7 @@ import { Upload, Loader2, AlertTriangle, X, School, GraduationCap, BookOpen } fr
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { compressImage } from "@/utils/imageCompression";
+import debugLogger from "@/utils/debugLogger";
 import { BookFormData } from "@/types/book";
 import { AIPreviewModal } from "./AIPreviewModal";
 import { UNIVERSITY_YEARS, SOUTH_AFRICAN_UNIVERSITIES_SIMPLE } from "@/constants/universities";
@@ -177,7 +178,7 @@ const AIAnalysisModal = ({
       toast.success(`${label} uploaded successfully!`);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      console.error(`Upload error for ${label}:`, errorMessage);
+      debugLogger.error("AIAnalysisModal", `Upload error for ${label}:`, errorMessage);
       toast.error(`Failed to upload ${label}. Please try again.`);
     } finally {
       setUploadingIndex(null);

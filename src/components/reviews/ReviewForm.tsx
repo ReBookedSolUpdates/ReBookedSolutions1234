@@ -10,6 +10,7 @@ import { reviewService } from "@/services/reviewService";
 import { useAuth } from "@/contexts/AuthContext";
 import { Star, AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import debugLogger from "@/utils/debugLogger";
 
 interface ReviewFormProps {
   sellerId: string;
@@ -53,7 +54,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
           setIsAnonymous(existingReview.is_anonymous);
         }
       } catch (err) {
-        console.error("Error checking eligibility:", err);
+        debugLogger.error("ReviewForm", "Error checking eligibility:", err);
         setError("Failed to check review eligibility");
       } finally {
         setIsLoading(false);
@@ -102,7 +103,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
       setComment("");
       setIsAnonymous(false);
     } catch (err: any) {
-      console.error("Error submitting review:", err);
+      debugLogger.error("ReviewForm", "Error submitting review:", err);
       toast.error(err.message || "Failed to submit review");
     } finally {
       setIsSubmitting(false);

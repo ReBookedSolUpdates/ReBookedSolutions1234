@@ -26,6 +26,7 @@ import {
 } from "@/services/checkoutValidationService";
 import { supabase } from "@/integrations/supabase/client";
 import { getProvinceFromLocker } from "@/utils/provinceExtractorUtils";
+import debugLogger from "@/utils/debugLogger";
 import Step1OrderSummary from "./Step1OrderSummary";
 import Step1point5DeliveryMethod from "./Step1point5DeliveryMethod";
 import Step2DeliveryOptions from "./Step2DeliveryOptions";
@@ -466,7 +467,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         });
       }
     } catch (trackingError) {
-      console.error("Error tracking checkout step:", trackingError);
+      debugLogger.error("CheckoutFlow", "Error tracking checkout step:", trackingError);
     }
   };
 
@@ -552,7 +553,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         }
       );
     } catch (trackingError) {
-      console.error("Error tracking purchase:", trackingError);
+      debugLogger.error("CheckoutFlow", "Error tracking purchase:", trackingError);
     }
 
     // Remove book from cart after successful purchase
@@ -616,7 +617,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       const cartValue = checkoutState.order_summary?.total || book.price;
       ActivityService.trackCheckoutAbandoned(user?.id, "payment_initiated", cartValue);
     } catch (trackingError) {
-      console.error("Error tracking checkout abandoned:", trackingError);
+      debugLogger.error("CheckoutFlow", "Error tracking checkout abandoned:", trackingError);
     }
 
     toast.error(`Payment failed: ${safeMessage}`);
@@ -642,7 +643,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       const stepName = currentStep === 1 ? "order_summary" : currentStep === 2 ? "delivery_options" : currentStep === 3 ? "payment_initiated" : "unknown";
       ActivityService.trackCheckoutAbandoned(user?.id, stepName, cartValue);
     } catch (trackingError) {
-      console.error("Error tracking checkout abandoned:", trackingError);
+      debugLogger.error("CheckoutFlow", "Error tracking checkout abandoned:", trackingError);
     }
 
     // Navigate back to the book details page

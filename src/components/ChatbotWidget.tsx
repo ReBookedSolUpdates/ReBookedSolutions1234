@@ -3,10 +3,19 @@ import { useChatbot } from "@/hooks/useChatbot";
 import { ChatInterface } from "./ChatInterface";
 import { MessageCircle, X, ChevronDown, ChevronUp } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLocation } from "react-router-dom";
 
 export const ChatbotWidget: React.FC = () => {
   const { user } = useAuth();
+  const { pathname } = useLocation();
   const chatbot = useChatbot(user?.id);
+
+  // Hide chat widget on checkout and success pages
+  const isCheckoutPage = pathname.includes("/checkout") || pathname.includes("/checkout-cart") || pathname.includes("/payment-confirmation") || pathname.includes("/order-success");
+
+  if (isCheckoutPage) {
+    return null;
+  }
 
   // Handle ESC key to close widget
   useEffect(() => {
@@ -40,7 +49,7 @@ export const ChatbotWidget: React.FC = () => {
 
       {/* Chat Modal */}
       {chatbot.isOpen && (
-        <div className="fixed bottom-20 right-4 left-4 sm:bottom-24 sm:right-6 sm:left-auto sm:w-96 h-[70vh] sm:h-[630px] max-h-[calc(100vh-140px)] sm:max-h-[calc(100vh-200px)] bg-white rounded-2xl sm:rounded-xl shadow-2xl border border-gray-200 flex flex-col z-50 animate-in slide-in-from-bottom-4 duration-300 overflow-hidden">
+        <div className="fixed bottom-16 right-2 left-2 sm:bottom-24 sm:right-6 sm:left-auto sm:w-96 h-[50vh] sm:h-[630px] max-w-xs sm:max-w-none max-h-[calc(100vh-120px)] sm:max-h-[calc(100vh-200px)] mx-auto sm:mx-0 bg-white rounded-2xl sm:rounded-xl shadow-2xl border border-gray-200 flex flex-col z-50 animate-in slide-in-from-bottom-4 duration-300 overflow-hidden">
           <ChatInterface
             messages={chatbot.messages}
             isLoading={chatbot.isLoading}
