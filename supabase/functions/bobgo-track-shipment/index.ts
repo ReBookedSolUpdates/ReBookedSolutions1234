@@ -1,9 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import { parseRequestBody } from "../_shared/safe-body-parser.ts";
+import { getBobGoConfig } from "../_shared/bobgo-config.ts";
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -31,31 +31,15 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[track-shipment] Tracking number: ${tracking_number}`);
+    console.log("[track-shipment] Tracking number:", tracking_number);
 
-    const isProduction = Deno.env.get("VITE_PRODUCTION") === "true";
-    const BOBGO_API_KEY = Deno.env.get(isProduction ? "BOBGO_API_KEY" : "PRODUCTION_BOBGO_API_KEY");
-
-    // Resolve base URL - BobGo API v2
-    function resolveBaseUrl(): string {
-      const env = (Deno.env.get(isProduction ? "BOBGO_BASE_URL" : "PRODUCTION_BOBGO_BASE_URL") || "").trim().replace(/\/+$/, "");
-      if (!env) return "https://api.bobgo.co.za/v2";
-      if (env.includes("sandbox.bobgo.co.za") && !env.includes("api.sandbox.bobgo.co.za")) {
-        return "https://api.sandbox.bobgo.co.za/v2";
-      }
-      if (env.includes("bobgo.co.za") && !/\/v2$/.test(env)) {
-        return env + "/v2";
-      }
-      return env;
-    }
-
-    const BOBGO_BASE_URL = resolveBaseUrl();
-    console.log(`[track-shipment] Using base URL: ${BOBGO_BASE_URL}`);
+    const config = getBobGoConfig(req);
+    console.log("[track-shipment] Config:", { baseUrl: config.baseUrl, hasApiKey: config.hasApiKey });
 
     let trackingInfo: Record<string, unknown>;
     let simulated = false;
 
-    if (!BOBGO_API_KEY) {
+    if (!config.hasApiKey) {
       console.log("[track-shipment] No API key found, returning simulated data");
       simulated = true;
       trackingInfo = {
@@ -85,74 +69,56 @@ serve(async (req) => {
       };
     } else {
       try {
-        // BobGo API tracking endpoint: GET /tracking?tracking_reference={tracking_number}
-        const trackingUrl = `${BOBGO_BASE_URL}/tracking?tracking_reference=${encodeURIComponent(tracking_number)}`;
-        console.log(`[track-shipment] Fetching from: ${trackingUrl}`);
+        // BobGo tracking endpoint: GET /tracking?tracking_reference={tracking_number}
+        const trackingUrl = `${config.baseUrl}/tracking?tracking_reference=${encodeURIComponent(tracking_number)}`;
+        console.log("[track-shipment] Fetching from:", trackingUrl);
 
         const resp = await fetch(trackingUrl, {
           method: "GET",
           headers: {
-            "Authorization": `Bearer ${BOBGO_API_KEY}`,
+            Authorization: `Bearer ${config.apiKey}`,
             "Content-Type": "application/json",
-            "Accept": "application/json",
+            Accept: "application/json",
           },
         });
 
-        console.log(`[track-shipment] BobGo API response status: ${resp.status}`);
+        console.log("[track-shipment] BobGo response status:", resp.status);
 
         if (!resp.ok) {
           const text = await resp.text().catch(() => "");
-          console.error(`[track-shipment] BobGo API error: ${resp.status} - ${text}`);
+          console.error("[track-shipment] BobGo API error:", resp.status, text);
           throw new Error(`BobGo API returned ${resp.status}: ${text || resp.statusText}`);
         }
 
         const data = await resp.json();
-        console.log(`[track-shipment] BobGo API response:`, JSON.stringify(data).substring(0, 500));
+        console.log("[track-shipment] BobGo response:", JSON.stringify(data).substring(0, 500));
 
-        // BobGo returns array or single object
         const shipmentData = Array.isArray(data) ? data[0] : data;
 
         if (!shipmentData) {
           throw new Error("No tracking data returned from BobGo API");
         }
 
-        // Get the latest checkpoint for current location
-        const checkpoints = shipmentData.checkpoints || [];
+        const checkpoints = shipmentData.checkpoints || shipmentData.tracking_events || [];
         const latestCheckpoint = checkpoints.length > 0 ? checkpoints[0] : null;
 
         trackingInfo = {
-          // Standard tracking fields
-          tracking_number: shipmentData.shipment_tracking_reference || shipmentData.id || tracking_number,
+          tracking_number: shipmentData.tracking_reference || shipmentData.shipment_tracking_reference || shipmentData.id || tracking_number,
           custom_tracking_reference: shipmentData.custom_tracking_reference,
-          shipment_id: shipmentData.id,
-
-          // Status
+          shipment_id: shipmentData.id || shipmentData.shipment_id,
           status: shipmentData.status,
           status_friendly: shipmentData.status_friendly || shipmentData.status,
-
-          // Courier info
           provider: "bobgo",
-          courier_slug: shipmentData.courier_slug,
-          courier_name: shipmentData.courier_name,
+          courier_slug: shipmentData.courier_slug || shipmentData.provider_slug,
+          courier_name: shipmentData.courier_name || shipmentData.provider_name,
           courier_phone: shipmentData.courier_phone,
           courier_logo: shipmentData.courier_logo,
-          service_level: shipmentData.service_level,
-
-          // BobGo branding logos
-          bobgo_logo: shipmentData.bob_go_logo,
-          bobgo_logo_white: shipmentData.bob_go_logo_white,
-          bobgo_logo_black: shipmentData.bob_go_logo_black,
-
-          // Location
+          service_level: shipmentData.service_level || shipmentData.service_level_code,
           current_location: latestCheckpoint?.location || latestCheckpoint?.city || "Unknown",
-
-          // Timestamps
-          created_at: shipmentData.shipment_time_created,
-          updated_at: shipmentData.last_checkpoint_time,
-
-          // Checkpoints (tracking events)
+          created_at: shipmentData.shipment_time_created || shipmentData.time_created,
+          updated_at: shipmentData.last_checkpoint_time || shipmentData.time_modified,
           checkpoints: checkpoints.map((checkpoint: Record<string, unknown>) => ({
-            time: checkpoint.time,
+            time: checkpoint.time || checkpoint.date,
             status: checkpoint.status,
             status_friendly: checkpoint.status_friendly || checkpoint.status,
             location: checkpoint.location || "",
@@ -161,26 +127,12 @@ serve(async (req) => {
             country: checkpoint.country || "",
             message: checkpoint.message || "",
           })),
-
-          // Movement events
-          shipment_movement_events: shipmentData.shipment_movement_events,
-
-          // Merchant info
-          merchant_name: shipmentData.merchant_name,
-          merchant_logo: shipmentData.merchant_logo,
-
-          // Order info
-          order_number: shipmentData.order_number,
-          channel_order_number: shipmentData.channel_order_number,
-
-          // Raw response for debugging
           raw: data,
         };
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : "Unknown error";
-        console.error(`[track-shipment] Error fetching from BobGo:`, errorMessage);
+        console.error("[track-shipment] Error:", errorMessage);
 
-        // Return error with simulated fallback
         simulated = true;
         trackingInfo = {
           tracking_number,
@@ -201,7 +153,7 @@ serve(async (req) => {
     );
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Failed to track shipment";
-    console.error(`[track-shipment] Unexpected error:`, errorMessage);
+    console.error("[track-shipment] Unexpected error:", errorMessage);
 
     return new Response(
       JSON.stringify({ success: false, error: errorMessage }),
