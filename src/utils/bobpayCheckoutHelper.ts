@@ -101,15 +101,7 @@ export const initializeBobPayCheckout = async (
       cancel_url: cancelUrl,
     };
 
-    const { data: paymentData, error: paymentErr } = await supabase.functions.invoke(
-      'bobpay-initialize-payment',
-      {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: paymentInitPayload,
-      }
-    );
+    const { data: paymentData, error: paymentErr } = await initializeBobPayPayment(paymentInitPayload);
 
     if (paymentErr || !paymentData?.success) {
       throw new Error(paymentErr?.message || 'Failed to initialize payment');
