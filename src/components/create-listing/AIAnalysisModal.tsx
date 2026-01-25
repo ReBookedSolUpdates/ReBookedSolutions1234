@@ -21,6 +21,7 @@ import { Upload, Loader2, AlertTriangle, X, School, GraduationCap, BookOpen } fr
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { compressImage } from "@/utils/imageCompression";
+import debugLogger from "@/utils/debugLogger";
 import { BookFormData } from "@/types/book";
 import { AIPreviewModal } from "./AIPreviewModal";
 import { UNIVERSITY_YEARS, SOUTH_AFRICAN_UNIVERSITIES_SIMPLE } from "@/constants/universities";
