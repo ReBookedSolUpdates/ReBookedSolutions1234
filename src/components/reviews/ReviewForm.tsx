@@ -103,7 +103,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
       setComment("");
       setIsAnonymous(false);
     } catch (err: any) {
-      console.error("Error submitting review:", err);
+      debugLogger.error("ReviewForm", "Error submitting review:", err);
       toast.error(err.message || "Failed to submit review");
     } finally {
       setIsSubmitting(false);
