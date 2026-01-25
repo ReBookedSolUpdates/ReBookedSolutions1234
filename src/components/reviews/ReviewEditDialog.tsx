@@ -51,7 +51,7 @@ const ReviewEditDialog: React.FC<ReviewEditDialogProps> = ({
       onReviewUpdated?.();
       onClose();
     } catch (error) {
-      console.error("Error updating review:", error);
+      debugLogger.error("ReviewEditDialog", "Error updating review:", error);
       toast.error("Failed to update review");
     } finally {
       setIsSubmitting(false);
