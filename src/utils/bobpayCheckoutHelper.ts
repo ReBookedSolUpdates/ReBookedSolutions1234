@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { initializeBobPayPayment, processBobPayRefund } from '@/integrations/supabase/bobpay-client';
 import { toast } from 'sonner';
 import { OrderSummary, OrderConfirmation } from '@/types/checkout';
 
