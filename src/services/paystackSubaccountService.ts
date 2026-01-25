@@ -350,7 +350,7 @@ export class PaystackSubaccountService {
           return { hasSubaccount: false, canEdit: false };
         }
         userId = user.id;
-        console.log("✅ getUserSubaccountStatus: Got user from auth:", userId);
+        debugLogger.info("paystackSubaccountService", "getUserSubaccountStatus: Got user from auth:", userId);
       }
 
       // First, check the profile table for subaccount_code
@@ -369,7 +369,7 @@ export class PaystackSubaccountService {
         return { hasSubaccount: false, canEdit: false };
       }
 
-      console.log("✅ getUserSubaccountStatus: Profile data:", {
+      debugLogger.info("paystackSubaccountService", "getUserSubaccountStatus: Profile data:", {
         subaccountCode: profileData?.subaccount_code,
         hasPreferences: !!profileData?.preferences,
       });
@@ -377,14 +377,16 @@ export class PaystackSubaccountService {
       const subaccountCode = profileData?.subaccount_code;
 
       if (!subaccountCode) {
-        console.log(
-          "❌ getUserSubaccountStatus: No subaccount code found in profile",
+        debugLogger.info(
+          "paystackSubaccountService",
+          "getUserSubaccountStatus: No subaccount code found in profile",
         );
         return { hasSubaccount: false, canEdit: false };
       }
 
-      console.log(
-        "✅ getUserSubaccountStatus: Found subaccount code:",
+      debugLogger.info(
+        "paystackSubaccountService",
+        "getUserSubaccountStatus: Found subaccount code:",
         subaccountCode,
       );
 
