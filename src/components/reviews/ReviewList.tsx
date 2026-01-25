@@ -34,7 +34,7 @@ const ReviewList: React.FC<ReviewListProps> = ({
         setReviews(fetchedReviews);
         setTotal(totalReviews);
       } catch (error) {
-        console.error("Error loading reviews:", error);
+        debugLogger.error("ReviewList", "Error loading reviews:", error);
       } finally {
         setIsLoading(false);
       }
