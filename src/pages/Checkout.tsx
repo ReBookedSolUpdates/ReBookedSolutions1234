@@ -79,7 +79,7 @@ const Checkout: React.FC = () => {
       try {
         ActivityService.trackCheckoutStarted(user.id, cartValue, 1);
       } catch (trackingError) {
-        console.error("Error tracking checkout started:", trackingError);
+        debugLogger.error("Checkout", "Error tracking checkout started:", trackingError);
       }
     }
   }, [book, checkoutStartedTracked, user]);
