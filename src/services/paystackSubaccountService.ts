@@ -96,13 +96,13 @@ export class PaystackSubaccountService {
       const userId = session?.user?.id;
 
       if (!userId || !subaccountCode) {
-        console.warn("No user ID or subaccount code provided");
+        debugLogger.warn("paystackSubaccountService", "No user ID or subaccount code provided");
         return false;
       }
 
       // 📚 UPDATE ALL USER'S BOOKS WITH SUBACCOUNT CODE
       // First check if the column exists by trying a minimal select
-      console.log("Checking if seller_subaccount_code column exists...");
+      debugLogger.info("paystackSubaccountService", "Checking if seller_subaccount_code column exists...");
       let columnExists = true;
       try {
         const { error: checkError } = await supabase
@@ -111,17 +111,17 @@ export class PaystackSubaccountService {
           .limit(1);
 
         if (checkError) {
-          console.warn("Column check failed:", checkError.message);
+          debugLogger.warn("paystackSubaccountService", "Column check failed:", checkError.message);
           columnExists = false;
         }
       } catch (error) {
-        console.warn("seller_subaccount_code column doesn't exist in books table:", error);
+        debugLogger.warn("paystackSubaccountService", "seller_subaccount_code column doesn't exist in books table:", error);
         columnExists = false;
       }
 
       if (!columnExists) {
-        console.warn("Skipping book update - seller_subaccount_code column not found in database schema");
-        console.warn("This is expected if the database schema hasn't been updated yet");
+        debugLogger.warn("paystackSubaccountService", "Skipping book update - seller_subaccount_code column not found in database schema");
+        debugLogger.warn("paystackSubaccountService", "This is expected if the database schema hasn't been updated yet");
         return true; // Return success since the main operation completed
       }
 
@@ -155,7 +155,7 @@ export class PaystackSubaccountService {
 
       return true;
     } catch (error) {
-      console.error("Error linking books to subaccount:", error);
+      debugLogger.error("paystackSubaccountService", "Error linking books to subaccount:", error);
       return false;
     }
   }
@@ -184,7 +184,7 @@ export class PaystackSubaccountService {
 
       return null;
     } catch (error) {
-      console.error("Error getting user subaccount code:", error);
+      debugLogger.error("paystackSubaccountService", "Error getting user subaccount code:", error);
       return null;
     }
   }
