@@ -26,13 +26,23 @@ export async function invokeBobPayFunction<T = unknown>(
     body?: Record<string, unknown>;
     method?: "GET" | "POST";
     headers?: Record<string, string>;
+    authToken?: string;
   }
 ): Promise<{ data: T | null; error: Error | null }> {
   try {
     const correctFunctionName = getFunctionName(functionName);
+    const headers: Record<string, string> = {
+      ...options?.headers,
+    };
+
+    // Include auth header if provided
+    if (options?.authToken) {
+      headers['Authorization'] = `Bearer ${options.authToken}`;
+    }
+
     const { data, error } = await supabase.functions.invoke(correctFunctionName, {
       body: options?.body,
-      headers: options?.headers,
+      headers: Object.keys(headers).length > 0 ? headers : undefined,
     });
 
     if (error) {
