@@ -356,7 +356,6 @@ export class PaystackSubaccountService {
       }
 
       // First, check the profile table for subaccount_code
-      console.log("���� getUserSubaccountStatus: Checking profile table...");
       debugLogger.info("paystackSubaccountService", "🔑 getUserSubaccountStatus: Checking profile table...");
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
