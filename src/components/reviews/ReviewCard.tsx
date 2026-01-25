@@ -42,7 +42,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
       setIsDeleted(true);
       onReviewUpdated?.();
     } catch (error) {
-      console.error("Error deleting review:", error);
+      debugLogger.error("ReviewCard", "Error deleting review:", error);
       toast.error("Failed to delete review");
     } finally {
       setIsDeleting(false);
