@@ -403,7 +403,8 @@ export class PaystackSubaccountService {
         .maybeSingle();
 
       if (subaccountError) {
-        console.warn(
+        debugLogger.warn(
+          "paystackSubaccountService",
           "Error fetching banking details (table may not exist):",
           subaccountError,
         );
