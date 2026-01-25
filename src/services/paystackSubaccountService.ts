@@ -334,7 +334,7 @@ export class PaystackSubaccountService {
     email?: string;
   }> {
     try {
-      console.log("🔍 getUserSubaccountStatus: Starting check...", { userId });
+      debugLogger.info("paystackSubaccountService", "🔍 getUserSubaccountStatus: Starting check...", { userId });
 
       if (!userId) {
         console.log(
