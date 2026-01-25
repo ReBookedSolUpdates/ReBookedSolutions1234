@@ -9,6 +9,7 @@ import { Star, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import ReviewEditDialog from "./ReviewEditDialog";
 import { formatDistanceToNow } from "date-fns";
+import debugLogger from "@/utils/debugLogger";
 import {
   AlertDialog,
   AlertDialogAction,
