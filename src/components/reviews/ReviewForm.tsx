@@ -54,7 +54,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
           setIsAnonymous(existingReview.is_anonymous);
         }
       } catch (err) {
-        console.error("Error checking eligibility:", err);
+        debugLogger.error("ReviewForm", "Error checking eligibility:", err);
         setError("Failed to check review eligibility");
       } finally {
         setIsLoading(false);
