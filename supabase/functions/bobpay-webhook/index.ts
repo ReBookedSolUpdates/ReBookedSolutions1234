@@ -108,8 +108,7 @@ Deno.serve(async (req) => {
     // Webhook data processed - sensitive data not logged
 
     // Verify signature
-    const isProduction = Deno.env.get('VITE_PRODUCTION') === 'true';
-    const passphrase = Deno.env.get(isProduction ? 'BOBPAY_PASSPHRASE' : 'PRODUCTION_BOBPAY_PASSPHRASE');
+    const passphrase = Deno.env.get('BOBPAY_PASSPHRASE');
     if (!passphrase) {
       throw new Error('BobPay passphrase not configured');
     }
@@ -120,8 +119,8 @@ Deno.serve(async (req) => {
     }
 
     // Validate with BobPay API
-    const bobpayApiUrl = Deno.env.get(isProduction ? 'BOBPAY_API_URL' : 'PRODUCTION_BOBPAY_API_URL');
-    const bobpayApiToken = Deno.env.get(isProduction ? 'BOBPAY_API_TOKEN' : 'PRODUCTION_BOBPAY_API_TOKEN');
+    const bobpayApiUrl = Deno.env.get('BOBPAY_API_URL');
+    const bobpayApiToken = Deno.env.get('BOBPAY_API_TOKEN');
 
     if (bobpayApiUrl && bobpayApiToken) {
       const validationResponse = await fetch(
