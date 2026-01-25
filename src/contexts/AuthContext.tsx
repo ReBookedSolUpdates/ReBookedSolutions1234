@@ -347,7 +347,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           await logoutUser(user.id);
         } catch (logoutError) {
           // Don't fail the logout process for tracking errors
-          console.error("Error in logoutUser:", logoutError);
+          debugLogger.error("AuthContext", "Error in logoutUser:", logoutError);
         }
       }
 
