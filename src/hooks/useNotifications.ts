@@ -155,7 +155,7 @@ class NotificationManager {
           if (this.reconnectAttempts < this.maxReconnectAttempts && !this.isDestroyed) {
             this.scheduleReconnect(userId, refreshCallback);
           } else {
-            console.warn("[NotificationManager] 🔕 Notifications temporarily disabled due to connection issues");
+            debugLogger.warn("useNotifications", "[NotificationManager] Notifications temporarily disabled due to connection issues");
           }
         }
       });
