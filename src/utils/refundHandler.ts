@@ -88,15 +88,13 @@ export const handleIntelligentRefund = async (
     }
 
     // For uncommitted orders, use BobPay refund
-    const { data, error } = await supabase.functions.invoke('bobpay-refund', {
-      headers: {
-        Authorization: `Bearer ${session.access_token}`,
-      },
-      body: {
+    const { data, error } = await processBobPayRefund(
+      {
         order_id,
         reason: reason || 'Refund requested',
       },
-    });
+      session.access_token
+    );
 
     if (error || !data?.success) {
       throw new Error(error?.message || data?.error || 'Refund failed');
