@@ -72,7 +72,7 @@ const ShareProfileDialog = ({
         try {
           await ActivityService.trackMiniLinkShare(userId, currentUserId);
         } catch (trackingError) {
-          console.error("Error tracking link share:", trackingError);
+          debugLogger.error("ShareProfileDialog", "Error tracking link share:", trackingError);
         }
       }
 
@@ -122,7 +122,7 @@ const ShareProfileDialog = ({
             try {
               await ActivityService.trackSocialShare(userId, currentUserId, platform);
             } catch (trackingError) {
-              console.error("Error tracking social share:", trackingError);
+              debugLogger.error("ShareProfileDialog", "Error tracking social share:", trackingError);
             }
           }
           toast.success(
@@ -142,7 +142,7 @@ const ShareProfileDialog = ({
       try {
         await ActivityService.trackSocialShare(userId, currentUserId, platform);
       } catch (trackingError) {
-        console.error("Error tracking social share:", trackingError);
+        debugLogger.error("ShareProfileDialog", "Error tracking social share:", trackingError);
       }
     }
 
