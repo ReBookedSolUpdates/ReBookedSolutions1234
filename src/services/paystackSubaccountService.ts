@@ -345,7 +345,8 @@ export class PaystackSubaccountService {
           data: { user },
         } = await supabase.auth.getUser();
         if (!user) {
-          console.log(
+          debugLogger.info(
+            "paystackSubaccountService",
             "❌ getUserSubaccountStatus: No authenticated user found",
           );
           return { hasSubaccount: false, canEdit: false };
