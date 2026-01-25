@@ -4,24 +4,18 @@
 // - Sandbox/Dev: BOBGO_SANDBOX_API_KEY, BOBGO_SANDBOX_BASE_URL
 
 export function getBobGoConfig() {
-  // NOTE:
-  // - Edge Functions do not have access to Vite build-time env vars.
-  // - We use a runtime flag `BOBGO_PRODUCTION` (Supabase Edge Function secret) to decide environment.
-  //
   // Environment variable naming:
-  // - Production: PRODUCTION_BOBGO_API_KEY, PRODUCTION_BOBGO_BASE_URL
-  // - Non-production (sandbox/test): BOBGO_SANDBOX_API_KEY/BOBGO_SANDBOX_BASE_URL (preferred) OR BOBGO_API_KEY/BOBGO_BASE_URL
-  //
-  // Critical safety: when NOT in production, we NEVER fall back to PRODUCTION_*.
+  // - Production (BOBGO_PRODUCTION=true): PRODUCTION_BOBGO_API_KEY, PRODUCTION_BOBGO_BASE_URL
+  // - Non-production (BOBGO_PRODUCTION=false): BOBGO_API_KEY, BOBGO_BASE_URL
   const isProduction = Deno.env.get("BOBGO_PRODUCTION") === "true";
 
   const apiKey = isProduction
     ? Deno.env.get("PRODUCTION_BOBGO_API_KEY")
-    : (Deno.env.get("BOBGO_SANDBOX_API_KEY") || Deno.env.get("BOBGO_API_KEY"));
+    : Deno.env.get("BOBGO_API_KEY");
 
   const baseUrlEnv = isProduction
     ? Deno.env.get("PRODUCTION_BOBGO_BASE_URL")
-    : (Deno.env.get("BOBGO_SANDBOX_BASE_URL") || Deno.env.get("BOBGO_BASE_URL"));
+    : Deno.env.get("BOBGO_BASE_URL");
 
   const baseUrl = resolveBaseUrl(baseUrlEnv || "");
 
@@ -30,9 +24,8 @@ export function getBobGoConfig() {
     baseUrl,
     isProduction,
     hasApiKey: !!(apiKey && apiKey.trim()),
-    // Helpful for diagnostics
-    apiKeyEnvName: isProduction ? "PRODUCTION_BOBGO_API_KEY" : (Deno.env.get("BOBGO_SANDBOX_API_KEY") ? "BOBGO_SANDBOX_API_KEY" : "BOBGO_API_KEY"),
-    baseUrlEnvName: isProduction ? "PRODUCTION_BOBGO_BASE_URL" : (Deno.env.get("BOBGO_SANDBOX_BASE_URL") ? "BOBGO_SANDBOX_BASE_URL" : "BOBGO_BASE_URL"),
+    apiKeyEnvName: isProduction ? "PRODUCTION_BOBGO_API_KEY" : "BOBGO_API_KEY",
+    baseUrlEnvName: isProduction ? "PRODUCTION_BOBGO_BASE_URL" : "BOBGO_BASE_URL",
   };
 }
 
