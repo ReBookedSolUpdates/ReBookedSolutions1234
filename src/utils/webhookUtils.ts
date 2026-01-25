@@ -1,5 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
+import debugLogger from "@/utils/debugLogger";
+
 export const sendPurchaseWebhook = async (orderData: any) => {
   try {
     const webhookPayload = {
