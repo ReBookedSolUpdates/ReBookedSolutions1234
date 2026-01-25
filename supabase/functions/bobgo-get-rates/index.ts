@@ -1,16 +1,15 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import { parseRequestBody } from "../_shared/safe-body-parser.ts";
-import { getBobGoConfig } from "../_shared/bobgo-config.ts";
 
 interface Address {
   street_address?: string;
   company?: string;
   local_area: string;
   city: string;
-  zone: string;
-  country: string;
-  code: string;
+  zone: string; // Province code like "GP"
+  country: string; // "ZA"
+  code: string; // Postal code
 }
 
 interface PickupPointLocation {
@@ -43,25 +42,25 @@ serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
-
+  
   try {
     const bodyResult = await parseRequestBody<RateRequest>(req, corsHeaders);
     if (!bodyResult.success) return bodyResult.errorResponse!;
 
-    const {
-      fromAddress,
-      toAddress,
-      parcels,
-      preferences,
-      collectionPickupPoint,
+    const { 
+      fromAddress, 
+      toAddress, 
+      parcels, 
+      preferences, 
+      collectionPickupPoint, 
       deliveryPickupPoint,
       declaredValue,
-      timeout,
+      timeout 
     } = bodyResult.data!;
 
     // Validation
-    const validationErrors: string[] = [];
-
+    const validationErrors = [] as string[];
+    
     const hasCollectionAddress = fromAddress && fromAddress.local_area && fromAddress.zone;
     const hasCollectionPickupPoint = collectionPickupPoint && collectionPickupPoint.locationId;
     const hasDeliveryAddress = toAddress && toAddress.local_area && toAddress.zone;
@@ -76,14 +75,14 @@ serve(async (req) => {
     if (!parcels || !Array.isArray(parcels) || parcels.length === 0) {
       validationErrors.push("parcels array is required and must not be empty");
     }
-
+    
     // Validate locker-to-locker must use same provider
     if (hasCollectionPickupPoint && hasDeliveryPickupPoint) {
       if (collectionPickupPoint!.providerSlug !== deliveryPickupPoint!.providerSlug) {
         validationErrors.push("For locker-to-locker shipments, both pickup points must use the same provider");
       }
     }
-
+    
     if (validationErrors.length > 0) {
       return new Response(
         JSON.stringify({ success: false, error: "VALIDATION_FAILED", details: validationErrors }),
@@ -91,10 +90,24 @@ serve(async (req) => {
       );
     }
 
-    const config = getBobGoConfig(req);
+    const BOBGO_API_KEY = Deno.env.get("BOBGO_API_KEY");
+    
+    function resolveBaseUrl() {
+      const env = (Deno.env.get("BOBGO_BASE_URL") || "").trim().replace(/\/+$/, "");
+      if (!env) return "https://api.bobgo.co.za/v2";
+      if (env.includes("sandbox.bobgo.co.za") && !env.includes("api.sandbox.bobgo.co.za")) {
+        return "https://api.sandbox.bobgo.co.za/v2";
+      }
+      if (env.includes("bobgo.co.za") && !/\/v2$/.test(env)) {
+        return env + "/v2";
+      }
+      return env;
+    }
+
+    const BOBGO_BASE_URL = resolveBaseUrl();
 
     // Build the payload according to BobGo API specs
-    const payload: Record<string, unknown> = {
+    const payload: any = {
       parcels: parcels.map((p) => ({
         description: p.description || "Book",
         submitted_length_cm: p.length || 10,
@@ -109,9 +122,11 @@ serve(async (req) => {
 
     // Handle collection (either address or pickup point)
     if (collectionPickupPoint) {
+      // Locker collection - use pickup point
       payload.collection_pickup_point_location_id = collectionPickupPoint.locationId;
       payload.pickup_point_provider_slug = collectionPickupPoint.providerSlug;
     } else if (fromAddress) {
+      // Door collection - use address
       payload.collection_address = {
         street_address: fromAddress.street_address || "",
         company: fromAddress.company || "",
@@ -121,19 +136,21 @@ serve(async (req) => {
         country: fromAddress.country,
         code: fromAddress.code,
       };
-      // BobGo rates endpoint uses collection_contact_full_name (not collection_contact_name)
-      payload.collection_contact_full_name = "Seller";
+      payload.collection_contact_name = "Seller";
       payload.collection_contact_mobile_number = "+27000000000";
       payload.collection_contact_email = "seller@example.com";
     }
 
     // Handle delivery (either address or pickup point)
     if (deliveryPickupPoint) {
+      // Locker delivery - use pickup point
       payload.delivery_pickup_point_location_id = deliveryPickupPoint.locationId;
+      // Only set provider_slug if not already set from collection
       if (!payload.pickup_point_provider_slug) {
         payload.pickup_point_provider_slug = deliveryPickupPoint.providerSlug;
       }
     } else if (toAddress) {
+      // Door delivery - use address
       payload.delivery_address = {
         street_address: toAddress.street_address || "",
         company: toAddress.company || "",
@@ -143,8 +160,7 @@ serve(async (req) => {
         country: toAddress.country,
         code: toAddress.code,
       };
-      // BobGo rates endpoint uses delivery_contact_full_name (not delivery_contact_name)
-      payload.delivery_contact_full_name = "Buyer";
+      payload.delivery_contact_name = "Buyer";
       payload.delivery_contact_mobile_number = "+27000000000";
       payload.delivery_contact_email = "buyer@example.com";
     }
@@ -153,12 +169,8 @@ serve(async (req) => {
     if (preferences?.carriers?.length) payload.providers = preferences.carriers;
     if (preferences?.service_levels?.length) payload.service_levels = preferences.service_levels;
 
-    console.log("[get-rates] Config:", { baseUrl: config.baseUrl, hasApiKey: config.hasApiKey, isLive: config.isLive });
-    console.log("[get-rates] Payload:", JSON.stringify(payload).substring(0, 500));
-
     // Make API call if key is available
-    if (!config.hasApiKey) {
-      console.log("[get-rates] No API key configured, returning simulated rates");
+    if (!BOBGO_API_KEY || BOBGO_API_KEY.trim() === "") {
       return new Response(
         JSON.stringify({
           success: true,
@@ -179,31 +191,27 @@ serve(async (req) => {
     }
 
     try {
-      const resp = await fetch(`${config.baseUrl}/rates`, {
+      const resp = await fetch(`${BOBGO_BASE_URL}/rates`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${config.apiKey}`,
+          Authorization: `Bearer ${BOBGO_API_KEY}`,
           "Content-Type": "application/json",
           Accept: "application/json",
         },
         body: JSON.stringify(payload),
       });
 
-      console.log("[get-rates] BobGo API response status:", resp.status);
-
       if (!resp.ok) {
         const text = await resp.text().catch(() => "");
-        console.error("[get-rates] BobGo API error:", text);
         throw new Error(`BobGo API HTTP ${resp.status}: ${text}`);
       }
 
       const data = await resp.json();
-      console.log("[get-rates] BobGo API response:", JSON.stringify(data).substring(0, 500));
-
+      
       // Extract rates from nested provider_rate_requests structure
-      const quotes: Record<string, unknown>[] = [];
+      const quotes: any[] = [];
       const providerRequests = data.provider_rate_requests || [];
-
+      
       for (const providerReq of providerRequests) {
         const responses = providerReq.responses || [];
         for (const rate of responses) {
@@ -236,34 +244,29 @@ serve(async (req) => {
         JSON.stringify({ success: true, quotes, provider: "bobgo", raw: data }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Unknown error";
-      console.error("[get-rates] Error:", errorMessage);
-      
+    } catch (err: any) {
       return new Response(
-        JSON.stringify({
-          success: true,
-          quotes: [{
-            provider: "bobgo",
-            carrier: "simulated",
-            service_name: "Standard (Estimated)",
-            service_code: "STANDARD",
-            cost: 95,
-            transit_days: 3,
-            offer_id: `SIM_OFFER_${Date.now()}`,
-            fallback: true,
-            api_error: errorMessage,
-          }],
-          simulated: true,
+        JSON.stringify({ 
+          success: true, 
+          quotes: [{ 
+            provider: "bobgo", 
+            carrier: "simulated", 
+            service_name: "Standard (Estimated)", 
+            service_code: "STANDARD", 
+            cost: 95, 
+            transit_days: 3, 
+            offer_id: `SIM_OFFER_${Date.now()}`, 
+            fallback: true, 
+            api_error: err.message 
+          }], 
+          simulated: true 
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : "Failed to get rates";
-    console.error("[get-rates] Unexpected error:", errorMessage);
+  } catch (error: any) {
     return new Response(
-      JSON.stringify({ success: false, error: errorMessage }),
+      JSON.stringify({ success: false, error: error.message || "Failed to get rates" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
