@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import debugLogger from "@/utils/debugLogger";
 
 export interface SubaccountDetails {
   business_name: string;
