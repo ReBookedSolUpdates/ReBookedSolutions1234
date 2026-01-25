@@ -83,7 +83,7 @@ export const submitReport = async (
       reason,
       status: "pending",
       createdAt,
-    }).catch(err => console.error("Webhook send failed:", err));
+    }).catch(err => debugLogger.error("reportService", "Webhook send failed:", err));
 
     return { id };
   } catch (error) {
@@ -121,7 +121,7 @@ export const submitBookReport = async (
       reason: reportData.reason,
       status: "pending",
       createdAt,
-    }).catch(err => console.error("Webhook send failed:", err));
+    }).catch(err => debugLogger.error("reportService", "Webhook send failed:", err));
 
   } catch (error) {
     throw error;
