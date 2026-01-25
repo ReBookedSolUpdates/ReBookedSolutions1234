@@ -1,31 +1,32 @@
 // Centralized BobGo API configuration
-// Environment variable naming:
-// - Production: BOBGO_API_KEY, BOBGO_BASE_URL
-// - Sandbox/Dev: BOBGO_SANDBOX_API_KEY, BOBGO_SANDBOX_BASE_URL
+//
+// Environment is determined by x-production header from frontend:
+// - "true" → LIVE → BOBGO_API_KEY, BOBGO_BASE_URL
+// - "false" → UPGRADING/TEST → PRODUCTION_BOBGO_API_KEY, PRODUCTION_BOBGO_BASE_URL
+//
+// The frontend passes import.meta.env.VITE_PRODUCTION via x-production header
 
-export function getBobGoConfig() {
-  // Environment variable naming:
-  // - Production (BOBGO_PRODUCTION=true): PRODUCTION_BOBGO_API_KEY, PRODUCTION_BOBGO_BASE_URL
-  // - Non-production (BOBGO_PRODUCTION=false): BOBGO_API_KEY, BOBGO_BASE_URL
-  const isProduction = Deno.env.get("BOBGO_PRODUCTION") === "true";
+export function getBobGoConfig(req: Request) {
+  // Read environment from frontend-passed header
+  const isLive = req.headers.get("x-production") === "true";
 
-  const apiKey = isProduction
-    ? Deno.env.get("PRODUCTION_BOBGO_API_KEY")
-    : Deno.env.get("BOBGO_API_KEY");
+  const apiKey = isLive
+    ? Deno.env.get("BOBGO_API_KEY")
+    : Deno.env.get("PRODUCTION_BOBGO_API_KEY");
 
-  const baseUrlEnv = isProduction
-    ? Deno.env.get("PRODUCTION_BOBGO_BASE_URL")
-    : Deno.env.get("BOBGO_BASE_URL");
+  const baseUrlEnv = isLive
+    ? Deno.env.get("BOBGO_BASE_URL")
+    : Deno.env.get("PRODUCTION_BOBGO_BASE_URL");
 
   const baseUrl = resolveBaseUrl(baseUrlEnv || "");
 
   return {
     apiKey: apiKey?.trim() || "",
     baseUrl,
-    isProduction,
+    isLive,
     hasApiKey: !!(apiKey && apiKey.trim()),
-    apiKeyEnvName: isProduction ? "PRODUCTION_BOBGO_API_KEY" : "BOBGO_API_KEY",
-    baseUrlEnvName: isProduction ? "PRODUCTION_BOBGO_BASE_URL" : "BOBGO_BASE_URL",
+    apiKeyEnvName: isLive ? "BOBGO_API_KEY" : "PRODUCTION_BOBGO_API_KEY",
+    baseUrlEnvName: isLive ? "BOBGO_BASE_URL" : "PRODUCTION_BOBGO_BASE_URL",
   };
 }
 
