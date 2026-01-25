@@ -14,6 +14,7 @@ import { Share2, Copy, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { ActivityService } from "@/services/activityService";
 import { supabase } from "@/integrations/supabase/client";
+import debugLogger from "@/utils/debugLogger";
 
 interface ShareProfileDialogProps {
   isOpen: boolean;
