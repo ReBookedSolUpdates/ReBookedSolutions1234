@@ -101,7 +101,10 @@ export const initializeBobPayCheckout = async (
       cancel_url: cancelUrl,
     };
 
-    const { data: paymentData, error: paymentErr } = await initializeBobPayPayment(paymentInitPayload);
+    const { data: paymentData, error: paymentErr } = await initializeBobPayPayment(
+      paymentInitPayload,
+      session.access_token
+    );
 
     if (paymentErr || !paymentData?.success) {
       throw new Error(paymentErr?.message || 'Failed to initialize payment');
