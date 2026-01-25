@@ -364,7 +364,8 @@ export class PaystackSubaccountService {
         .single();
 
       if (profileError) {
-        console.warn(
+        debugLogger.warn(
+          "paystackSubaccountService",
           "❌ getUserSubaccountStatus: Error checking profile:",
           profileError,
         );
