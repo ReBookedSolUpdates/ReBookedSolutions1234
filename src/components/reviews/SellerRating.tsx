@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { reviewService, SellerRatingSummary } from "@/services/reviewService";
 import { Star } from "lucide-react";
+import debugLogger from "@/utils/debugLogger";
 
 interface SellerRatingProps {
   sellerId: string;
