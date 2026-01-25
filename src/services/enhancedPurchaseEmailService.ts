@@ -278,7 +278,7 @@ export class EnhancedPurchaseEmailService {
       );
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      console.error('Failed to create buyer notification:', errorMsg);
+      debugLogger.error('enhancedPurchaseEmailService', 'Failed to create buyer notification:', errorMsg);
       // Non-fatal - notification failure shouldn't block the process
     }
   }
