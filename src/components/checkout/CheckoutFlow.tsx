@@ -617,7 +617,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       const cartValue = checkoutState.order_summary?.total || book.price;
       ActivityService.trackCheckoutAbandoned(user?.id, "payment_initiated", cartValue);
     } catch (trackingError) {
-      console.error("Error tracking checkout abandoned:", trackingError);
+      debugLogger.error("CheckoutFlow", "Error tracking checkout abandoned:", trackingError);
     }
 
     toast.error(`Payment failed: ${safeMessage}`);
