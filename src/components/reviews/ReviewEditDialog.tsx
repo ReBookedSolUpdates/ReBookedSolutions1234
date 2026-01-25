@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { SellerReview, reviewService } from "@/services/reviewService";
 import { Star, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import debugLogger from "@/utils/debugLogger";
 
 interface ReviewEditDialogProps {
   review: SellerReview;
