@@ -1,38 +1,32 @@
 // Centralized BobGo API configuration
-// Environment variable naming:
-// - Production: BOBGO_API_KEY, BOBGO_BASE_URL
-// - Sandbox/Dev: BOBGO_SANDBOX_API_KEY, BOBGO_SANDBOX_BASE_URL
+//
+// Environment is determined by x-production header from frontend:
+// - "true" → LIVE → BOBGO_API_KEY, BOBGO_BASE_URL
+// - "false" → UPGRADING/TEST → PRODUCTION_BOBGO_API_KEY, PRODUCTION_BOBGO_BASE_URL
+//
+// The frontend passes import.meta.env.VITE_PRODUCTION via x-production header
 
-export function getBobGoConfig() {
-  // NOTE:
-  // - Edge Functions do not have access to Vite build-time env vars.
-  // - We use a runtime flag `BOBGO_PRODUCTION` (Supabase Edge Function secret) to decide environment.
-  //
-  // Environment variable naming:
-  // - Production: PRODUCTION_BOBGO_API_KEY, PRODUCTION_BOBGO_BASE_URL
-  // - Non-production (sandbox/test): BOBGO_SANDBOX_API_KEY/BOBGO_SANDBOX_BASE_URL (preferred) OR BOBGO_API_KEY/BOBGO_BASE_URL
-  //
-  // Critical safety: when NOT in production, we NEVER fall back to PRODUCTION_*.
-  const isProduction = Deno.env.get("BOBGO_PRODUCTION") === "true";
+export function getBobGoConfig(req: Request) {
+  // Read environment from frontend-passed header
+  const isLive = req.headers.get("x-production") === "true";
 
-  const apiKey = isProduction
-    ? Deno.env.get("PRODUCTION_BOBGO_API_KEY")
-    : (Deno.env.get("BOBGO_SANDBOX_API_KEY") || Deno.env.get("BOBGO_API_KEY"));
+  const apiKey = isLive
+    ? Deno.env.get("BOBGO_API_KEY")
+    : Deno.env.get("PRODUCTION_BOBGO_API_KEY");
 
-  const baseUrlEnv = isProduction
-    ? Deno.env.get("PRODUCTION_BOBGO_BASE_URL")
-    : (Deno.env.get("BOBGO_SANDBOX_BASE_URL") || Deno.env.get("BOBGO_BASE_URL"));
+  const baseUrlEnv = isLive
+    ? Deno.env.get("BOBGO_BASE_URL")
+    : Deno.env.get("PRODUCTION_BOBGO_BASE_URL");
 
   const baseUrl = resolveBaseUrl(baseUrlEnv || "");
 
   return {
     apiKey: apiKey?.trim() || "",
     baseUrl,
-    isProduction,
+    isLive,
     hasApiKey: !!(apiKey && apiKey.trim()),
-    // Helpful for diagnostics
-    apiKeyEnvName: isProduction ? "PRODUCTION_BOBGO_API_KEY" : (Deno.env.get("BOBGO_SANDBOX_API_KEY") ? "BOBGO_SANDBOX_API_KEY" : "BOBGO_API_KEY"),
-    baseUrlEnvName: isProduction ? "PRODUCTION_BOBGO_BASE_URL" : (Deno.env.get("BOBGO_SANDBOX_BASE_URL") ? "BOBGO_SANDBOX_BASE_URL" : "BOBGO_BASE_URL"),
+    apiKeyEnvName: isLive ? "BOBGO_API_KEY" : "PRODUCTION_BOBGO_API_KEY",
+    baseUrlEnvName: isLive ? "BOBGO_BASE_URL" : "PRODUCTION_BOBGO_BASE_URL",
   };
 }
 

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
+import { getBobGoConfig } from "../_shared/bobgo-config.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -17,10 +18,7 @@ serve(async (req) => {
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return new Response(
         JSON.stringify({ success: false, error: "Unauthorized" }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -36,10 +34,7 @@ serve(async (req) => {
     } catch {
       return new Response(
         JSON.stringify({ success: false, error: "Invalid JSON body" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -54,15 +49,11 @@ serve(async (req) => {
       pickup_contact_phone,
       pickup_contact_email,
       pickup_locker_location_id,
-      pickup_locker_provider_slug,
-      pickup_locker_data,
       delivery_address,
       delivery_contact_name,
       delivery_contact_phone,
       delivery_contact_email,
       delivery_locker_location_id,
-      delivery_locker_provider_slug,
-      delivery_locker_data,
       declared_value,
       timeout,
     } = body || {};
@@ -74,31 +65,17 @@ serve(async (req) => {
       throw new Error("Parcels array is required");
     }
 
-    // Get BobGo API configuration
-    const isProduction = Deno.env.get("VITE_PRODUCTION") === "true";
-    const BOBGO_API_KEY = Deno.env.get(isProduction ? "BOBGO_API_KEY" : "PRODUCTION_BOBGO_API_KEY");
-    if (!BOBGO_API_KEY || BOBGO_API_KEY.trim() === "") {
-      throw new Error("BOBGO_API_KEY not configured");
+    const config = getBobGoConfig(req);
+
+    if (!config.hasApiKey) {
+      throw new Error(`BobGo API key not configured (${config.apiKeyEnvName})`);
     }
 
-    // Resolve BobGo Base URL with proper handling
-    function resolveBaseUrl() {
-      const env = (Deno.env.get(isProduction ? "BOBGO_BASE_URL" : "PRODUCTION_BOBGO_BASE_URL") || "").trim().replace(/\/+$/, "");
-      if (!env) return "https://api.bobgo.co.za/v2";
-      if (env.includes("sandbox.bobgo.co.za") && !env.includes("api.sandbox.bobgo.co.za")) {
-        return "https://api.sandbox.bobgo.co.za/v2";
-      }
-      if (env.includes("bobgo.co.za") && !/\/v2$/.test(env)) {
-        return env + "/v2";
-      }
-      return env;
-    }
+    console.log("[create-shipment] Config:", { baseUrl: config.baseUrl, hasApiKey: config.hasApiKey });
 
-    const BOBGO_BASE_URL = resolveBaseUrl();
-
-    // Build BobGo API payload
-    const bobgoPayload: any = {
-      parcels: parcels.map((p: any) => ({
+    // Build BobGo API payload - shipments endpoint uses collection_contact_name (not full_name)
+    const bobgoPayload: Record<string, unknown> = {
+      parcels: parcels.map((p: Record<string, unknown>) => ({
         description: p.description || "Book",
         submitted_length_cm: p.length || 10,
         submitted_width_cm: p.width || 10,
@@ -113,10 +90,9 @@ serve(async (req) => {
     };
 
     // Validate and format address for BobGo
-    const formatAddressForBobGo = (addr: any) => {
+    const formatAddressForBobGo = (addr: Record<string, unknown>) => {
       if (!addr) return null;
 
-      // Normalize all field values first
       const streetAddress = (addr.street_address || addr.streetAddress || addr.street || "").toString().trim();
       const localArea = (addr.local_area || addr.suburb || "").toString().trim();
       const city = (addr.city || "").toString().trim();
@@ -124,52 +100,43 @@ serve(async (req) => {
       const postalCode = (addr.code || addr.postalCode || addr.postal_code || "").toString().trim();
       const country = (addr.country || "").toString().trim();
 
-      // Only default country to "ZA" if not explicitly set, don't use it as fallback for other fields
       const formattedCountry = country && country.length > 0 && country.toUpperCase() !== "SOUTH AFRICA" ? country : "ZA";
-      const formattedZone = province && province.length > 0 ? province.toUpperCase().substring(0, 3) : "ZA";
-
-      // Use city first, then local_area/suburb as fallback
+      const formattedZone = province && province.length > 0 ? province.toUpperCase().substring(0, 3) : "GP";
       const formattedCity = city || localArea || "";
 
-      return {
+      const result: Record<string, string> = {
         street_address: streetAddress,
-        local_area: localArea || city,  // local_area is suburb/locality name
+        local_area: localArea || city,
         city: formattedCity,
         zone: formattedZone,
         code: postalCode,
         country: formattedCountry,
-        ...(addr.company && { company: addr.company.toString().trim() }),
       };
+      
+      if (addr.company) {
+        result.company = addr.company.toString().trim();
+      }
+      
+      return result;
     };
 
     // Add collection (pickup) information
     if (pickup_locker_location_id) {
-      // Pickup from locker
       bobgoPayload.collection_pickup_point_location_id = pickup_locker_location_id;
     } else if (pickup_address) {
-      // Pickup from door
       const formattedPickupAddress = formatAddressForBobGo(pickup_address);
-
-      // Validate that we have required address fields
-      if (!formattedPickupAddress.street_address && !formattedPickupAddress.local_area) {
-        throw new Error("Pickup address must have at least street_address or local_area (suburb/city)");
+      if (!formattedPickupAddress?.street_address && !formattedPickupAddress?.local_area) {
+        throw new Error("Pickup address must have at least street_address or local_area");
       }
-
       bobgoPayload.collection_address = formattedPickupAddress;
     } else {
       throw new Error("Either pickup address or locker location required");
     }
 
-    // Always include pickup contact details (required by BobGo, even for locker pickups)
-    if (!pickup_contact_name) {
-      throw new Error("Pickup contact name is required");
-    }
-    if (!pickup_contact_phone) {
-      throw new Error("Pickup contact phone is required");
-    }
-    if (!pickup_contact_email) {
-      throw new Error("Pickup contact email is required");
-    }
+    // Pickup contact - shipments endpoint uses collection_contact_name
+    if (!pickup_contact_name) throw new Error("Pickup contact name is required");
+    if (!pickup_contact_phone) throw new Error("Pickup contact phone is required");
+    if (!pickup_contact_email) throw new Error("Pickup contact email is required");
 
     bobgoPayload.collection_contact_name = pickup_contact_name.toString().trim();
     bobgoPayload.collection_contact_mobile_number = pickup_contact_phone.toString().trim();
@@ -177,32 +144,21 @@ serve(async (req) => {
 
     // Add delivery information
     if (delivery_locker_location_id) {
-      // Delivery to locker
       bobgoPayload.delivery_pickup_point_location_id = delivery_locker_location_id;
     } else if (delivery_address) {
-      // Delivery to door
       const formattedDeliveryAddress = formatAddressForBobGo(delivery_address);
-
-      // Validate that we have required address fields
-      if (!formattedDeliveryAddress.street_address && !formattedDeliveryAddress.local_area) {
-        throw new Error("Delivery address must have at least street_address or local_area (suburb/city)");
+      if (!formattedDeliveryAddress?.street_address && !formattedDeliveryAddress?.local_area) {
+        throw new Error("Delivery address must have at least street_address or local_area");
       }
-
       bobgoPayload.delivery_address = formattedDeliveryAddress;
     } else {
       throw new Error("Either delivery address or locker location required");
     }
 
-    // Always include delivery contact details (required by BobGo, even for locker deliveries)
-    if (!delivery_contact_name) {
-      throw new Error("Delivery contact name is required");
-    }
-    if (!delivery_contact_phone) {
-      throw new Error("Delivery contact phone is required");
-    }
-    if (!delivery_contact_email) {
-      throw new Error("Delivery contact email is required");
-    }
+    // Delivery contact - shipments endpoint uses delivery_contact_name
+    if (!delivery_contact_name) throw new Error("Delivery contact name is required");
+    if (!delivery_contact_phone) throw new Error("Delivery contact phone is required");
+    if (!delivery_contact_email) throw new Error("Delivery contact email is required");
 
     bobgoPayload.delivery_contact_name = delivery_contact_name.toString().trim();
     bobgoPayload.delivery_contact_mobile_number = delivery_contact_phone.toString().trim();
@@ -213,21 +169,24 @@ serve(async (req) => {
       bobgoPayload.custom_tracking_reference = reference;
     }
 
+    console.log("[create-shipment] Payload:", JSON.stringify(bobgoPayload).substring(0, 500));
+
     // Make request to BobGo API
-    const bobgoResponse = await fetch(`${BOBGO_BASE_URL}/shipments`, {
+    const bobgoResponse = await fetch(`${config.baseUrl}/shipments`, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${BOBGO_API_KEY}`,
+        Authorization: `Bearer ${config.apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(bobgoPayload),
     });
 
     const bobgoData = await bobgoResponse.json();
+    console.log("[create-shipment] BobGo response status:", bobgoResponse.status);
+    console.log("[create-shipment] BobGo response:", JSON.stringify(bobgoData).substring(0, 500));
 
     if (!bobgoResponse.ok) {
-      const errorMessage = bobgoData.message || bobgoData.error || "Failed to create shipment";
-      throw new Error(`Bobgo create shipment failed: Bobgo shipment HTTP ${bobgoResponse.status}: ${JSON.stringify(bobgoData)}`);
+      throw new Error(`BobGo shipment HTTP ${bobgoResponse.status}: ${JSON.stringify(bobgoData)}`);
     }
 
     return new Response(
@@ -239,19 +198,14 @@ serve(async (req) => {
         submission_status: bobgoData.submission_status,
         bobgo_response: bobgoData,
       }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error("[create-shipment] Error:", errorMessage);
     return new Response(
       JSON.stringify({ success: false, error: errorMessage }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 400,
-      }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
     );
   }
 });

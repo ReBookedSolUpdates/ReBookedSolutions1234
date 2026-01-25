@@ -67,7 +67,7 @@ async function trackPreviousPageTimeSpent(
       source: "page_navigation",
     });
   } catch (error) {
-    console.error("Error tracking page time spent:", error);
+    debugLogger.error("usePageTracking", "Error tracking page time spent:", error);
   }
 }
 
@@ -86,6 +86,6 @@ async function trackNewPageView(
       ...deviceMetadata,
     });
   } catch (error) {
-    console.error("Error tracking page view:", error);
+    debugLogger.error("usePageTracking", "Error tracking page view:", error);
   }
 }

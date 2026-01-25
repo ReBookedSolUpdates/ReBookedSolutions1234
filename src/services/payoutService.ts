@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import debugLogger from "@/utils/debugLogger";
 
 export interface PayoutRequest {
   id: string;
@@ -88,7 +89,7 @@ export class PayoutService {
         payout_id: payoutId,
       };
     } catch (error) {
-      console.error("Error in createPayoutRequest:", error);
+      debugLogger.error("payoutService", "Error in createPayoutRequest:", error);
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
@@ -111,7 +112,7 @@ export class PayoutService {
         .order("requested_at", { ascending: false });
 
       if (error) {
-        console.error("Error fetching payout requests:", error);
+        debugLogger.error("payoutService", "Error fetching payout requests:", error);
         return [];
       }
 
@@ -127,7 +128,7 @@ export class PayoutService {
         admin_notes: payout.admin_notes,
       }));
     } catch (error) {
-      console.error("Error in getPayoutRequests:", error);
+      debugLogger.error("payoutService", "Error in getPayoutRequests:", error);
       return [];
     }
   }
@@ -144,7 +145,7 @@ export class PayoutService {
         .single();
 
       if (error || !data) {
-        console.error("Error fetching payout request:", error);
+        debugLogger.error("payoutService", "Error fetching payout request:", error);
         return null;
       }
 
@@ -160,7 +161,7 @@ export class PayoutService {
         admin_notes: data.admin_notes,
       };
     } catch (error) {
-      console.error("Error in getPayoutRequest:", error);
+      debugLogger.error("payoutService", "Error in getPayoutRequest:", error);
       return null;
     }
   }
@@ -186,7 +187,7 @@ export class PayoutService {
         success: true,
       };
     } catch (error) {
-      console.error("Error in cancelPayoutRequest:", error);
+      debugLogger.error("payoutService", "Error in cancelPayoutRequest:", error);
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",

@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Coupon, CouponValidationResult, couponUtils } from "@/types/coupon";
+import debugLogger from "@/utils/debugLogger";
 
 export const couponService = {
   /**
@@ -77,7 +78,7 @@ export const couponService = {
         discountAmount,
       };
     } catch (error) {
-      console.error("Error validating coupon:", error);
+      debugLogger.error("couponService", "Error validating coupon:", error);
       return {
         isValid: false,
         discountAmount: 0,
@@ -97,13 +98,13 @@ export const couponService = {
         .eq("id", couponId);
 
       if (error) {
-        console.error("Error redeeming coupon:", error);
+        debugLogger.error("couponService", "Error redeeming coupon:", error);
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error("Error redeeming coupon:", error);
+      debugLogger.error("couponService", "Error redeeming coupon:", error);
       return false;
     }
   },
@@ -134,13 +135,13 @@ export const couponService = {
         .single();
 
       if (error) {
-        console.error("Error creating coupon:", error);
+        debugLogger.error("couponService", "Error creating coupon:", error);
         return null;
       }
 
       return data;
     } catch (error) {
-      console.error("Error creating coupon:", error);
+      debugLogger.error("couponService", "Error creating coupon:", error);
       return null;
     }
   },
@@ -178,13 +179,13 @@ export const couponService = {
         .single();
 
       if (error) {
-        console.error("Error updating coupon:", error);
+        debugLogger.error("couponService", "Error updating coupon:", error);
         return null;
       }
 
       return data;
     } catch (error) {
-      console.error("Error updating coupon:", error);
+      debugLogger.error("couponService", "Error updating coupon:", error);
       return null;
     }
   },
@@ -200,13 +201,13 @@ export const couponService = {
         .eq("id", couponId);
 
       if (error) {
-        console.error("Error deleting coupon:", error);
+        debugLogger.error("couponService", "Error deleting coupon:", error);
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error("Error deleting coupon:", error);
+      debugLogger.error("couponService", "Error deleting coupon:", error);
       return false;
     }
   },
@@ -222,13 +223,13 @@ export const couponService = {
         .order("created_at", { ascending: false });
 
       if (error) {
-        console.error("Error fetching coupons:", error);
+        debugLogger.error("couponService", "Error fetching coupons:", error);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error("Error fetching coupons:", error);
+      debugLogger.error("couponService", "Error fetching coupons:", error);
       return [];
     }
   },
@@ -245,13 +246,13 @@ export const couponService = {
         .single();
 
       if (error) {
-        console.error("Error fetching coupon:", error);
+        debugLogger.error("couponService", "Error fetching coupon:", error);
         return null;
       }
 
       return data;
     } catch (error) {
-      console.error("Error fetching coupon:", error);
+      debugLogger.error("couponService", "Error fetching coupon:", error);
       return null;
     }
   },

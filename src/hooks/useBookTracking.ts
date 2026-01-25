@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { ActivityService } from "@/services/activityService";
+import debugLogger from "@/utils/debugLogger";
 
 interface UseBookTrackingOptions {
   bookId: string;
@@ -22,7 +23,7 @@ export const useBookTracking = ({ bookId, userId }: UseBookTrackingOptions) => {
       try {
         await ActivityService.trackBookView(bookId, userId);
       } catch (error) {
-        console.error("Error tracking book view:", error);
+        debugLogger.error("useBookTracking", "Error tracking book view:", error);
       }
     };
 
@@ -43,7 +44,7 @@ export const useBookTracking = ({ bookId, userId }: UseBookTrackingOptions) => {
               timeSpentMs
             );
           } catch (error) {
-            console.error("Error tracking book page time spent:", error);
+            debugLogger.error("useBookTracking", "Error tracking book page time spent:", error);
           }
         };
 
@@ -59,7 +60,7 @@ export const useBookTracking = ({ bookId, userId }: UseBookTrackingOptions) => {
     try {
       await ActivityService.trackAddToCart(bookId, userId, quantity, price);
     } catch (error) {
-      console.error("Error tracking add to cart:", error);
+      debugLogger.error("useBookTracking", "Error tracking add to cart:", error);
     }
   };
 
@@ -70,7 +71,7 @@ export const useBookTracking = ({ bookId, userId }: UseBookTrackingOptions) => {
     try {
       await ActivityService.trackRemoveFromCart(bookId, userId, quantity);
     } catch (error) {
-      console.error("Error tracking remove from cart:", error);
+      debugLogger.error("useBookTracking", "Error tracking remove from cart:", error);
     }
   };
 

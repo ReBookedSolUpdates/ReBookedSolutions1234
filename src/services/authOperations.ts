@@ -105,7 +105,7 @@ export const registerUser = async (
       await ActivityService.trackSignup(data.user.id);
     } catch (trackingError) {
       // Don't fail signup for tracking errors
-      console.error("Error tracking signup:", trackingError);
+      debugLogger.error("authOperations", "Error tracking signup:", trackingError);
     }
   }
 
@@ -161,7 +161,7 @@ const generateWelcomeEmailHTML = (name: string, email: string): string => `
       <p>Welcome to South Africa's premier textbook marketplace! Your account is now active and you can:</p>
 
       <ul>
-        <li>��� Browse thousands of affordable textbooks</li>
+        <li>📚 Browse thousands of affordable textbooks</li>
         <li>💰 Sell your textbooks to other students</li>
         <li>🚚 Enjoy convenient doorstep delivery</li>
         <li>🎓 Connect with students at your university</li>

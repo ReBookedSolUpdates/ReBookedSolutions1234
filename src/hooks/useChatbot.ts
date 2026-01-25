@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { ChatMessage, ChatContextMessage, ChatSubmitRequest, ChatSubmitResponse } from "@/types/chatbot";
 import { chatStorage } from "@/utils/chatStorage";
 import { callEdgeFunction } from "@/utils/edgeFunctionClient";
+import debugLogger from "@/utils/debugLogger";
 
 export const useChatbot = (userId: string | null | undefined) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -95,7 +96,7 @@ export const useChatbot = (userId: string | null | undefined) => {
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : "Failed to send message. Please try again.";
         setError(errorMessage);
-        console.error("Chatbot error:", err);
+        debugLogger.error("useChatbot", "Chatbot error:", err);
       } finally {
         setIsLoading(false);
       }

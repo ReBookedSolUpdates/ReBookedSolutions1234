@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { emailService } from "@/services/emailService";
 import { NotificationService } from "@/services/notificationService";
+import debugLogger from "@/utils/debugLogger";
 
 interface PurchaseEmailData {
   orderId: string;
@@ -74,7 +75,7 @@ export class EnhancedPurchaseEmailService {
 
       // Log any errors that occurred
       if (errors.length > 0) {
-        console.warn('Purchase email service warnings:', errors);
+        debugLogger.warn('enhancedPurchaseEmailService', 'Purchase email service warnings:', errors);
       }
 
       return {
@@ -85,7 +86,7 @@ export class EnhancedPurchaseEmailService {
 
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      console.error('Critical error in purchase email service:', errorMsg);
+      debugLogger.error('enhancedPurchaseEmailService', 'Critical error in purchase email service:', errorMsg);
 
       return {
         sellerEmailSent: false,

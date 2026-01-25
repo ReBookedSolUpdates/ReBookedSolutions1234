@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import debugLogger from "@/utils/debugLogger";
 
 /**
  * Interface for a seller review
@@ -52,13 +53,13 @@ export const reviewService = {
         .range(offset, offset + limit - 1);
 
       if (error) {
-        console.error("Error fetching seller reviews:", error);
+        debugLogger.error("reviewService", "Error fetching seller reviews:", error);
         return [];
       }
 
       return (data || []) as SellerReview[];
     } catch (error) {
-      console.error("Error fetching seller reviews:", error);
+      debugLogger.error("reviewService", "Error fetching seller reviews:", error);
       return [];
     }
   },
@@ -80,13 +81,13 @@ export const reviewService = {
         .order("created_at", { ascending: false });
 
       if (error) {
-        console.error("Error fetching user reviews:", error);
+        debugLogger.error("reviewService", "Error fetching user reviews:", error);
         return [];
       }
 
       return (data || []) as SellerReview[];
     } catch (error) {
-      console.error("Error fetching user reviews:", error);
+      debugLogger.error("reviewService", "Error fetching user reviews:", error);
       return [];
     }
   },
@@ -119,7 +120,7 @@ export const reviewService = {
 
       return (data || null) as SellerReview | null;
     } catch (error) {
-      console.error("Error fetching user review for seller:", error);
+      debugLogger.error("reviewService", "Error fetching user review for seller:", error);
       return null;
     }
   },
@@ -144,13 +145,13 @@ export const reviewService = {
       );
 
       if (error) {
-        console.error("Error checking purchase eligibility:", error);
+        debugLogger.error("reviewService", "Error checking purchase eligibility:", error);
         return false;
       }
 
       return data === true;
     } catch (error) {
-      console.error("Error checking purchase eligibility:", error);
+      debugLogger.error("reviewService", "Error checking purchase eligibility:", error);
       return false;
     }
   },
@@ -189,13 +190,13 @@ export const reviewService = {
         .single();
 
       if (error) {
-        console.error("Error submitting review:", error);
+        debugLogger.error("reviewService", "Error submitting review:", error);
         throw error;
       }
 
       return (data || null) as SellerReview | null;
     } catch (error) {
-      console.error("Error submitting review:", error);
+      debugLogger.error("reviewService", "Error submitting review:", error);
       throw error;
     }
   },
@@ -226,13 +227,13 @@ export const reviewService = {
         .single();
 
       if (error) {
-        console.error("Error updating review:", error);
+        debugLogger.error("reviewService", "Error updating review:", error);
         throw error;
       }
 
       return (data || null) as SellerReview | null;
     } catch (error) {
-      console.error("Error updating review:", error);
+      debugLogger.error("reviewService", "Error updating review:", error);
       throw error;
     }
   },
@@ -254,13 +255,13 @@ export const reviewService = {
         .eq("reviewer_id", user.user.id);
 
       if (error) {
-        console.error("Error deleting review:", error);
+        debugLogger.error("reviewService", "Error deleting review:", error);
         throw error;
       }
 
       return true;
     } catch (error) {
-      console.error("Error deleting review:", error);
+      debugLogger.error("reviewService", "Error deleting review:", error);
       throw error;
     }
   },
@@ -280,7 +281,7 @@ export const reviewService = {
       );
 
       if (error) {
-        console.error("Error fetching seller average rating:", error);
+        debugLogger.error("reviewService", "Error fetching seller average rating:", error);
         return {
           average_rating: null,
           review_count: 0,
@@ -299,7 +300,7 @@ export const reviewService = {
         review_count: 0,
       };
     } catch (error) {
-      console.error("Error fetching seller average rating:", error);
+      debugLogger.error("reviewService", "Error fetching seller average rating:", error);
       return {
         average_rating: null,
         review_count: 0,
@@ -332,7 +333,7 @@ export const reviewService = {
         .range(offset, offset + pageSize - 1);
 
       if (error) {
-        console.error("Error fetching paginated reviews:", error);
+        debugLogger.error("reviewService", "Error fetching paginated reviews:", error);
         return { reviews: [], total: 0 };
       }
 
@@ -341,7 +342,7 @@ export const reviewService = {
         total: count || 0,
       };
     } catch (error) {
-      console.error("Error fetching paginated reviews:", error);
+      debugLogger.error("reviewService", "Error fetching paginated reviews:", error);
       return { reviews: [], total: 0 };
     }
   },

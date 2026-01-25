@@ -5,6 +5,7 @@ import type {
   SellerRequirements,
   BankingRequirementsStatus,
 } from "@/types/banking";
+import debugLogger from "@/utils/debugLogger";
 
 export class BankingService {
   static async getUserBankingDetails(
@@ -129,7 +130,7 @@ export class BankingService {
 
         throw error;
       } else {
-        console.error("Unknown error fetching banking details:", JSON.stringify(error, null, 2));
+        debugLogger.error("bankingService", "Unknown error fetching banking details:", JSON.stringify(error, null, 2));
 
         if (typeof error === 'object' && error !== null && 'message' in error) {
           const errorMessage = (error as any).message;
@@ -243,7 +244,7 @@ export class BankingService {
       .eq("id", userId);
 
     if (profileError) {
-      console.error("⚠️ Warning: Failed to update profile with banking info:", profileError);
+      debugLogger.error("bankingService", "⚠️ Warning: Failed to update profile with banking info:", profileError);
     } else {
     }
   }
@@ -277,7 +278,7 @@ export class BankingService {
             (encryptedAddress.province) &&
             (encryptedAddress.postal_code || encryptedAddress.postalCode || encryptedAddress.zip)
           );
-          if (hasPickupAddress) console.log("🔐 Using simplifiedAddressService decrypted pickup address for banking validation");
+          if (hasPickupAddress) debugLogger.info("bankingService", "🔐 Using simplifiedAddressService decrypted pickup address for banking validation");
         }
       } catch (error) {
       }
@@ -293,7 +294,7 @@ export class BankingService {
               const addr = best.address as any;
               if ((addr.street || addr.streetAddress || addr.line1) && addr.city && addr.province && (addr.postalCode || addr.postal_code || addr.zip)) {
                 hasPickupAddress = true;
-                console.log("📫 Using fallback user_addresses pickup address for banking validation");
+                debugLogger.info("bankingService", "📫 Using fallback user_addresses pickup address for banking validation");
               }
             }
           }
@@ -313,7 +314,7 @@ export class BankingService {
               const pa: any = profileAddresses.pickup_address;
               if ((pa.street || pa.streetAddress || pa.line1) && pa.city && pa.province && (pa.postalCode || pa.postal_code || pa.zip)) {
                 hasPickupAddress = true;
-                console.log("📄 Using addressService profile pickup address for banking validation");
+                debugLogger.info("bankingService", "📄 Using addressService profile pickup address for banking validation");
               }
             }
           } catch (err) {
@@ -359,7 +360,7 @@ export class BankingService {
     } catch (error) {
 
       if (error instanceof Error && error.message?.includes("Connection error")) {
-        console.log("Connection issue while checking seller requirements, will retry on next check");
+        debugLogger.info("bankingService", "Connection issue while checking seller requirements, will retry on next check");
       }
 
       return {
