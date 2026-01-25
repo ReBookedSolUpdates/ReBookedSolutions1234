@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { processBobPayRefund } from '@/integrations/supabase/bobpay-client';
 import { toast } from 'sonner';
 
 export interface RefundRequest {
