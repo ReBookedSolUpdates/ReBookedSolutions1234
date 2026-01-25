@@ -19,6 +19,7 @@ import { extractBookId } from "@/utils/bookUtils";
 import { toast } from "sonner";
 import { ActivityService } from "@/services/activityService";
 import { useBookTracking } from "@/hooks/useBookTracking";
+import debugLogger from "@/utils/debugLogger";
 
 const BookDetails = () => {
   const { id } = useParams<{ id: string }>();
