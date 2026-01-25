@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import debugLogger from "@/utils/debugLogger";
 
 /**
  * Interface for a seller review
