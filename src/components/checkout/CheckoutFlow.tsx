@@ -553,7 +553,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         }
       );
     } catch (trackingError) {
-      console.error("Error tracking purchase:", trackingError);
+      debugLogger.error("CheckoutFlow", "Error tracking purchase:", trackingError);
     }
 
     // Remove book from cart after successful purchase
