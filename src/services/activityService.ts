@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import debugLogger from "@/utils/debugLogger";
 
 // Define comprehensive activity types
 export type ActivityType =
@@ -125,13 +126,13 @@ export class ActivityService {
         .insert([cleanLog]);
 
       if (error) {
-        console.error("Activity logging error:", error);
+        debugLogger.error("activityService", "Activity logging error:", error);
         return { success: false, error: error.message };
       }
 
       return { success: true };
     } catch (error) {
-      console.error("Exception during activity logging:", error);
+      debugLogger.error("activityService", "Exception during activity logging:", error);
       return { success: false, error: String(error) };
     }
   }
@@ -447,13 +448,13 @@ export class ActivityService {
       const { data, error } = await query;
 
       if (error) {
-        console.error("Error fetching user activities:", error);
+        debugLogger.error("activityService", "Error fetching user activities:", error);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error("Exception fetching user activities:", error);
+      debugLogger.error("activityService", "Exception fetching user activities:", error);
       return [];
     }
   }
@@ -471,7 +472,7 @@ export class ActivityService {
         .limit(1000);
 
       if (error) {
-        console.error("Error fetching user analytics:", error);
+        debugLogger.error("activityService", "Error fetching user analytics:", error);
         return null;
       }
 
@@ -496,7 +497,7 @@ export class ActivityService {
         last_activity: data[0]?.created_at,
       };
     } catch (error) {
-      console.error("Exception calculating user analytics:", error);
+      debugLogger.error("activityService", "Exception calculating user analytics:", error);
       return null;
     }
   }
