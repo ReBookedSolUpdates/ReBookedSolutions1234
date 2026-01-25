@@ -76,7 +76,7 @@ export class OrderCancellationService {
       });
 
       if (error) {
-        console.error("Cancel order edge function error:", error);
+        debugLogger.error("orderCancellationService", "Cancel order edge function error:", error);
         throw new Error(error.message || "Failed to communicate with server");
       }
 
@@ -93,7 +93,7 @@ export class OrderCancellationService {
         refund_amount: data.data?.refund_amount,
       };
     } catch (error) {
-      console.error("Cancel delivery error:", error);
+      debugLogger.error("orderCancellationService", "Cancel delivery error:", error);
       return {
         success: false,
         message: error instanceof Error ? error.message : "Failed to cancel order",
@@ -393,7 +393,7 @@ export class OrderCancellationService {
       });
 
       if (error) {
-        console.error("Cancel order edge function error:", error);
+        debugLogger.error("orderCancellationService", "Cancel order edge function error:", error);
         throw new Error(error.message || "Failed to communicate with server");
       }
 
@@ -441,7 +441,7 @@ export class OrderCancellationService {
         refund_amount: data.data?.refund_amount,
       };
     } catch (error) {
-      console.error("Cancel after missed pickup error:", error);
+      debugLogger.error("orderCancellationService", "Cancel after missed pickup error:", error);
       return {
         success: false,
         message: error instanceof Error ? error.message : "Failed to cancel order. Please contact support.",
