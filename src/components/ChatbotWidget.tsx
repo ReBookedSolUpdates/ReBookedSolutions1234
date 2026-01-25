@@ -3,10 +3,19 @@ import { useChatbot } from "@/hooks/useChatbot";
 import { ChatInterface } from "./ChatInterface";
 import { MessageCircle, X, ChevronDown, ChevronUp } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLocation } from "react-router-dom";
 
 export const ChatbotWidget: React.FC = () => {
   const { user } = useAuth();
+  const { pathname } = useLocation();
   const chatbot = useChatbot(user?.id);
+
+  // Hide chat widget on checkout and success pages
+  const isCheckoutPage = pathname.includes("/checkout") || pathname.includes("/checkout-cart") || pathname.includes("/payment-confirmation") || pathname.includes("/order-success");
+
+  if (isCheckoutPage) {
+    return null;
+  }
 
   // Handle ESC key to close widget
   useEffect(() => {
