@@ -10,6 +10,7 @@ import { reviewService } from "@/services/reviewService";
 import { useAuth } from "@/contexts/AuthContext";
 import { Star, AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import debugLogger from "@/utils/debugLogger";
 
 interface ReviewFormProps {
   sellerId: string;
