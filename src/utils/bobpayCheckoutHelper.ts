@@ -168,17 +168,12 @@ export const initiateBobPayRefund = async (
       throw new Error('Cannot refund committed orders directly. Please use the standard cancel-order-with-refund flow.');
     }
 
-    const { data, error } = await supabase.functions.invoke(
-      'bobpay-refund',
+    const { data, error } = await processBobPayRefund(
       {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: {
-          order_id: orderId,
-          reason: reason || 'Customer requested refund',
-        },
-      }
+        order_id: orderId,
+        reason: reason || 'Customer requested refund',
+      },
+      session.access_token
     );
 
     if (error || !data?.success) {
