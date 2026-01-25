@@ -58,13 +58,19 @@ export async function invokeBobPayFunction<T = unknown>(
 /**
  * Initialize BobPay payment
  */
-export async function initializeBobPayPayment(payload: Record<string, unknown>) {
-  return invokeBobPayFunction("bobpay-initialize-payment", { body: payload });
+export async function initializeBobPayPayment(
+  payload: Record<string, unknown>,
+  authToken?: string
+) {
+  return invokeBobPayFunction("bobpay-initialize-payment", { body: payload, authToken });
 }
 
 /**
  * Process BobPay refund
  */
-export async function processBobPayRefund(payload: Record<string, unknown>) {
-  return invokeBobPayFunction("bobpay-refund", { body: payload });
+export async function processBobPayRefund(
+  payload: Record<string, unknown>,
+  authToken?: string
+) {
+  return invokeBobPayFunction("bobpay-refund", { body: payload, authToken });
 }
