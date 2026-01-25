@@ -1,4 +1,5 @@
 import { ChatMessage, ChatStorageData, ChatContextMessage } from "@/types/chatbot";
+import debugLogger from "@/utils/debugLogger";
 
 const STORAGE_KEY = "rebooked_chatbot_data";
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
@@ -15,7 +16,7 @@ export const chatStorage = {
         return data;
       }
     } catch (error) {
-      console.warn("Failed to load chat data from storage:", error);
+      debugLogger.warn("chatStorage", "Failed to load chat data from storage:", error);
     }
 
     // Create new data structure
@@ -42,7 +43,7 @@ export const chatStorage = {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch (error) {
-      console.warn("Failed to save chat data to storage:", error);
+      debugLogger.warn("chatStorage", "Failed to save chat data to storage:", error);
     }
   },
 
@@ -136,7 +137,7 @@ export const chatStorage = {
     try {
       localStorage.removeItem(STORAGE_KEY);
     } catch (error) {
-      console.warn("Failed to delete chat data:", error);
+      debugLogger.warn("chatStorage", "Failed to delete chat data:", error);
     }
   },
 };
