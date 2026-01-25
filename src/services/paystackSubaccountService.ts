@@ -337,7 +337,8 @@ export class PaystackSubaccountService {
       debugLogger.info("paystackSubaccountService", "🔍 getUserSubaccountStatus: Starting check...", { userId });
 
       if (!userId) {
-        console.log(
+        debugLogger.info(
+          "paystackSubaccountService",
           "📝 getUserSubaccountStatus: No userId provided, getting from auth...",
         );
         const {
