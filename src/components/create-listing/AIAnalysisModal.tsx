@@ -178,7 +178,7 @@ const AIAnalysisModal = ({
       toast.success(`${label} uploaded successfully!`);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      console.error(`Upload error for ${label}:`, errorMessage);
+      debugLogger.error("AIAnalysisModal", `Upload error for ${label}:`, errorMessage);
       toast.error(`Failed to upload ${label}. Please try again.`);
     } finally {
       setUploadingIndex(null);
