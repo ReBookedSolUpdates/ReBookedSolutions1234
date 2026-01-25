@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { getBookPickupAddress, getOrderShippingAddress } from "./addressService";
+import debugLogger from "@/utils/debugLogger";
 
 export interface DeliveryQuote {
   courier: 'fastway' | 'courier-guy';
@@ -22,7 +23,7 @@ export const getDeliveryQuotes = async (
   weight: number = 1 // Default weight in kg
 ): Promise<DeliveryQuote[]> => {
   try {
-    console.log("Getting delivery quotes for:", { fromAddress, toAddress, weight });
+    debugLogger.info("deliveryService", "Getting delivery quotes for:", { fromAddress, toAddress, weight });
     
     const { data, error } = await supabase.functions.invoke('get-delivery-quotes', {
       body: {
@@ -33,14 +34,14 @@ export const getDeliveryQuotes = async (
     });
 
     if (error) {
-      console.error("Error getting delivery quotes:", error);
+      debugLogger.error("deliveryService", "Error getting delivery quotes:", error);
       throw error;
     }
 
-    console.log("Delivery quotes received:", data);
+    debugLogger.info("deliveryService", "Delivery quotes received:", data);
     return data.quotes || [];
   } catch (error) {
-    console.error("Error in getDeliveryQuotes:", error);
+    debugLogger.error("deliveryService", "Error in getDeliveryQuotes:", error);
     // Return fallback quotes if API fails
     return [
       {
@@ -70,7 +71,7 @@ export const createDeliveryBooking = async (
   }
 ) => {
   try {
-    console.log("Creating delivery booking:", { quote, fromAddress, toAddress, packageDetails });
+    debugLogger.info("deliveryService", "Creating delivery booking:", { quote, fromAddress, toAddress, packageDetails });
 
     const { data, error } = await supabase.functions.invoke('create-delivery-booking', {
       body: {
@@ -82,14 +83,14 @@ export const createDeliveryBooking = async (
     });
 
     if (error) {
-      console.error("Error creating delivery booking:", error);
+      debugLogger.error("deliveryService", "Error creating delivery booking:", error);
       throw error;
     }
 
-    console.log("Delivery booking created:", data);
+    debugLogger.info("deliveryService", "Delivery booking created:", data);
     return data;
   } catch (error) {
-    console.error("Error in createDeliveryBooking:", error);
+    debugLogger.error("deliveryService", "Error in createDeliveryBooking:", error);
     throw error;
   }
 };
@@ -101,7 +102,7 @@ export const getDeliveryQuotesForOrder = async (
   weight: number = 1
 ): Promise<DeliveryQuote[]> => {
   try {
-    console.log("Getting delivery quotes for order using encrypted addresses:", { orderId, bookId, weight });
+    debugLogger.info("deliveryService", "Getting delivery quotes for order using encrypted addresses:", { orderId, bookId, weight });
 
     // Get encrypted addresses
     const [pickupAddress, shippingAddress] = await Promise.all([
@@ -136,7 +137,7 @@ export const getDeliveryQuotesForOrder = async (
 
     return getDeliveryQuotes(fromAddress, toAddress, weight);
   } catch (error) {
-    console.error("Error in getDeliveryQuotesForOrder:", error);
+    debugLogger.error("deliveryService", "Error in getDeliveryQuotesForOrder:", error);
     throw error;
   }
 };
