@@ -134,20 +134,22 @@ export class PaystackSubaccountService {
 
       if (error) {
         const formattedError = this.formatError(error);
-        console.error(
+        debugLogger.error(
+          "paystackSubaccountService",
           "Error updating books with seller_subaccount_code:",
           formattedError,
         );
         // Don't return false immediately, log the error but continue
-        console.warn("Book update failed but continuing with subaccount creation");
-        console.warn("This might be because the books table doesn't have the seller_subaccount_code column yet");
-        console.warn("Error details:", formattedError);
+        debugLogger.warn("paystackSubaccountService", "Book update failed but continuing with subaccount creation");
+        debugLogger.warn("paystackSubaccountService", "This might be because the books table doesn't have the seller_subaccount_code column yet");
+        debugLogger.warn("paystackSubaccountService", "Error details:", formattedError);
         // Return true to not fail the subaccount creation process
         return true;
       }
 
       const updatedCount = data?.length || 0;
-      console.log(
+      debugLogger.info(
+        "paystackSubaccountService",
         `📚 ${updatedCount} books linked to subaccount ${subaccountCode} for user ${userId}`,
       );
 
