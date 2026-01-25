@@ -455,7 +455,7 @@ export class PaystackSubaccountService {
         canEdit: true, // But form will show contact support message
       };
     } catch (error) {
-      console.error("Error in getUserSubaccountStatus:", error);
+      debugLogger.error("paystackSubaccountService", "Error in getUserSubaccountStatus:", error);
       return { hasSubaccount: false, canEdit: false };
     }
   }
