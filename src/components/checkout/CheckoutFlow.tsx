@@ -467,7 +467,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         });
       }
     } catch (trackingError) {
-      console.error("Error tracking checkout step:", trackingError);
+      debugLogger.error("CheckoutFlow", "Error tracking checkout step:", trackingError);
     }
   };
 
