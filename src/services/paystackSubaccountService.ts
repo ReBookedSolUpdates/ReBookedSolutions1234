@@ -80,10 +80,10 @@ export class PaystackSubaccountService {
         .eq("id", userId);
 
       if (error) {
-        console.warn("Failed to update profile subaccount:", error);
+        debugLogger.warn("paystackSubaccountService", "Failed to update profile subaccount:", error);
       }
     } catch (error) {
-      console.warn("Error updating profile subaccount:", error);
+      debugLogger.warn("paystackSubaccountService", "Error updating profile subaccount:", error);
     }
   }
 
