@@ -62,6 +62,12 @@ export async function callEdgeFunction<T = any>(
   try {
     const url = `${supabase.supabaseUrl}/functions/v1/${functionName}`;
 
+    console.log(`[edgeFunctionClient] Calling ${functionName}:`, {
+      url,
+      method,
+      body: body ? { ...body, message: body.message?.substring?.(0, 50) + '...' } : undefined,
+    });
+
     const response = await fetch(url, {
       method,
       headers: getEdgeFunctionHeaders(headers),
@@ -86,7 +92,7 @@ export async function callEdgeFunction<T = any>(
 
     let responseData: any;
     const contentType = response.headers.get('content-type');
-    
+
     if (contentType?.includes('application/json')) {
       responseData = await response.json();
     } else {
@@ -94,7 +100,18 @@ export async function callEdgeFunction<T = any>(
       responseData = { message: textData };
     }
 
+    console.log(`[edgeFunctionClient] Response from ${functionName}:`, {
+      status: response.status,
+      ok: response.ok,
+      data: responseData,
+    });
+
     if (!response.ok) {
+      console.error(`[edgeFunctionClient] Error calling ${functionName}:`, {
+        status: response.status,
+        error: responseData.error,
+        details: responseData.details || responseData,
+      });
       return {
         success: false,
         error: responseData.error || 'API_ERROR',
