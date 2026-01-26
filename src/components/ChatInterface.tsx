@@ -67,7 +67,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
       {/* Messages Container */}
       <div
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto px-3 sm:px-4 py-4 space-y-4 bg-gradient-to-b from-gray-50/50 to-white"
+        className="flex-1 overflow-y-auto scrollbar-hide px-3 sm:px-4 py-4 space-y-4 bg-gradient-to-b from-gray-50/50 to-white"
       >
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center py-8 sm:py-12">
