@@ -8,13 +8,7 @@ import { useLocation } from "react-router-dom";
 export const ChatbotWidget: React.FC = () => {
   const { user } = useAuth();
   const { pathname } = useLocation();
-
-  try {
-    var chatbot = useChatbot(user?.id);
-  } catch (error) {
-    console.warn("Failed to initialize chatbot:", error);
-    return null;
-  }
+  const chatbot = useChatbot(user?.id);
 
   // Hide chat widget on checkout and success pages
   const isCheckoutPage = pathname.includes("/checkout") || pathname.includes("/checkout-cart") || pathname.includes("/payment-confirmation") || pathname.includes("/order-success");
