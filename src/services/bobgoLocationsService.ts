@@ -1,5 +1,4 @@
 import { supabase } from "@/integrations/supabase/client";
-import { invokeBobGoFunction } from "@/integrations/supabase/bobgo-client";
 
 export interface BobGoLocation {
   id?: string;
