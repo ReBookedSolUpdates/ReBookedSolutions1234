@@ -93,7 +93,13 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                     : "bg-white text-gray-900 rounded-bl-sm border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
                 }`}
               >
-                <p className="text-sm sm:text-sm leading-relaxed break-words">{message.content}</p>
+                <div className="break-words">
+                  {message.role === "assistant" ? (
+                    <MarkdownMessage content={message.content} />
+                  ) : (
+                    <p className="text-sm sm:text-sm leading-relaxed break-words">{message.content}</p>
+                  )}
+                </div>
                 <p
                   className={`text-xs mt-1.5 ${
                     message.role === "user" ? "text-book-100/80" : "text-gray-500"
