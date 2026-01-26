@@ -16,7 +16,7 @@ export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content }) => 
   let currentListItems: string[] = [];
   let isNumberedList = false;
 
-  const processLine = (line: string, isLastLine: boolean): React.ReactNode => {
+  const processLine = (line: string): React.ReactNode => {
     // Trim the line
     const trimmedLine = line.trim();
 
@@ -47,7 +47,7 @@ export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content }) => 
 
     // Regular paragraph
     return (
-      <p key={`para-${elements.length}`} className={`text-sm leading-relaxed ${!isLastLine ? 'mb-2' : ''}`}>
+      <p key={`para-${elements.length}`} className="text-sm leading-relaxed mb-2">
         {parseInlineFormatting(trimmedLine)}
       </p>
     );
