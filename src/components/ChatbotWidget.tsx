@@ -6,16 +6,18 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLocation } from "react-router-dom";
 
 export const ChatbotWidget: React.FC = () => {
-  const { user } = useAuth();
   const { pathname } = useLocation();
-  const chatbot = useChatbot(user?.id);
 
   // Hide chat widget on checkout and success pages
+  // Check this BEFORE calling any other hooks to follow Rules of Hooks
   const isCheckoutPage = pathname.includes("/checkout") || pathname.includes("/checkout-cart") || pathname.includes("/payment-confirmation") || pathname.includes("/order-success");
 
   if (isCheckoutPage) {
     return null;
   }
+
+  const { user } = useAuth();
+  const chatbot = useChatbot(user?.id);
 
   // Handle ESC key to close widget
   useEffect(() => {
