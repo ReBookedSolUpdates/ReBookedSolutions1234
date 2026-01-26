@@ -101,7 +101,7 @@ export async function callEdgeFunction<T = any>(
       responseData = { message: textData };
     }
 
-    console.log(`[edgeFunctionClient] Response from ${functionName}:`, {
+    debugLogger.debug('edgeFunctionClient', `Response from ${functionName}:`, {
       status: response.status,
       ok: response.ok,
       data: responseData,
