@@ -11,6 +11,7 @@ import {
   Loader2,
   CheckCircle,
   AlertTriangle,
+  X,
 } from "lucide-react";
 import { OrderSummary, OrderConfirmation } from "@/types/checkout";
 import { AppliedCoupon } from "@/types/coupon";
