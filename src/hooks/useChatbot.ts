@@ -141,7 +141,12 @@ export const useChatbot = (userId: string | null | undefined) => {
 
         // Check wrapper-level success first
         if (!response.success) {
-          throw new Error(response.error || "Failed to connect to chatbot service");
+          const errorMsg = response.error || "Failed to connect to chatbot service";
+          debugLogger.error("useChatbot", "Edge Function error:", {
+            error: response.error,
+            details: response.details,
+          });
+          throw new Error(errorMsg);
         }
 
         // Extract the actual ChatSubmitResponse from wrapper
