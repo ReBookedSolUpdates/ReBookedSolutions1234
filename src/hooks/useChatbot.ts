@@ -1,8 +1,9 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { ChatMessage, ChatContextMessage, ChatSubmitRequest, ChatSubmitResponse } from "@/types/chatbot";
+import { ChatMessage, ChatContextMessage, ChatSubmitRequest, ChatSubmitResponse, ChatHistoryResponse } from "@/types/chatbot";
 import { chatStorage } from "@/utils/chatStorage";
 import { callEdgeFunction } from "@/utils/edgeFunctionClient";
 import debugLogger from "@/utils/debugLogger";
+import { supabase } from "@/lib/supabase";
 
 export const useChatbot = (userId: string | null | undefined) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
