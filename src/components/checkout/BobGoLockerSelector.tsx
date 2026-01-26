@@ -89,14 +89,22 @@ const BobGoLockerSelector: React.FC<BobGoLockerSelectorProps> = ({
       const details = await fetchAddressDetails(placeId);
 
       if (details && details.lat && details.lng) {
-        // Fetch nearby BobGo locations
-        const nearbyLocations = await getBobGoLocations(details.lat, details.lng, 5);
-        setLocations(nearbyLocations);
-        setShowLocations(true);
+        try {
+          // Fetch nearby BobGo locations
+          const nearbyLocations = await getBobGoLocations(details.lat, details.lng, 5);
+          setLocations(nearbyLocations);
+          setShowLocations(true);
+        } catch (locationsError) {
+          // Log location fetch error but don't crash
+          console.warn("Failed to fetch BobGo locations:", locationsError);
+          setLocations([]);
+          setShowLocations(true);
+        }
       } else {
         setLocations([]);
       }
     } catch (error) {
+      console.warn("Failed to fetch address details:", error);
       setLocations([]);
     } finally {
       setIsLoadingLocations(false);
