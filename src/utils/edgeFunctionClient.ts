@@ -5,6 +5,7 @@
 
 import { supabase } from '@/lib/supabase';
 import { ENV } from '@/config/environment';
+import debugLogger from '@/utils/debugLogger';
 
 interface EdgeFunctionOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
