@@ -44,14 +44,28 @@ export async function getBobGoLocations(
 
     const bounds = calculateBoundingBox(latitude, longitude, radiusKm);
 
-    // Call the edge function with query parameters
-    const { data, error } = await invokeBobGoFunction<any>("bobgo-get-locations", {
-      method: "GET",
+    // Get auth session
+    const { data: sessionData } = await supabase.auth.getSession();
+    const authToken = sessionData?.session?.access_token;
+
+    // Build query parameters
+    const params = new URLSearchParams({
+      min_lat: bounds.min_lat.toString(),
+      max_lat: bounds.max_lat.toString(),
+      min_lng: bounds.min_lng.toString(),
+      max_lng: bounds.max_lng.toString(),
+    });
+
+    // Call the edge function via Supabase
+    const { data, error } = await supabase.functions.invoke("bobgo-get-locations", {
       headers: {
-        "min_lat": bounds.min_lat.toString(),
-        "max_lat": bounds.max_lat.toString(),
-        "min_lng": bounds.min_lng.toString(),
-        "max_lng": bounds.max_lng.toString(),
+        ...(authToken && { Authorization: `Bearer ${authToken}` }),
+      },
+      body: {
+        min_lat: bounds.min_lat,
+        max_lat: bounds.max_lat,
+        min_lng: bounds.min_lng,
+        max_lng: bounds.max_lng,
       },
     });
 
