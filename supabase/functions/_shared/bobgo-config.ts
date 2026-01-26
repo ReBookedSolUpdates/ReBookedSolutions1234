@@ -6,9 +6,20 @@
 //
 // The frontend passes import.meta.env.VITE_PRODUCTION via x-production header
 
+/**
+ * Parse environment variable as boolean
+ * Normalizes by trimming and lowercasing before comparison
+ */
+function parseEnvBool(value?: string): boolean {
+  if (!value) {
+    return false;
+  }
+  return value.trim().toLowerCase() === 'true';
+}
+
 export function getBobGoConfig(req: Request) {
   // Read environment from frontend-passed header
-  const isLive = req.headers.get("x-production") === "true";
+  const isLive = parseEnvBool(req.headers.get("x-production") || undefined);
 
   const apiKey = isLive
     ? Deno.env.get("BOBGO_API_KEY")
