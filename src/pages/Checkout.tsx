@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { ActivityService } from "@/services/activityService";
+import debugLogger from "@/utils/debugLogger";
 
 interface CartCheckoutData {
   items: any[];
@@ -78,7 +79,7 @@ const Checkout: React.FC = () => {
       try {
         ActivityService.trackCheckoutStarted(user.id, cartValue, 1);
       } catch (trackingError) {
-        console.error("Error tracking checkout started:", trackingError);
+        debugLogger.error("Checkout", "Error tracking checkout started:", trackingError);
       }
     }
   }, [book, checkoutStartedTracked, user]);

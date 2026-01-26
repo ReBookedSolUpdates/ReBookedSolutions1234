@@ -13,6 +13,7 @@ import {
   Truck,
   MapPin,
   ShoppingCart,
+  PackageSearch,
 } from "lucide-react";
 import CartButton from "./CartButton";
 import NotificationBadge from "./NotificationBadge";
@@ -160,7 +161,17 @@ const Navbar = () => {
               }`}
             >
               <Truck className="w-4 h-4" />
-              <span>Shipping</span>
+              <span>Shipping/Payments</span>
+            </Link>
+
+            <Link
+              to="/tracking"
+              className={`flex items-center space-x-1 text-sm font-medium transition-colors hover:text-book-600 ${
+                isActive("/tracking") ? "text-book-600" : "text-gray-700"
+              }`}
+            >
+              <PackageSearch className="w-4 h-4" />
+              <span>Track</span>
             </Link>
 
             {/* DISABLED - Locker functionality removed */}
@@ -286,7 +297,20 @@ const Navbar = () => {
                 onClick={() => setIsMenuOpen(false)}
               >
                 <Truck className="w-5 h-5" />
-                <span>Shipping</span>
+                <span>Shipping/Payments</span>
+              </Link>
+
+              <Link
+                to="/tracking"
+                className={`flex items-center space-x-3 px-4 py-3 text-base font-medium rounded-md transition-colors min-h-[44px] ${
+                  isActive("/tracking")
+                    ? "bg-book-50 text-book-600"
+                    : "text-gray-700 hover:bg-gray-50 hover:text-book-600"
+                }`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <PackageSearch className="w-5 h-5" />
+                <span>Track Order</span>
               </Link>
 
               {/* DISABLED - Locker functionality removed */}

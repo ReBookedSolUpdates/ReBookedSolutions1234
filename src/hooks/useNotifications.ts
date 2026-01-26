@@ -76,7 +76,7 @@ class NotificationManager {
 
     // Max attempts exceeded - abort
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.warn("[NotificationManager] 🔕 Max reconnection attempts reached, notifications disabled");
+      debugLogger.warn("useNotifications", "[NotificationManager] Max reconnection attempts reached, notifications disabled");
       this.connectionStatus = 'error';
       return;
     }
@@ -115,7 +115,7 @@ class NotificationManager {
             clearNotificationCache(userId);
             refreshCallback().catch((err) => {
               const safeMessage = getSafeErrorMessage(err, 'Refresh callback failed');
-              console.error('[NotificationManager] Refresh callback error:', safeMessage, { original: err });
+              debugLogger.error('[useNotifications', '[NotificationManager] Refresh callback error:', safeMessage, { original: err });
             });
           }
         },
@@ -135,7 +135,7 @@ class NotificationManager {
             clearNotificationCache(userId);
             refreshCallback().catch((err) => {
               const safeMessage = getSafeErrorMessage(err, 'Refresh callback failed');
-              console.error('[NotificationManager] Refresh callback error:', safeMessage, { original: err });
+              debugLogger.error('[useNotifications', '[NotificationManager] Refresh callback error:', safeMessage, { original: err });
             });
           }
         },
@@ -155,7 +155,7 @@ class NotificationManager {
           if (this.reconnectAttempts < this.maxReconnectAttempts && !this.isDestroyed) {
             this.scheduleReconnect(userId, refreshCallback);
           } else {
-            console.warn("[NotificationManager] 🔕 Notifications temporarily disabled due to connection issues");
+            debugLogger.warn("useNotifications", "[NotificationManager] Notifications temporarily disabled due to connection issues");
           }
         }
       });

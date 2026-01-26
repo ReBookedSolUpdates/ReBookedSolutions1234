@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { usePageTracking } from "@/hooks/usePageTracking";
 import { useAuth } from "@/contexts/AuthContext";
+import debugLogger from "@/utils/debugLogger";
 
 // Suppress harmless ResizeObserver warnings
 import "./utils/suppressResizeObserverError";
@@ -19,6 +20,7 @@ import { CartProvider } from "./contexts/CartContext";
 import AuthErrorHandler from "./components/AuthErrorHandler";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ScrollToTop from "./components/ScrollToTop";
+import { ChatbotWidget } from "./components/ChatbotWidget";
 
 // Main Pages
 import Index from "./pages/Index";
@@ -53,6 +55,7 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Policies from "./pages/Policies";
 import Shipping from "./pages/Shipping";
+import Tracking from "./pages/Tracking";
 import Report from "./pages/Report";
 import SellerProfile from "./pages/SellerProfile";
 import GettingStarted from "./pages/GettingStarted";
@@ -63,7 +66,6 @@ import ClearNotifications from "./pages/ClearNotifications";
 import RestoreBooks from "./pages/RestoreBooks";
 import BankingSetup from "./pages/BankingSetup";
 import UserProfile from "./pages/UserProfile";
-import Transparency from "./pages/Transparency";
 import WebhookTest from "./pages/WebhookTest";
 // import LockerSearchPage from "./pages/LockerSearchPage"; // DISABLED - Locker functionality removed
 
@@ -87,7 +89,9 @@ const queryClient = new QueryClient({
 // Wrapper component to use hooks inside Router context
 function AppRoutes() {
   const { user } = useAuth();
-  
+
+  debugLogger.info("AppRoutes", "Routes component mounted", { userId: user?.id });
+
   // Track page views
   usePageTracking(user?.id);
 
@@ -95,6 +99,7 @@ function AppRoutes() {
     <>
       <AuthErrorHandler />
       <ScrollToTop />
+      <ChatbotWidget />
 
       <Routes>
         {/* Main Application Routes */}
@@ -267,8 +272,8 @@ function AppRoutes() {
         <Route path="/terms" element={<Terms />} />
         <Route path="/policies" element={<Policies />} />
         <Route path="/shipping" element={<Shipping />} />
+        <Route path="/tracking" element={<Tracking />} />
         <Route path="/getting-started" element={<GettingStarted />} />
-        <Route path="/transparency" element={<Transparency />} />
         <Route path="/report" element={<Report />} />
         <Route path="/webhook-test" element={<WebhookTest />} />
 
@@ -280,6 +285,8 @@ function AppRoutes() {
 }
 
 function App() {
+  debugLogger.info("App", "App component initializing");
+
   // Check environment configuration first
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -293,10 +300,15 @@ function App() {
     supabaseKey !== "undefined"
   );
 
+  debugLogger.info("App", "Environment configuration check", { isEnvironmentConfigured });
+
   // Show configuration helper if environment is not properly set up
   if (!isEnvironmentConfigured) {
+    debugLogger.warn("App", "Environment not properly configured, showing config helper");
     return <EnvironmentConfigHelper />;
   }
+
+  debugLogger.info("App", "Rendering app with all providers");
 
   return (
     <ErrorBoundary level="app">

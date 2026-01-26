@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import debugLogger from "@/utils/debugLogger";
 
 export interface NotificationRequest {
   id?: string;
@@ -36,7 +37,8 @@ export class NotificationRequestService {
       });
 
       if (error) {
-        console.error(
+        debugLogger.error(
+          "notificationRequestService",
           "Error submitting accommodation notification request:",
           error,
         );
@@ -45,7 +47,7 @@ export class NotificationRequestService {
 
       return { success: true };
     } catch (error) {
-      console.error("Error in requestAccommodationNotification:", {
+      debugLogger.error("notificationRequestService", "Error in requestAccommodationNotification:", {
         message: error instanceof Error ? error.message : String(error),
         code: error?.code,
         details: error?.details
@@ -85,7 +87,7 @@ export class NotificationRequestService {
       });
 
       if (error) {
-        console.error("Error submitting program notification request:", {
+        debugLogger.error("notificationRequestService", "Error submitting program notification request:", {
           message: error.message || String(error),
           code: error.code,
           details: error.details
@@ -95,7 +97,7 @@ export class NotificationRequestService {
 
       return { success: true };
     } catch (error) {
-      console.error("Error in requestProgramNotification:", {
+      debugLogger.error("notificationRequestService", "Error in requestProgramNotification:", {
         message: error instanceof Error ? error.message : String(error),
         code: error?.code,
         details: error?.details
@@ -135,7 +137,7 @@ export class NotificationRequestService {
       const { data, error } = await query;
 
       if (error) {
-        console.error("Error checking existing notification request:", {
+        debugLogger.error("notificationRequestService", "Error checking existing notification request:", {
           message: error.message || String(error),
           code: error.code,
           details: error.details
@@ -145,7 +147,7 @@ export class NotificationRequestService {
 
       return { exists: (data?.length || 0) > 0 };
     } catch (error) {
-      console.error("Error in hasExistingRequest:", {
+      debugLogger.error("notificationRequestService", "Error in hasExistingRequest:", {
         message: error instanceof Error ? error.message : String(error),
         code: error?.code,
         details: error?.details
@@ -174,7 +176,7 @@ export class NotificationRequestService {
         .order("created_at", { ascending: false });
 
       if (error) {
-        console.error("Error fetching user notification requests:", {
+        debugLogger.error("notificationRequestService", "Error fetching user notification requests:", {
           message: error.message || String(error),
           code: error.code,
           details: error.details
@@ -184,7 +186,7 @@ export class NotificationRequestService {
 
       return { requests: data || [] };
     } catch (error) {
-      console.error("Error in getUserNotificationRequests:", {
+      debugLogger.error("notificationRequestService", "Error in getUserNotificationRequests:", {
         message: error instanceof Error ? error.message : String(error),
         code: error?.code,
         details: error?.details
@@ -214,7 +216,7 @@ export class NotificationRequestService {
         .eq("user_id", userId);
 
       if (error) {
-        console.error("Error cancelling notification request:", {
+        debugLogger.error("notificationRequestService", "Error cancelling notification request:", {
           message: error.message || String(error),
           code: error.code,
           details: error.details
@@ -224,7 +226,7 @@ export class NotificationRequestService {
 
       return { success: true };
     } catch (error) {
-      console.error("Error in cancelNotificationRequest:", {
+      debugLogger.error("notificationRequestService", "Error in cancelNotificationRequest:", {
         message: error instanceof Error ? error.message : String(error),
         code: error?.code,
         details: error?.details

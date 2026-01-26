@@ -91,6 +91,15 @@ const Footer = () => {
                   Sell a Book
                 </Link>
               </li>
+              <li>
+                <Link
+                  to="/policies"
+                  className="text-gray-600 hover:text-book-600 text-sm"
+                  onClick={handleLinkClick}
+                >
+                  Policies & Terms
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -102,7 +111,7 @@ const Footer = () => {
               <li>
                 <Link
                   to="/getting-started"
-                  className="text-gray-600 hover:text-book-600 text-sm font-medium"
+                  className="text-gray-600 hover:text-book-600 text-sm"
                   onClick={handleLinkClick}
                 >
                   Getting Started
@@ -124,24 +133,6 @@ const Footer = () => {
                   onClick={handleLinkClick}
                 >
                   FAQ
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/policies"
-                  className="text-gray-600 hover:text-book-600 text-sm"
-                  onClick={handleLinkClick}
-                >
-                  Policies & Terms
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/transparency"
-                  className="text-gray-600 hover:text-book-600 text-sm"
-                  onClick={handleLinkClick}
-                >
-                  Transparency
                 </Link>
               </li>
             </ul>
@@ -178,6 +169,16 @@ const Footer = () => {
                   className="text-gray-600 hover:text-book-600 text-sm"
                 >
                   ReBooked News
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://living.rebookedsolutions.co.za/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-600 hover:text-book-600 text-sm"
+                >
+                  ReBooked Living
                 </a>
               </li>
             </ul>

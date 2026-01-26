@@ -10,6 +10,7 @@ import React, {
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { callEdgeFunction } from "@/utils/edgeFunctionClient";
+import debugLogger from "@/utils/debugLogger";
 import {
   Profile,
   loginUser,
@@ -103,8 +104,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const login = useCallback(
     async (email: string, password: string) => {
       try {
+        debugLogger.info("AuthContext", "Login attempt initiated", { email });
         setIsLoading(true);
         const result = await loginUser(email, password);
+        debugLogger.info("AuthContext", "Login successful");
 
         // After successful login, give Supabase a moment to update auth state
         if (result && result.user) {
@@ -136,6 +139,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const register = useCallback(
     async (email: string, password: string, firstName: string, lastName: string, phone: string, affiliateCode?: string) => {
       try {
+        debugLogger.info("AuthContext", "Register attempt initiated", { email, firstName, lastName });
         setIsLoading(true);
 
         // Check if user already exists in our profiles table
@@ -343,7 +347,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           await logoutUser(user.id);
         } catch (logoutError) {
           // Don't fail the logout process for tracking errors
-          console.error("Error in logoutUser:", logoutError);
+          debugLogger.error("AuthContext", "Error in logoutUser:", logoutError);
         }
       }
 

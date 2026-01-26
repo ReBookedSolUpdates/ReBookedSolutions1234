@@ -1,3 +1,8 @@
+export interface BookMetadata {
+  ai_assisted?: boolean;
+  [key: string]: unknown;
+}
+
 export interface Book {
   id: string;
   title: string;
@@ -26,10 +31,12 @@ export interface Book {
   initialQuantity?: number;
   availableQuantity?: number;
   soldQuantity?: number;
+  metadata?: BookMetadata;
   seller: {
     id: string;
     name: string;
     email: string;
+    createdAt?: string;
   };
 }
 

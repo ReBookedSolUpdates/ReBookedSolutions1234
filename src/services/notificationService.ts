@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { getSafeErrorMessage } from "@/utils/errorMessageUtils";
+import debugLogger from "@/utils/debugLogger";
 
 // Utility to properly serialize errors for logging (prevents [object Object])
 const serializeError = (error: any): any => {
@@ -58,9 +59,12 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
  */
 export async function getNotifications(userId: string): Promise<Notification[]> {
   try {
+    debugLogger.info("notificationService", "Getting notifications", { userId });
+
     // Check cache first
     const cached = notificationCache.get(userId);
     if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      debugLogger.info("notificationService", "Using cached notifications", { count: cached.data.length });
       return cached.data;
     }
 
@@ -91,10 +95,17 @@ export async function getNotifications(userId: string): Promise<Notification[]> 
     const regularData = regularNotif.data || [];
     const orderData = orderNotif.data || [];
 
+    debugLogger.info("notificationService", "Fetched notifications from database", {
+      regularNotifications: regularData.length,
+      orderNotifications: orderData.length
+    });
+
     // Merge both notification arrays and sort by created_at
     const allNotifications = [...regularData, ...orderData]
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
       .slice(0, 100); // Limit to 100 total notifications
+
+    debugLogger.info("notificationService", `Merged and cached ${allNotifications.length} notifications`);
 
     // Update cache
     notificationCache.set(userId, {
@@ -120,7 +131,16 @@ export function clearNotificationCache(userId: string): void {
  * Add a notification (wrapper around NotificationService.createNotification)
  */
 export async function addNotification(data: CreateNotificationData): Promise<boolean> {
-  return NotificationService.createNotification(data);
+  debugLogger.info("notificationService", "Adding notification", {
+    userId: data.userId,
+    type: data.type,
+    title: data.title
+  });
+  const result = await NotificationService.createNotification(data);
+  if (result) {
+    debugLogger.info("notificationService", "Notification created successfully");
+  }
+  return result;
 }
 
 /**
@@ -128,6 +148,8 @@ export async function addNotification(data: CreateNotificationData): Promise<boo
  */
 export async function markNotificationAsRead(notificationId: string): Promise<boolean> {
   try {
+    debugLogger.info("notificationService", "Marking notification as read", { notificationId });
+
     // Try to update in notifications table first
     const { error: notifError } = await supabase
       .from('notifications')
@@ -135,6 +157,7 @@ export async function markNotificationAsRead(notificationId: string): Promise<bo
       .eq('id', notificationId);
 
     if (!notifError) {
+      debugLogger.info("notificationService", "Notification marked as read");
       return true;
     }
 
@@ -145,12 +168,15 @@ export async function markNotificationAsRead(notificationId: string): Promise<bo
       .eq('id', notificationId);
 
     if (!orderNotifError) {
+      debugLogger.info("notificationService", "Order notification marked as read");
       return true;
     }
 
+    debugLogger.warn("notificationService", "Failed to mark notification as read");
     // If both fail, return false
     return false;
   } catch (error) {
+    debugLogger.error("notificationService", "Error marking notification as read", error);
     return false;
   }
 }

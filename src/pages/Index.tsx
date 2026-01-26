@@ -7,29 +7,35 @@ import { Search, BookOpen, Laptop, Sigma, Dna, FlaskConical, Telescope, Trending
 import FeaturedBooks from "@/components/home/FeaturedBooks";
 import HowItWorks from "@/components/home/HowItWorks";
 import ReadyToGetStarted from "@/components/home/ReadyToGetStarted";
+import debugLogger from "@/utils/debugLogger";
 
 const Index = () => {
+  debugLogger.info("Index", "Index page mounted");
+
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   // Check if this is actually a verification link that ended up on the homepage
   useEffect(() => {
+    debugLogger.info("Index", "Checking search params for verification");
     const hasVerificationParams =
       searchParams.has("token") ||
       searchParams.has("token_hash") ||
       (searchParams.has("type") && searchParams.has("email"));
 
     if (hasVerificationParams) {
+      debugLogger.info("Index", "Verification params detected, redirecting to verify page");
       // Preserve all search parameters and redirect to verify page
       navigate(`/verify?${searchParams.toString()}`, { replace: true });
       return;
     }
   }, [searchParams, navigate]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-
+      debugLogger.info("Index", "Search submitted", { query: searchQuery });
       navigate(`/books?search=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
@@ -106,7 +112,7 @@ const Index = () => {
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-0">
               <input
                 type="text"
-                placeholder="Search by title, author, or subject..."
+                placeholder="Search by title, author, ISBN, or subject..."
                 className="w-full p-3 sm:p-4 sm:pr-16 rounded-lg sm:rounded-r-none border border-gray-300 focus:outline-none focus:ring-2 focus:ring-book-500 focus:border-transparent text-base sm:text-lg"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}

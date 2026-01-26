@@ -47,6 +47,7 @@ interface EnhancedMobileImageUploadProps {
   variant?: "array" | "object";
   currentImages?: BookImages;
   disabled?: boolean;
+  onAllRequiredImagesReady?: () => void;
 }
 
 const EnhancedMobileImageUpload = ({
@@ -57,6 +58,7 @@ const EnhancedMobileImageUpload = ({
   variant = "object",
   currentImages,
   disabled = false,
+  onAllRequiredImagesReady,
 }: EnhancedMobileImageUploadProps) => {
   const [isUploading, setIsUploading] = useState<{ [key: number]: boolean }>({});
   const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -98,6 +100,11 @@ const EnhancedMobileImageUpload = ({
         extra2: newImages[4] || "",
       };
       onImagesChange(bookImages);
+
+      // Check if all 3 required images are ready
+      if (newImages[0] && newImages[1] && newImages[2] && onAllRequiredImagesReady) {
+        onAllRequiredImagesReady();
+      }
     } else {
       onImagesChange(newImages);
     }
@@ -281,7 +288,7 @@ const EnhancedMobileImageUpload = ({
       )}
 
       <div
-        className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:gap-6"
+        className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 md:gap-8"
       >
         {slots.map((slot) => {
           const index = slot.index;

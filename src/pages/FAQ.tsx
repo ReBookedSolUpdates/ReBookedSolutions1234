@@ -25,11 +25,11 @@ const FAQ = () => {
     },
     {
       question: "How are books delivered?",
-      answer: "We partner with The Courier Guy to handle deliveries. Once the seller confirms the sale, shipping is arranged and tracking is provided."
+      answer: "Once the seller confirms the sale, shipping is arranged with our trusted courier partners. A tracking link will be provided so you can follow your delivery."
     },
     {
       question: "Can I track my delivery?",
-      answer: "Yes. As soon as shipping is booked with Courier Guy, a tracking link will be sent to your email and visible in your dashboard."
+      answer: "Yes. Once shipping is arranged, a tracking link will be sent to your email and visible in your dashboard so you can monitor your delivery in real-time."
     },
     {
       question: "Is ReBooked Solutions safe to use?",
@@ -37,7 +37,7 @@ const FAQ = () => {
     },
     {
       question: "What kinds of books can I list?",
-      answer: "We accept academic, school, and university-level books, as well as exam prep guides and study material. Books must be genuine and in good condition."
+      answer: "We accept all types of books. Whether they're academic, school, university-level, exam prep guides, study materials, or any other books, as long as they're genuine and in good condition, you can list them on ReBooked Solutions."
     },
     {
       question: "Do I need to pay to list a book?",

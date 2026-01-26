@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import debugLogger from "@/utils/debugLogger";
 
 const WEBHOOK_URL = "https://hook.relay.app/api/v1/playbook/cmj5lqoya3rfa0om18j7jhhxn/trigger/EcrGxmUckpkITHTHtZB9mQ";
 
@@ -32,10 +33,10 @@ const sendWebhook = async (eventType: string, data: any) => {
       },
     });
     if (error) {
-      console.error(`Webhook error for ${eventType}:`, error);
+      debugLogger.error("reportService", `Webhook error for ${eventType}:`, error);
     }
   } catch (error) {
-    console.error(`Error sending webhook for ${eventType}:`, error);
+    debugLogger.error("reportService", `Error sending webhook for ${eventType}:`, error);
   }
 };
 
@@ -82,7 +83,7 @@ export const submitReport = async (
       reason,
       status: "pending",
       createdAt,
-    }).catch(err => console.error("Webhook send failed:", err));
+    }).catch(err => debugLogger.error("reportService", "Webhook send failed:", err));
 
     return { id };
   } catch (error) {
@@ -120,7 +121,7 @@ export const submitBookReport = async (
       reason: reportData.reason,
       status: "pending",
       createdAt,
-    }).catch(err => console.error("Webhook send failed:", err));
+    }).catch(err => debugLogger.error("reportService", "Webhook send failed:", err));
 
   } catch (error) {
     throw error;

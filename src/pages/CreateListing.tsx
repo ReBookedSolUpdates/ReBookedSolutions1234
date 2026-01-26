@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import BackButton from "@/components/ui/BackButton";
 import Layout from "@/components/Layout";
@@ -7,12 +7,14 @@ import { Button } from "@/components/ui/button";
 import { createBook } from "@/services/book/bookMutations";
 import { BookFormData } from "@/types/book";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Loader2, AlertTriangle, Sparkles } from "lucide-react";
 import EnhancedMobileImageUpload from "@/components/EnhancedMobileImageUpload";
 import FirstUploadSuccessDialog from "@/components/FirstUploadSuccessDialog";
 import PostListingSuccessDialog from "@/components/PostListingSuccessDialog";
 import ShareProfileDialog from "@/components/ShareProfileDialog";
 import CommitReminderModal from "@/components/CommitReminderModal";
+import { AIPreviewModal } from "@/components/create-listing/AIPreviewModal";
+import AIAnalysisModal from "@/components/create-listing/AIAnalysisModal";
 import {
   shouldShowCommitReminder,
   shouldShowFirstUpload,
@@ -30,7 +32,8 @@ import { BookInformationForm } from "@/components/create-listing/BookInformation
 import { PricingSection } from "@/components/create-listing/PricingSection";
 import { BookTypeSection } from "@/components/create-listing/BookTypeSection";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { canUserListBooks } from "@/services/addressValidationService";
+import { getSellerDeliveryAddress } from "@/services/simplifiedAddressService";
+import { fallbackAddressService } from "@/services/fallbackAddressService";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -78,59 +81,87 @@ const CreateListing = () => {
   const [canListBooks, setCanListBooks] = useState<boolean | null>(null);
   const [isCheckingAddress, setIsCheckingAddress] = useState(true);
   const [preferredPickupMethod, setPreferredPickupMethod] = useState<"locker" | "pickup" | null>(null);
+  const [isProcessingAI, setIsProcessingAI] = useState(false);
+  const [aiPreview, setAiPreview] = useState<any>(null);
+  const [showAIPreview, setShowAIPreview] = useState(false);
+  const [showAIReadyButton, setShowAIReadyButton] = useState(false);
+  const [showAIWarning, setShowAIWarning] = useState(false);
+  const [showAIAnalysisModal, setShowAIAnalysisModal] = useState(false);
+
+  // Use ref to prevent multiple address checks
+  const addressCheckDoneRef = useRef(false);
 
   // Check if user can list books on component mount
   useEffect(() => {
     const checkAddressStatus = async () => {
-      if (!user) {
+      if (!user?.id || addressCheckDoneRef.current) {
         setCanListBooks(false);
         setIsCheckingAddress(false);
         return;
       }
 
+      // Mark that we're checking to prevent duplicate checks
+      addressCheckDoneRef.current = true;
+
       try {
-        const canList = await canUserListBooks(user.id);
-        setCanListBooks(canList);
+        let hasValidAddress = false;
+        let preferredMethod: "locker" | "pickup" | null = null;
 
-        // Auto-determine preferred pickup method based on what addresses user has
-        // Priority: locker > pickup (if both exist, use locker)
-        try {
-          const { data: profile, error } = await supabase
-            .from("profiles")
-            .select("preferred_delivery_locker_data")
-            .eq("id", user.id)
-            .maybeSingle();
+        // Run locker and address checks in parallel for speed
+        const [lockerResult, pickupResult] = await Promise.all([
+          // Check locker
+          (async () => {
+            try {
+              const { data: profile, error } = await supabase
+                .from("profiles")
+                .select("preferred_delivery_locker_data")
+                .eq("id", user.id)
+                .maybeSingle();
 
-          // If user has a locker saved, prefer locker
-          if (!error && profile?.preferred_delivery_locker_data) {
-            const lockerData = profile.preferred_delivery_locker_data as any;
-            if (lockerData.id && lockerData.name) {
-              setPreferredPickupMethod("locker");
-              return;
+              if (!error && profile?.preferred_delivery_locker_data) {
+                const lockerData = profile.preferred_delivery_locker_data as any;
+                if (lockerData.id && lockerData.name) {
+                  return { hasLocker: true };
+                }
+              }
+              return { hasLocker: false };
+            } catch {
+              return { hasLocker: false };
             }
-          }
+          })(),
+          // Check pickup address
+          (async () => {
+            try {
+              const decrypted = await getSellerDeliveryAddress(user.id);
+              if (decrypted && (decrypted.street || decrypted.streetAddress)) {
+                return { hasPickup: true };
+              }
 
-          // If no locker, check for pickup address
-          const { getSellerDeliveryAddress } = await import("@/services/simplifiedAddressService");
-          const decrypted = await getSellerDeliveryAddress(user.id);
-
-          if (decrypted && (decrypted.street || decrypted.streetAddress)) {
-            setPreferredPickupMethod("pickup");
-            return;
-          }
-
-          // Fallback: check user_addresses table
-          const fallbackModule = await import("@/services/fallbackAddressService");
-          const fallbackSvc = fallbackModule?.default || fallbackModule?.fallbackAddressService;
-          if (fallbackSvc && typeof fallbackSvc.getBestAddress === 'function') {
-            const best = await fallbackSvc.getBestAddress(user.id, 'pickup');
-            if (best && best.success && best.address) {
-              setPreferredPickupMethod("pickup");
+              // Try fallback if primary check fails
+              if (fallbackAddressService && typeof fallbackAddressService.getBestAddress === 'function') {
+                const best = await fallbackAddressService.getBestAddress(user.id, 'pickup');
+                if (best?.success && best.address) {
+                  return { hasPickup: true };
+                }
+              }
+              return { hasPickup: false };
+            } catch {
+              return { hasPickup: false };
             }
-          }
-        } catch (error) {
-          // Auto-determination failed but user can still list - will be determined at save time
+          })(),
+        ]);
+
+        // Determine preferred method and whether user can list
+        if (lockerResult.hasLocker) {
+          preferredMethod = "locker";
+          hasValidAddress = true;
+        } else if (pickupResult.hasPickup) {
+          preferredMethod = "pickup";
+          hasValidAddress = true;
         }
+
+        setCanListBooks(hasValidAddress);
+        setPreferredPickupMethod(preferredMethod);
       } catch (error) {
         setCanListBooks(false);
       } finally {
@@ -139,7 +170,7 @@ const CreateListing = () => {
     };
 
     checkAddressStatus();
-  }, [user]);
+  }, [user?.id]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -191,6 +222,128 @@ const CreateListing = () => {
     setFormData(updatedFormData);
   };
 
+  const handleRunAIAutoFill = async () => {
+    // Validate all 3 images are uploaded
+    if (!bookImages.frontCover || !bookImages.backCover || !bookImages.insidePages) {
+      toast.error("All three images (front cover, back cover, inside pages) must be uploaded");
+      return;
+    }
+
+    setIsProcessingAI(true);
+
+    try {
+      // Call the Edge Function to extract book details
+      const { data, error } = await supabase.functions.invoke('extract-book-details', {
+        body: {
+          frontCoverUrl: bookImages.frontCover,
+          backCoverUrl: bookImages.backCover,
+          insidePagesUrl: bookImages.insidePages,
+          hints: {
+            curriculum: (formData as any).curriculum,
+            grade: formData.grade,
+          },
+        },
+      });
+
+      if (error || !data.success) {
+        toast.error(data?.message || "Failed to extract book details. Please try again.");
+        return;
+      }
+
+      // Show the preview modal with extracted data
+      setAiPreview(data.data);
+      setShowAIPreview(true);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      toast.error(`AI processing failed: ${errorMessage}`);
+    } finally {
+      setIsProcessingAI(false);
+    }
+  };
+
+  const handleAcceptAIResults = (extractedData: Partial<BookFormData>) => {
+    // Apply the extracted data to the form
+    const updatedFormData = {
+      ...formData,
+      ...extractedData,
+    };
+
+    setFormData(updatedFormData);
+    setShowAIPreview(false);
+    setShowAIWarning(true);
+
+    // Clear any previous errors for the fields we just auto-filled
+    const fieldsToClean = ['title', 'author', 'description', 'price', 'condition', 'isbn', 'grade', 'curriculum'];
+    const updatedErrors = { ...errors };
+    fieldsToClean.forEach(field => {
+      if (updatedErrors[field]) {
+        delete updatedErrors[field];
+      }
+    });
+    setErrors(updatedErrors);
+
+    toast.success("Book details auto-filled! Please review before publishing.", {
+      description: "You can edit any field as needed.",
+    });
+  };
+
+  const handleRetryAI = () => {
+    setShowAIPreview(false);
+    handleRunAIAutoFill();
+  };
+
+  const handleAIAnalysisComplete = (extractedData: Partial<BookFormData>) => {
+    // Apply the extracted data to the form
+    const updatedFormData = {
+      ...formData,
+      ...extractedData,
+    };
+
+    setFormData(updatedFormData);
+
+    // Update book images if they were provided by AI
+    if (extractedData.frontCover || extractedData.backCover || extractedData.insidePages) {
+      setBookImages((prev) => ({
+        ...prev,
+        frontCover: extractedData.frontCover || prev.frontCover,
+        backCover: extractedData.backCover || prev.backCover,
+        insidePages: extractedData.insidePages || prev.insidePages,
+      }));
+    }
+
+    setShowAIAnalysisModal(false);
+    setShowAIWarning(true);
+
+    // Clear any previous errors for the fields we just auto-filled
+    const fieldsToClean = [
+      "title",
+      "author",
+      "description",
+      "price",
+      "condition",
+      "isbn",
+      "grade",
+      "curriculum",
+      "universityYear",
+      "university",
+      "genre",
+      "frontCover",
+      "backCover",
+      "insidePages",
+    ];
+    const updatedErrors = { ...errors };
+    fieldsToClean.forEach((field) => {
+      if (updatedErrors[field]) {
+        delete updatedErrors[field];
+      }
+    });
+    setErrors(updatedErrors);
+
+    toast.success("Book details auto-filled! Please review before publishing.", {
+      description: "You can edit any field as needed.",
+    });
+  };
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
@@ -205,8 +358,13 @@ const CreateListing = () => {
     if (!formData.quantity || formData.quantity < 1)
       newErrors.quantity = "Quantity must be at least 1";
 
-    if (bookType === "school" && !formData.grade) {
-      newErrors.grade = "Grade is required for school books";
+    if (bookType === "school") {
+      if (!formData.grade) {
+        newErrors.grade = "Grade is required for school books";
+      }
+      if (!(formData as any).curriculum) {
+        newErrors.curriculum = "Curriculum is required for school books";
+      }
     }
 
     if (bookType === "university" && !formData.universityYear) {
@@ -285,10 +443,13 @@ const CreateListing = () => {
         throw new Error("Please enter a valid price greater than R0");
       }
 
-      const createdBook = await createBook({
-        ...bookData,
-        quantity: formData.quantity || 1,
-      });
+      const createdBook = await createBook(
+        {
+          ...bookData,
+          quantity: formData.quantity || 1,
+        },
+        showAIWarning // Pass aiAssisted flag based on whether AI was used
+      );
 
       // Create success notification
       try {
@@ -387,6 +548,8 @@ const CreateListing = () => {
       });
 
       setErrors({});
+      setShowAIReadyButton(false);
+      setShowAIWarning(false);
     } catch (error) {
       const errorMessage =
         error instanceof Error
@@ -426,23 +589,35 @@ const CreateListing = () => {
           <div
             className={`bg-white rounded-lg shadow-md ${isMobile ? "p-4" : "p-8"}`}
           >
-            <h1
-              className="text-xl md:text-3xl font-bold text-book-800 mb-6 text-center"
-            >
-              Create New Listing
-            </h1>
+            <div className="flex items-center justify-between gap-4 mb-6">
+              <h1
+                className="text-xl md:text-3xl font-bold text-book-800 flex-1 text-center"
+              >
+                Create New Listing
+              </h1>
+              <Button
+                type="button"
+                onClick={() => setShowAIAnalysisModal(true)}
+                variant="outline"
+                className="flex items-center gap-2 whitespace-nowrap"
+              >
+                <Sparkles className="h-4 w-4" />
+                Use AI
+              </Button>
+            </div>
 
             <form
               onSubmit={handleSubmit}
               className="space-y-4 md:space-y-6"
             >
               <div
-                className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6"
+                className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8"
               >
                 <BookInformationForm
                   formData={formData}
                   errors={errors}
                   onInputChange={handleInputChange}
+                  showAIWarning={showAIWarning}
                 />
 
                 <div className="space-y-3 md:space-y-4">
@@ -470,6 +645,7 @@ const CreateListing = () => {
                   }
                   variant="object"
                   maxImages={5}
+                  onAllRequiredImagesReady={() => setShowAIReadyButton(true)}
                 />
                 {(errors.frontCover ||
                   errors.backCover ||
@@ -528,6 +704,13 @@ const CreateListing = () => {
             </form>
           </div>
 
+          <AIAnalysisModal
+            open={showAIAnalysisModal}
+            onClose={() => setShowAIAnalysisModal(false)}
+            onAnalysisComplete={handleAIAnalysisComplete}
+            bookType={bookType}
+          />
+
           <FirstUploadSuccessDialog
             isOpen={showFirstUploadDialog}
             onClose={async () => {
@@ -579,6 +762,15 @@ const CreateListing = () => {
               await handlePostCommitFlow();
             }}
             type="seller"
+          />
+
+          <AIPreviewModal
+            open={showAIPreview}
+            extractedData={aiPreview}
+            isLoading={isProcessingAI}
+            onAccept={handleAcceptAIResults}
+            onCancel={() => setShowAIPreview(false)}
+            onRetry={handleRetryAI}
           />
         </BankingRequirementCheck>
       </div>

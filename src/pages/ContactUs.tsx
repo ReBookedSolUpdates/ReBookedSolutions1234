@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Mail, Send, Instagram, Facebook, Clock } from "lucide-react";
-import XIcon from "@/components/icons/XIcon";
 import { submitContactMessage } from "@/services/contactService";
 import TikTokIcon from "@/components/icons/TikTokIcon";
 
@@ -183,16 +182,7 @@ const ContactUs = () => {
                 <h3 className="text-lg font-semibold text-gray-800">
                   Follow Us
                 </h3>
-                <div className="grid grid-cols-4 gap-3">
-                  <a
-                    href="https://x.com/RebookedSol"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 border border-book-200 hover:bg-book-50 text-gray-700 px-3 py-2 rounded-lg transition-colors"
-                  >
-                    <XIcon className="h-5 w-5" />
-                    <span>X</span>
-                  </a>
+                <div className="grid grid-cols-3 gap-3">
                   <a
                     href="https://www.instagram.com/rebooked.solutions?igsh=M2ZsNjd2aTNmZmRh"
                     target="_blank"

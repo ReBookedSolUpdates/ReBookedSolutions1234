@@ -175,83 +175,56 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="text-center px-4">
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
-          Track Your Package
-        </h2>
-        <p className="text-sm sm:text-base text-gray-600">
-          Enter your tracking number to see real-time delivery updates
-        </p>
-      </div>
-
+    <div className="space-y-8 max-w-2xl mx-auto">
       {/* Search Section */}
-      <Card className="border-0 shadow-lg">
-        <CardContent className="p-4 sm:p-6">
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-            <div className="flex-1">
-              <Input
-                placeholder="Enter tracking number"
-                value={trackingNumber}
-                onChange={(e) => setTrackingNumber(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleTrack()}
-                className="text-sm sm:text-base h-10 sm:h-12 border-2 border-gray-300 focus:border-blue-600 focus:ring-blue-600"
-              />
-            </div>
-            <Button
-              onClick={handleTrack}
-              disabled={loading || !trackingNumber.trim()}
-              className="bg-blue-600 hover:bg-blue-700 text-white h-10 sm:h-12 px-4 sm:px-8 font-semibold rounded-lg transition text-sm sm:text-base w-full sm:w-auto"
-            >
-              {loading ? (
-                <>
-                  <div className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin mr-2"></div>
-                  <span className="hidden sm:inline">Tracking...</span>
-                  <span className="sm:hidden">Track</span>
-                </>
-              ) : (
-                <>
-                  <Search className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline">Track</span>
-                  <span className="sm:hidden">Search</span>
-                </>
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="w-full">
+        <div className="flex flex-col gap-3">
+          <Input
+            placeholder="Enter tracking number (e.g., TRK123456789)"
+            value={trackingNumber}
+            onChange={(e) => setTrackingNumber(e.target.value)}
+            onKeyPress={(e) => e.key === "Enter" && handleTrack()}
+            className="h-12 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          <Button
+            onClick={handleTrack}
+            disabled={loading || !trackingNumber.trim()}
+            className="bg-blue-600 hover:bg-blue-700 text-white h-12 font-semibold rounded-lg transition w-full"
+          >
+            {loading ? (
+              <>
+                <div className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin mr-2"></div>
+                Tracking...
+              </>
+            ) : (
+              <>
+                <Search className="h-4 w-4 mr-2" />
+                Track Order
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
 
       {/* Loading State */}
       {loading && (
-        <Card className="border-0 shadow-lg">
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center justify-center gap-3 sm:gap-4">
-                <div className="relative flex-shrink-0">
-                  <div className="h-8 sm:h-12 w-8 sm:w-12 rounded-full border-3 sm:border-4 border-gray-200 border-t-blue-600 animate-spin"></div>
-                </div>
-                <div className="min-w-0">
-                  <p className="font-semibold text-gray-900 text-sm sm:text-lg">Tracking your package...</p>
-                  <p className="text-xs sm:text-sm text-gray-600 mt-1">Please wait a moment</p>
-                </div>
-              </div>
-            </CardContent>
-          </div>
-        </Card>
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="h-8 w-8 rounded-full border-3 border-gray-200 border-t-blue-600 animate-spin mb-4"></div>
+          <p className="text-gray-600 font-medium">Tracking your package...</p>
+        </div>
       )}
 
       {/* Error State */}
       {error && (
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="flex flex-col items-center justify-center p-4 sm:p-8">
-            <AlertCircle className="h-10 sm:h-12 w-10 sm:w-12 text-red-500 mb-3 sm:mb-4" />
-            <h3 className="text-base sm:text-lg font-semibold text-red-900 mb-2">
-              Tracking Failed
-            </h3>
-            <p className="text-red-700 text-center text-sm sm:text-base break-words">{error}</p>
-          </CardContent>
-        </Card>
+        <div className="rounded-lg bg-red-50 border border-red-200 p-4">
+          <div className="flex gap-3">
+            <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-red-900 text-sm">Tracking failed</p>
+              <p className="text-red-700 text-sm mt-1">{error}</p>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Tracking Results */}
@@ -271,12 +244,22 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
           )}
 
           {/* Courier Header with Logo */}
-          <Card className="border-0 shadow-lg overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 border-b border-blue-100">
+          <Card className="border border-gray-200 shadow-sm">
+            <div className="bg-white border-b border-gray-200">
               <CardHeader className="p-4 sm:p-6">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                {/* BobGo Logo Banner */}
+                {trackingData.bobgo_logo && (
+                  <div className="flex justify-center mb-4 pb-4 border-b border-gray-200">
+                    <img
+                      src={trackingData.bobgo_logo}
+                      alt="BobGo Logo"
+                      className="h-8 sm:h-10 object-contain"
+                    />
+                  </div>
+                )}
+                <div className="flex flex-col sm:flex-row items-center sm:items-center gap-4 justify-center">
                   {/* Courier Logo and Info */}
-                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                  <div className="flex items-center gap-3 flex-1 min-w-0 justify-center sm:justify-start">
                     {trackingData.courier_logo ? (
                       <img
                         src={trackingData.courier_logo}
@@ -288,19 +271,19 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
                         <Truck className="h-8 w-8 sm:h-10 sm:w-10 text-gray-400" />
                       </div>
                     )}
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 text-center sm:text-left">
                       <h2 className="text-lg sm:text-2xl font-bold text-gray-900 break-words">
                         {trackingData.courier_name || "BobGo Shipment"}
                       </h2>
                       {trackingData.courier_phone && (
-                        <div className="flex items-center gap-1 mt-1 text-xs sm:text-sm text-gray-600">
+                        <div className="flex items-center gap-1 mt-1 text-xs sm:text-sm text-gray-600 justify-center sm:justify-start">
                           <Phone className="h-3 sm:h-4 w-3 sm:w-4 flex-shrink-0" />
                           <span className="font-medium">{trackingData.courier_phone}</span>
                         </div>
                       )}
                       {trackingData.service_level && (
-                        <p className="text-xs sm:text-sm text-gray-600 mt-1 break-words">
-                          {trackingData.service_level}
+                        <p className="text-xs sm:text-sm text-gray-600 mt-2 break-words font-semibold bg-blue-50 inline-block px-2 py-1 rounded">
+                          Service: {trackingData.service_level}
                         </p>
                       )}
                     </div>
@@ -320,7 +303,7 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
             <CardContent className="space-y-5 p-4 sm:p-6">
               {/* Merchant/Seller Info */}
               {trackingData.merchant_name && (
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-3 sm:p-4 border border-purple-200">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-center bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200 justify-center">
                   {trackingData.merchant_logo && (
                     <img
                       src={trackingData.merchant_logo}
@@ -328,7 +311,7 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
                       className="h-12 w-12 sm:h-14 sm:w-14 object-contain rounded border border-gray-200 bg-white p-0.5 flex-shrink-0"
                     />
                   )}
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 text-center sm:text-left">
                     <p className="text-xs font-semibold text-purple-700 uppercase tracking-wide">Merchant / Seller</p>
                     <p className="text-sm sm:text-base font-bold text-gray-900 break-words">
                       {trackingData.merchant_name}
@@ -339,13 +322,13 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
 
               {/* Tracking Numbers Section */}
               <div className="space-y-3">
-                <p className="text-xs font-bold text-gray-700 uppercase tracking-wide">Tracking Details</p>
+                <p className="text-xs font-bold text-gray-700 uppercase tracking-wide text-center">Tracking Details</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {/* Primary Tracking Number */}
-                  <div className="bg-white rounded-lg border border-gray-300 p-3 sm:p-4 hover:border-blue-400 transition">
-                    <p className="text-xs font-semibold text-gray-600 uppercase mb-1">Tracking Number</p>
-                    <div className="flex items-center justify-between gap-2 min-w-0">
-                      <p className="font-mono font-bold text-xs sm:text-sm text-gray-900 break-all">
+                  <div className="bg-white rounded-lg border border-gray-300 p-3 sm:p-4 hover:border-blue-400 transition sm:col-span-2">
+                    <p className="text-xs font-semibold text-gray-600 uppercase mb-1 text-center">Tracking Number</p>
+                    <div className="flex items-center justify-center gap-2 min-w-0">
+                      <p className="font-mono font-bold text-xs sm:text-sm text-gray-900 break-all text-center">
                         {trackingData.tracking_number}
                       </p>
                       <button
@@ -357,25 +340,6 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
                       </button>
                     </div>
                   </div>
-
-                  {/* Shipment ID */}
-                  {trackingData.shipment_id && (
-                    <div className="bg-white rounded-lg border border-gray-300 p-3 sm:p-4 hover:border-blue-400 transition">
-                      <p className="text-xs font-semibold text-gray-600 uppercase mb-1">Shipment ID</p>
-                      <div className="flex items-center justify-between gap-2 min-w-0">
-                        <p className="font-mono font-bold text-xs sm:text-sm text-gray-900 break-all">
-                          {trackingData.shipment_id}
-                        </p>
-                        <button
-                          onClick={() => copyToClipboard(trackingData.shipment_id || "")}
-                          className="text-gray-400 hover:text-gray-600 transition flex-shrink-0"
-                          title="Copy to clipboard"
-                        >
-                          <Copy className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-                  )}
 
                   {/* Custom Tracking Reference */}
                   {trackingData.custom_tracking_reference && (
@@ -409,23 +373,17 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
               </div>
 
               {/* Current Status & Location */}
-              <div className={`flex items-start sm:items-center space-x-3 sm:space-x-4 p-3 sm:p-5 rounded-xl border-2 ${
-                trackingData.status === "delivered" || trackingData.status === "ready-for-pickup"
-                  ? "bg-green-50 border-green-200"
-                  : trackingData.status === "cancelled"
-                  ? "bg-red-50 border-red-200"
-                  : "bg-blue-50 border-blue-200"
-              }`}>
+              <div className="flex items-center space-x-3 sm:space-x-4 p-4 rounded-lg border border-gray-200 bg-white justify-center">
                 <div className="flex-shrink-0">
                   {getStatusIcon(trackingData.status)}
                 </div>
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 text-center">
                   <h4 className="font-bold text-gray-900 text-base sm:text-lg">
                     {getStatusText(trackingData.status)}
                   </h4>
                   {trackingData.current_location && (
-                    <p className="text-xs sm:text-sm text-gray-700 mt-1 flex items-start gap-1 flex-wrap">
-                      <MapPin className="h-3 sm:h-4 w-3 sm:w-4 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs sm:text-sm text-gray-700 mt-1 flex items-center gap-1 flex-wrap justify-center">
+                      <MapPin className="h-3 sm:h-4 w-3 sm:w-4 flex-shrink-0" />
                       <span className="break-words">{trackingData.current_location}</span>
                     </p>
                   )}
@@ -436,10 +394,10 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {/* Created At */}
                 {trackingData.created_at && (
-                  <div className="bg-blue-50 rounded-lg p-3 sm:p-4 border border-blue-200">
+                  <div className="bg-white rounded-lg p-3 sm:p-4 border border-gray-200">
                     <div className="flex items-start space-x-2 mb-2">
-                      <Calendar className="h-4 w-4 text-blue-600 flex-shrink-0 mt-0.5" />
-                      <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Created</p>
+                      <Calendar className="h-4 w-4 text-gray-600 flex-shrink-0 mt-0.5" />
+                      <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Created</p>
                     </div>
                     <p className="font-bold text-gray-900 text-xs sm:text-sm break-words">
                       {formatDateTime(trackingData.created_at)}
@@ -449,10 +407,10 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
 
                 {/* Estimated Delivery */}
                 {trackingData.estimated_delivery && trackingData.estimated_delivery.trim() && (
-                  <div className="bg-orange-50 rounded-lg p-3 sm:p-4 border border-orange-200">
+                  <div className="bg-white rounded-lg p-3 sm:p-4 border border-gray-200">
                     <div className="flex items-start space-x-2 mb-2">
-                      <Clock className="h-4 w-4 text-orange-600 flex-shrink-0 mt-0.5" />
-                      <p className="text-xs font-semibold text-orange-700 uppercase tracking-wide">Est. Delivery</p>
+                      <Clock className="h-4 w-4 text-gray-600 flex-shrink-0 mt-0.5" />
+                      <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Est. Delivery</p>
                     </div>
                     <p className="font-bold text-gray-900 text-xs sm:text-sm break-words">
                       {formatDateTime(trackingData.estimated_delivery)}
@@ -462,10 +420,10 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
 
                 {/* Actual Delivery */}
                 {trackingData.actual_delivery && trackingData.actual_delivery.trim() && (
-                  <div className="bg-green-50 rounded-lg p-3 sm:p-4 border border-green-200">
+                  <div className="bg-white rounded-lg p-3 sm:p-4 border border-gray-200">
                     <div className="flex items-start space-x-2 mb-2">
-                      <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
-                      <p className="text-xs font-semibold text-green-700 uppercase tracking-wide">Delivered</p>
+                      <CheckCircle className="h-4 w-4 text-gray-600 flex-shrink-0 mt-0.5" />
+                      <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Delivered</p>
                     </div>
                     <p className="font-bold text-gray-900 text-xs sm:text-sm break-words">
                       {formatDateTime(trackingData.actual_delivery)}
@@ -492,7 +450,7 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
                 <>
                   <Separator className="my-2" />
                   <div className="space-y-3">
-                    <p className="text-xs font-bold text-gray-700 uppercase tracking-wide">Order Information</p>
+                    <p className="text-xs font-bold text-gray-700 uppercase tracking-wide text-center">Order Information</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {trackingData.order_number && (
                         <div className="bg-white rounded-lg border border-gray-300 p-3 sm:p-4">
@@ -517,9 +475,9 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
 
               {/* Recipient Signature */}
               {trackingData.recipient_signature && (
-                <div className="flex items-center space-x-2 sm:space-x-3 p-3 sm:p-4 bg-green-50 rounded-lg border border-green-200">
+                <div className="flex items-center space-x-2 sm:space-x-3 p-3 sm:p-4 bg-green-50 rounded-lg border border-green-200 justify-center">
                   <User className="h-4 sm:h-5 w-4 sm:w-5 text-green-600 flex-shrink-0" />
-                  <div className="min-w-0">
+                  <div className="min-w-0 text-center">
                     <p className="text-xs font-semibold text-green-700 uppercase">Signed by</p>
                     <p className="font-medium text-gray-900 text-xs sm:text-sm break-words">
                       {trackingData.recipient_signature}
@@ -544,17 +502,13 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
 
           {/* Tracking History */}
           {trackingData.events.length > 0 && (
-            <Card className="border-0 shadow-lg">
-              <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-b border-orange-100">
-                <CardHeader className="p-4 sm:p-6">
-                  <CardTitle className="flex items-center space-x-2 sm:space-x-3 text-lg sm:text-xl font-bold text-gray-900">
-                    <div className="bg-white rounded-full p-1.5 sm:p-2 shadow-md flex-shrink-0">
-                      <Clock className="h-4 sm:h-5 w-4 sm:w-5 text-orange-600" />
-                    </div>
-                    <span>Tracking History ({trackingData.events.length})</span>
-                  </CardTitle>
-                </CardHeader>
-              </div>
+            <Card className="border border-gray-200 shadow-sm">
+              <CardHeader className="p-4 sm:p-6 border-b border-gray-200">
+                <CardTitle className="flex items-center space-x-3 text-lg font-bold text-gray-900 justify-center">
+                  <Clock className="h-5 w-5 text-gray-600" />
+                  <span>Tracking History ({trackingData.events.length})</span>
+                </CardTitle>
+              </CardHeader>
               <CardContent className="p-3 sm:p-6">
                 <div className="space-y-0">
                   {trackingData.events.map((event, index) => (
@@ -575,7 +529,7 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
 
                         {/* Content */}
                         <div className="flex-1 bg-white rounded-lg border border-gray-200 p-3 sm:p-4 hover:shadow-md transition hover:border-blue-300 min-w-0">
-                          <div className="flex flex-col gap-1 mb-2">
+                          <div className="flex flex-col gap-1 mb-2 items-center text-center">
                             <h4 className="font-bold text-gray-900 text-xs sm:text-sm break-words">
                               {event.description}
                             </h4>
@@ -585,15 +539,15 @@ const UnifiedTrackingComponent: React.FC<UnifiedTrackingComponentProps> = ({
                           </div>
 
                           {event.location && (
-                            <div className="flex items-start text-xs sm:text-sm text-gray-600 mt-2 gap-1">
-                              <MapPin className="h-3 sm:h-4 w-3 sm:w-4 mr-1 flex-shrink-0 text-gray-400 mt-0.5" />
+                            <div className="flex items-center justify-center text-xs sm:text-sm text-gray-600 mt-2 gap-1">
+                              <MapPin className="h-3 sm:h-4 w-3 sm:w-4 flex-shrink-0 text-gray-400" />
                               <span className="font-medium break-words">{event.location}</span>
                             </div>
                           )}
 
                           {event.signature && (
-                            <div className="flex items-center text-xs sm:text-sm text-green-700 bg-green-50 rounded p-2 mt-2 border border-green-200 gap-1">
-                              <CheckCircle className="h-3 sm:h-4 w-3 sm:w-4 mr-1 flex-shrink-0" />
+                            <div className="flex items-center justify-center text-xs sm:text-sm text-green-700 bg-green-50 rounded p-2 mt-2 border border-green-200 gap-1">
+                              <CheckCircle className="h-3 sm:h-4 w-3 sm:w-4 flex-shrink-0" />
                               <span className="font-medium break-words">Signed by: {event.signature}</span>
                             </div>
                           )}

@@ -19,6 +19,7 @@ import { extractBookId } from "@/utils/bookUtils";
 import { toast } from "sonner";
 import { ActivityService } from "@/services/activityService";
 import { useBookTracking } from "@/hooks/useBookTracking";
+import debugLogger from "@/utils/debugLogger";
 
 const BookDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -109,7 +110,7 @@ const BookDetails = () => {
       try {
         await ActivityService.trackAddToCart(book.id, user.id, 1, book.price);
       } catch (trackingError) {
-        console.error("Error tracking add to cart:", trackingError);
+        debugLogger.error("BookDetails", "Error tracking add to cart:", trackingError);
       }
     } catch (error) {
       toast.error("Failed to add book to cart. Please try again.");
@@ -137,7 +138,7 @@ const BookDetails = () => {
     try {
       await ActivityService.trackBookShare(book.id, user?.id);
     } catch (trackingError) {
-      console.error("Error tracking book share:", trackingError);
+      debugLogger.error("BookDetails", "Error tracking book share:", trackingError);
     }
 
     if (navigator.share) {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,8 @@ import {
 import { Share2, Copy, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { ActivityService } from "@/services/activityService";
+import { supabase } from "@/integrations/supabase/client";
+import debugLogger from "@/utils/debugLogger";
 
 interface ShareProfileDialogProps {
   isOpen: boolean;
@@ -29,7 +31,24 @@ const ShareProfileDialog = ({
   userName,
   isOwnProfile,
 }: ShareProfileDialogProps) => {
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const profileUrl = `${window.location.origin}/seller/${userId}`;
+
+  // Get current authenticated user's ID for activity tracking
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        setCurrentUserId(user?.id || null);
+      } catch (error) {
+        setCurrentUserId(null);
+      }
+    };
+
+    if (isOpen) {
+      getCurrentUser();
+    }
+  }, [isOpen]);
 
   const copyProfileLink = async () => {
     try {
@@ -49,11 +68,13 @@ const ShareProfileDialog = ({
         textArea.remove();
       }
 
-      // Track link copy (non-blocking)
-      try {
-        await ActivityService.trackMiniLinkShare(userId, undefined);
-      } catch (trackingError) {
-        console.error("Error tracking link share:", trackingError);
+      // Track link copy (non-blocking) - only if user is signed in
+      if (currentUserId) {
+        try {
+          await ActivityService.trackMiniLinkShare(userId, currentUserId);
+        } catch (trackingError) {
+          debugLogger.error("ShareProfileDialog", "Error tracking link share:", trackingError);
+        }
       }
 
       toast.success("Profile link copied! 📋 Share it everywhere to sell faster!");
@@ -97,11 +118,13 @@ const ShareProfileDialog = ({
             document.execCommand('copy');
             textArea.remove();
           }
-          // Track share (non-blocking)
-          try {
-            await ActivityService.trackSocialShare(userId, undefined, platform);
-          } catch (trackingError) {
-            console.error("Error tracking social share:", trackingError);
+          // Track share (non-blocking) - only if user is signed in
+          if (currentUserId) {
+            try {
+              await ActivityService.trackSocialShare(userId, currentUserId, platform);
+            } catch (trackingError) {
+              debugLogger.error("ShareProfileDialog", "Error tracking social share:", trackingError);
+            }
           }
           toast.success(
             "Text and link copied! Paste it in your Instagram story or post.",
@@ -115,11 +138,13 @@ const ShareProfileDialog = ({
         return;
     }
 
-    // Track share (non-blocking)
-    try {
-      await ActivityService.trackSocialShare(userId, undefined, platform);
-    } catch (trackingError) {
-      console.error("Error tracking social share:", trackingError);
+    // Track share (non-blocking) - only if user is signed in
+    if (currentUserId) {
+      try {
+        await ActivityService.trackSocialShare(userId, currentUserId, platform);
+      } catch (trackingError) {
+        debugLogger.error("ShareProfileDialog", "Error tracking social share:", trackingError);
+      }
     }
 
     window.open(shareUrl, "_blank", "width=600,height=400");
@@ -136,10 +161,10 @@ const ShareProfileDialog = ({
           </DialogTitle>
                     <DialogDescription>
             {isOwnProfile ? (
-              <div className="space-y-2">
-                <div>🚀 Share your profile to sell your books faster!</div>
-                <div className="text-sm text-gray-600">Post it on social media, send to classmates, or share in study groups - the more people see your books, the quicker they'll sell.</div>
-              </div>
+              <>
+                <span className="block">🚀 Share your profile to sell your books faster!</span>
+                <span className="block text-sm text-gray-600 mt-1">Post it on social media, send to classmates, or share in study groups - the more people see your books, the quicker they'll sell.</span>
+              </>
             ) : (
               <>Help {userName} sell their books by sharing their profile!</>
             )}

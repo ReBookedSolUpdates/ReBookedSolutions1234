@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import debugLogger from "@/utils/debugLogger";
 
 export interface DecryptedBankingDetails {
   account_number: string;
@@ -34,7 +35,7 @@ export class BankingDecryptionService {
         };
       }
 
-      console.log("🔓 Calling decrypt-banking-details edge function");
+      debugLogger.info("bankingDecryptionService", "🔓 Calling decrypt-banking-details edge function");
 
       const { data, error } = await supabase.functions.invoke(
         "decrypt-banking-details",
@@ -46,7 +47,7 @@ export class BankingDecryptionService {
       );
 
       if (error) {
-        console.error("Edge function error:", error);
+        debugLogger.error("bankingDecryptionService", "Edge function error:", error);
         
         // Handle specific edge function errors
         if (error.message?.includes("non-2xx status code") || 
@@ -70,7 +71,7 @@ export class BankingDecryptionService {
         };
       }
 
-      console.log("✅ Banking details decrypted successfully");
+      debugLogger.info("bankingDecryptionService", "✅ Banking details decrypted successfully");
 
       return {
         success: true,
@@ -78,7 +79,7 @@ export class BankingDecryptionService {
         sources: data.sources,
       };
     } catch (error) {
-      console.error("Error in decryptBankingDetails:", error);
+      debugLogger.error("bankingDecryptionService", "Error in decryptBankingDetails:", error);
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error occurred",

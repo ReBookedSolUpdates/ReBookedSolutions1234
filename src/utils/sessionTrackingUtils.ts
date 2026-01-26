@@ -1,4 +1,5 @@
 import { ActivityService } from "@/services/activityService";
+import debugLogger from "@/utils/debugLogger";
 
 const SESSION_START_TIME_KEY = "activity_session_start_time";
 const REFERRAL_CODE_KEY = "activity_referral_code";
@@ -20,7 +21,7 @@ export class SessionTrackingUtils {
       // Get or create session ID
       ActivityService.getSessionId();
     } catch (error) {
-      console.error("Error initializing session:", error);
+      debugLogger.error("sessionTrackingUtils", "Error initializing session:", error);
     }
   }
 
@@ -32,7 +33,7 @@ export class SessionTrackingUtils {
       const startTime = sessionStorage.getItem(SESSION_START_TIME_KEY);
       return startTime ? parseInt(startTime, 10) : null;
     } catch (error) {
-      console.error("Error getting session start time:", error);
+      debugLogger.error("sessionTrackingUtils", "Error getting session start time:", error);
       return null;
     }
   }
@@ -48,7 +49,7 @@ export class SessionTrackingUtils {
       }
       return Date.now() - startTime;
     } catch (error) {
-      console.error("Error calculating session duration:", error);
+      debugLogger.error("sessionTrackingUtils", "Error calculating session duration:", error);
       return 0;
     }
   }
@@ -89,7 +90,7 @@ export class SessionTrackingUtils {
         sessionStorage.setItem(REFERRAL_CODE_KEY, referralCode);
       }
     } catch (error) {
-      console.error("Error checking referral code:", error);
+      debugLogger.error("sessionTrackingUtils", "Error checking referral code:", error);
     }
   }
 
@@ -100,7 +101,7 @@ export class SessionTrackingUtils {
     try {
       return sessionStorage.getItem(REFERRAL_CODE_KEY);
     } catch (error) {
-      console.error("Error getting referral code:", error);
+      debugLogger.error("sessionTrackingUtils", "Error getting referral code:", error);
       return null;
     }
   }
@@ -114,7 +115,7 @@ export class SessionTrackingUtils {
       sessionStorage.removeItem(REFERRAL_CODE_KEY);
       ActivityService.clearSessionId();
     } catch (error) {
-      console.error("Error clearing session:", error);
+      debugLogger.error("sessionTrackingUtils", "Error clearing session:", error);
     }
   }
 }

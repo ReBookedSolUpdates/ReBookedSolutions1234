@@ -5,7 +5,7 @@ import { handleBookServiceError } from "./bookErrorHandler";
 import { BookQueryResult } from "./bookTypes";
 import { ActivityService } from "@/services/activityService";
 
-export const createBook = async (bookData: BookFormData): Promise<Book> => {
+export const createBook = async (bookData: BookFormData, aiAssisted: boolean = false): Promise<Book> => {
   try {
     const {
       data: { user },
@@ -114,6 +114,8 @@ export const createBook = async (bookData: BookFormData): Promise<Book> => {
       initial_quantity: quantity,
       available_quantity: quantity,
       sold_quantity: 0,
+      // Metadata for AI-assisted tracking
+      metadata: aiAssisted ? { ai_assisted: true } : {},
     };
 
 

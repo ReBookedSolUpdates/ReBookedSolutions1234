@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import debugLogger from "@/utils/debugLogger";
 
 export interface SubaccountDetails {
   business_name: string;
@@ -79,10 +80,10 @@ export class PaystackSubaccountService {
         .eq("id", userId);
 
       if (error) {
-        console.warn("Failed to update profile subaccount:", error);
+        debugLogger.warn("paystackSubaccountService", "Failed to update profile subaccount:", error);
       }
     } catch (error) {
-      console.warn("Error updating profile subaccount:", error);
+      debugLogger.warn("paystackSubaccountService", "Error updating profile subaccount:", error);
     }
   }
 
@@ -95,13 +96,13 @@ export class PaystackSubaccountService {
       const userId = session?.user?.id;
 
       if (!userId || !subaccountCode) {
-        console.warn("No user ID or subaccount code provided");
+        debugLogger.warn("paystackSubaccountService", "No user ID or subaccount code provided");
         return false;
       }
 
       // 📚 UPDATE ALL USER'S BOOKS WITH SUBACCOUNT CODE
       // First check if the column exists by trying a minimal select
-      console.log("Checking if seller_subaccount_code column exists...");
+      debugLogger.info("paystackSubaccountService", "Checking if seller_subaccount_code column exists...");
       let columnExists = true;
       try {
         const { error: checkError } = await supabase
@@ -110,17 +111,17 @@ export class PaystackSubaccountService {
           .limit(1);
 
         if (checkError) {
-          console.warn("Column check failed:", checkError.message);
+          debugLogger.warn("paystackSubaccountService", "Column check failed:", checkError.message);
           columnExists = false;
         }
       } catch (error) {
-        console.warn("seller_subaccount_code column doesn't exist in books table:", error);
+        debugLogger.warn("paystackSubaccountService", "seller_subaccount_code column doesn't exist in books table:", error);
         columnExists = false;
       }
 
       if (!columnExists) {
-        console.warn("Skipping book update - seller_subaccount_code column not found in database schema");
-        console.warn("This is expected if the database schema hasn't been updated yet");
+        debugLogger.warn("paystackSubaccountService", "Skipping book update - seller_subaccount_code column not found in database schema");
+        debugLogger.warn("paystackSubaccountService", "This is expected if the database schema hasn't been updated yet");
         return true; // Return success since the main operation completed
       }
 
@@ -133,26 +134,28 @@ export class PaystackSubaccountService {
 
       if (error) {
         const formattedError = this.formatError(error);
-        console.error(
+        debugLogger.error(
+          "paystackSubaccountService",
           "Error updating books with seller_subaccount_code:",
           formattedError,
         );
         // Don't return false immediately, log the error but continue
-        console.warn("Book update failed but continuing with subaccount creation");
-        console.warn("This might be because the books table doesn't have the seller_subaccount_code column yet");
-        console.warn("Error details:", formattedError);
+        debugLogger.warn("paystackSubaccountService", "Book update failed but continuing with subaccount creation");
+        debugLogger.warn("paystackSubaccountService", "This might be because the books table doesn't have the seller_subaccount_code column yet");
+        debugLogger.warn("paystackSubaccountService", "Error details:", formattedError);
         // Return true to not fail the subaccount creation process
         return true;
       }
 
       const updatedCount = data?.length || 0;
-      console.log(
+      debugLogger.info(
+        "paystackSubaccountService",
         `📚 ${updatedCount} books linked to subaccount ${subaccountCode} for user ${userId}`,
       );
 
       return true;
     } catch (error) {
-      console.error("Error linking books to subaccount:", error);
+      debugLogger.error("paystackSubaccountService", "Error linking books to subaccount:", error);
       return false;
     }
   }
@@ -181,7 +184,7 @@ export class PaystackSubaccountService {
 
       return null;
     } catch (error) {
-      console.error("Error getting user subaccount code:", error);
+      debugLogger.error("paystackSubaccountService", "Error getting user subaccount code:", error);
       return null;
     }
   }
@@ -331,27 +334,29 @@ export class PaystackSubaccountService {
     email?: string;
   }> {
     try {
-      console.log("🔍 getUserSubaccountStatus: Starting check...", { userId });
+      debugLogger.info("paystackSubaccountService", "🔍 getUserSubaccountStatus: Starting check...", { userId });
 
       if (!userId) {
-        console.log(
+        debugLogger.info(
+          "paystackSubaccountService",
           "📝 getUserSubaccountStatus: No userId provided, getting from auth...",
         );
         const {
           data: { user },
         } = await supabase.auth.getUser();
         if (!user) {
-          console.log(
+          debugLogger.info(
+            "paystackSubaccountService",
             "❌ getUserSubaccountStatus: No authenticated user found",
           );
           return { hasSubaccount: false, canEdit: false };
         }
         userId = user.id;
-        console.log("✅ getUserSubaccountStatus: Got user from auth:", userId);
+        debugLogger.info("paystackSubaccountService", "getUserSubaccountStatus: Got user from auth:", userId);
       }
 
       // First, check the profile table for subaccount_code
-      console.log("���� getUserSubaccountStatus: Checking profile table...");
+      debugLogger.info("paystackSubaccountService", "🔑 getUserSubaccountStatus: Checking profile table...");
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("subaccount_code, preferences")
@@ -359,14 +364,15 @@ export class PaystackSubaccountService {
         .single();
 
       if (profileError) {
-        console.warn(
+        debugLogger.warn(
+          "paystackSubaccountService",
           "❌ getUserSubaccountStatus: Error checking profile:",
           profileError,
         );
         return { hasSubaccount: false, canEdit: false };
       }
 
-      console.log("✅ getUserSubaccountStatus: Profile data:", {
+      debugLogger.info("paystackSubaccountService", "getUserSubaccountStatus: Profile data:", {
         subaccountCode: profileData?.subaccount_code,
         hasPreferences: !!profileData?.preferences,
       });
@@ -374,14 +380,16 @@ export class PaystackSubaccountService {
       const subaccountCode = profileData?.subaccount_code;
 
       if (!subaccountCode) {
-        console.log(
-          "❌ getUserSubaccountStatus: No subaccount code found in profile",
+        debugLogger.info(
+          "paystackSubaccountService",
+          "getUserSubaccountStatus: No subaccount code found in profile",
         );
         return { hasSubaccount: false, canEdit: false };
       }
 
-      console.log(
-        "✅ getUserSubaccountStatus: Found subaccount code:",
+      debugLogger.info(
+        "paystackSubaccountService",
+        "getUserSubaccountStatus: Found subaccount code:",
         subaccountCode,
       );
 
@@ -395,7 +403,8 @@ export class PaystackSubaccountService {
         .maybeSingle();
 
       if (subaccountError) {
-        console.warn(
+        debugLogger.warn(
+          "paystackSubaccountService",
           "Error fetching banking details (table may not exist):",
           subaccountError,
         );
@@ -446,7 +455,7 @@ export class PaystackSubaccountService {
         canEdit: true, // But form will show contact support message
       };
     } catch (error) {
-      console.error("Error in getUserSubaccountStatus:", error);
+      debugLogger.error("paystackSubaccountService", "Error in getUserSubaccountStatus:", error);
       return { hasSubaccount: false, canEdit: false };
     }
   }

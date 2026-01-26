@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { initializeBobPayPayment, processBobPayRefund } from '@/integrations/supabase/bobpay-client';
 import { toast } from 'sonner';
 import { OrderSummary, OrderConfirmation } from '@/types/checkout';
 
@@ -100,14 +101,9 @@ export const initializeBobPayCheckout = async (
       cancel_url: cancelUrl,
     };
 
-    const { data: paymentData, error: paymentErr } = await supabase.functions.invoke(
-      'bobpay-initialize-payment',
-      {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: paymentInitPayload,
-      }
+    const { data: paymentData, error: paymentErr } = await initializeBobPayPayment(
+      paymentInitPayload,
+      session.access_token
     );
 
     if (paymentErr || !paymentData?.success) {
@@ -172,17 +168,12 @@ export const initiateBobPayRefund = async (
       throw new Error('Cannot refund committed orders directly. Please use the standard cancel-order-with-refund flow.');
     }
 
-    const { data, error } = await supabase.functions.invoke(
-      'bobpay-refund',
+    const { data, error } = await processBobPayRefund(
       {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: {
-          order_id: orderId,
-          reason: reason || 'Customer requested refund',
-        },
-      }
+        order_id: orderId,
+        reason: reason || 'Customer requested refund',
+      },
+      session.access_token
     );
 
     if (error || !data?.success) {

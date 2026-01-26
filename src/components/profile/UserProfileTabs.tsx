@@ -25,6 +25,8 @@ import BankingProfileTab from "@/components/profile/BankingProfileTab";
 import CommitTab from "@/components/profile/CommitTab";
 import AccountInformation from "@/components/profile/AccountInformation";
 import ModernAddressTab from "@/components/profile/ModernAddressTab";
+import ReviewList from "@/components/reviews/ReviewList";
+import ReviewForm from "@/components/reviews/ReviewForm";
 import { UserProfile, AddressData, Address } from "@/types/address";
 
 interface UserProfileTabsProps {
@@ -81,6 +83,12 @@ const UserProfileTabs = ({
     },
     ...(isOwnProfile
       ? [
+          {
+            id: "reviews",
+            label: "Reviews",
+            icon: Star,
+            description: "Seller reviews & ratings",
+          },
           {
             id: "account",
             label: "Account",
@@ -378,6 +386,54 @@ const UserProfileTabs = ({
 
           {isOwnProfile && (
             <>
+              <TabsContent value="reviews" className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  {/* Review Form for the seller */}
+                  <div className="lg:col-span-1">
+                    <Card className="border border-gray-200">
+                      <CardHeader className="bg-gray-50 border-b border-gray-200">
+                        <CardTitle className="text-lg flex items-center gap-2 text-gray-900">
+                          <Star className="h-5 w-5 text-gray-700" />
+                          Leave a Review
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-6">
+                        <p className="text-sm text-gray-600 mb-4">
+                          Select a seller from your purchases to leave a review.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Reviews List */}
+                  <div className="lg:col-span-2">
+                    <Card className="border border-gray-200">
+                      <CardHeader className="bg-gray-50 border-b border-gray-200">
+                        <CardTitle className="text-xl md:text-2xl flex items-center gap-3 text-gray-900">
+                          <Star className="h-6 w-6 text-gray-700" />
+                          Your Reviews & Seller Ratings
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-6">
+                        <p className="text-gray-600 mb-6">
+                          Manage reviews you've left for sellers and view seller ratings from your purchases.
+                        </p>
+                        {/* Placeholder for seller selection and reviews management */}
+                        <div className="text-center py-8">
+                          <Star className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                          <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                            No reviews yet
+                          </h4>
+                          <p className="text-gray-600">
+                            Once you make a purchase, you'll be able to leave reviews for sellers here.
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              </TabsContent>
+
               <TabsContent value="account" className="space-y-6">
                 <AccountInformation
                   profile={profile}
