@@ -126,8 +126,11 @@ export async function callEdgeFunction<T = any>(
 
   } catch (error) {
     clearTimeout(timeoutId);
-    
-    if (error.name === 'AbortError') {
+
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    console.error(`[edgeFunctionClient] Exception calling ${functionName}:`, error);
+
+    if (error instanceof Error && error.name === 'AbortError') {
       return {
         success: false,
         error: 'TIMEOUT',
@@ -141,7 +144,7 @@ export async function callEdgeFunction<T = any>(
       success: false,
       error: 'NETWORK_ERROR',
       details: {
-        message: error.message || 'Network request failed',
+        message: errorMsg || 'Network request failed',
         function_name: functionName
       }
     };
