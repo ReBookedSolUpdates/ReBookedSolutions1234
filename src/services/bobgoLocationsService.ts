@@ -31,9 +31,6 @@ function calculateBoundingBox(lat: number, lng: number, radiusKm: number = 5) {
 
 /**
  * Fetch nearby BobGo locations based on coordinates
- *
- * Note: This feature requires the bobgo-get-locations edge function.
- * Currently returns an empty array as the edge function is not available.
  */
 export async function getBobGoLocations(
   latitude: number,
@@ -48,36 +45,25 @@ export async function getBobGoLocations(
 
     const bounds = calculateBoundingBox(latitude, longitude, radiusKm);
 
-    const params = new URLSearchParams();
-    params.append("min_lat", bounds.min_lat.toString());
-    params.append("max_lat", bounds.max_lat.toString());
-    params.append("min_lng", bounds.min_lng.toString());
-    params.append("max_lng", bounds.max_lng.toString());
+    // Call the edge function with query parameters
+    const { data, error } = await invokeBobGoFunction<any>("bobgo-get-locations", {
+      method: "GET",
+      headers: {
+        "min_lat": bounds.min_lat.toString(),
+        "max_lat": bounds.max_lat.toString(),
+        "min_lng": bounds.min_lng.toString(),
+        "max_lng": bounds.max_lng.toString(),
+      },
+    });
 
-    // Ensure Supabase URL and key are available
-    if (!ENV.VITE_SUPABASE_URL || !ENV.VITE_SUPABASE_ANON_KEY) {
-      console.warn("BobGo locations: Missing Supabase configuration");
+    if (error) {
+      console.warn("BobGo locations fetch error:", error.message);
       return [];
     }
 
-    const response = await fetch(
-      `${ENV.VITE_SUPABASE_URL}/functions/v1/bobgo-get-locations?${params.toString()}`,
-      {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${ENV.VITE_SUPABASE_ANON_KEY}`,
-          'apikey': ENV.VITE_SUPABASE_ANON_KEY,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    if (!response.ok) {
-      console.warn(`BobGo locations fetch failed with status ${response.status}`);
+    if (!data) {
       return [];
     }
-
-    const data = await response.json();
 
     let locations: BobGoLocation[] = [];
 
