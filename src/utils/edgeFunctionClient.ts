@@ -5,6 +5,7 @@
 
 import { supabase } from '@/lib/supabase';
 import { ENV } from '@/config/environment';
+import debugLogger from '@/utils/debugLogger';
 
 interface EdgeFunctionOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
@@ -62,7 +63,7 @@ export async function callEdgeFunction<T = any>(
   try {
     const url = `${supabase.supabaseUrl}/functions/v1/${functionName}`;
 
-    console.log(`[edgeFunctionClient] Calling ${functionName}:`, {
+    debugLogger.debug('edgeFunctionClient', `Calling ${functionName}:`, {
       url,
       method,
       body: body ? { ...body, message: body.message?.substring?.(0, 50) + '...' } : undefined,
@@ -100,14 +101,14 @@ export async function callEdgeFunction<T = any>(
       responseData = { message: textData };
     }
 
-    console.log(`[edgeFunctionClient] Response from ${functionName}:`, {
+    debugLogger.debug('edgeFunctionClient', `Response from ${functionName}:`, {
       status: response.status,
       ok: response.ok,
       data: responseData,
     });
 
     if (!response.ok) {
-      console.error(`[edgeFunctionClient] Error calling ${functionName}:`, {
+      debugLogger.error('edgeFunctionClient', `Error calling ${functionName}:`, {
         status: response.status,
         error: responseData.error,
         details: responseData.details || responseData,
@@ -128,7 +129,7 @@ export async function callEdgeFunction<T = any>(
     clearTimeout(timeoutId);
 
     const errorMsg = error instanceof Error ? error.message : String(error);
-    console.error(`[edgeFunctionClient] Exception calling ${functionName}:`, error);
+    debugLogger.error('edgeFunctionClient', `Exception calling ${functionName}:`, error);
 
     if (error instanceof Error && error.name === 'AbortError') {
       return {

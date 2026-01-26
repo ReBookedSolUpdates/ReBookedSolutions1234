@@ -2,9 +2,20 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 
+/**
+ * Parse environment variable as boolean
+ * Normalizes by trimming and lowercasing before comparison
+ */
+function parseEnvBool(value?: string): boolean {
+  if (!value) {
+    return false;
+  }
+  return value.trim().toLowerCase() === 'true';
+}
+
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const isProductionEnv = Deno.env.get("VITE_PRODUCTION") === "true";
+const isProductionEnv = parseEnvBool(Deno.env.get("VITE_PRODUCTION"));
 const WEBHOOK_SECRET = Deno.env.get(isProductionEnv ? "BOBGO_WEBHOOK_SECRET" : "PRODUCTION_BOBGO_WEBHOOK_SECRET") || "";
 
 async function verifySignature(rawBody: string, signatureHeader?: string | null): Promise<boolean> {
