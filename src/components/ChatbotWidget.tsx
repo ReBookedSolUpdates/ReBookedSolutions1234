@@ -13,12 +13,13 @@ export const ChatbotWidget: React.FC = () => {
   // Hide chat widget on checkout and success pages
   const isCheckoutPage = pathname.includes("/checkout") || pathname.includes("/checkout-cart") || pathname.includes("/payment-confirmation") || pathname.includes("/order-success");
 
-  if (isCheckoutPage) {
-    return null;
-  }
-
   // Handle ESC key to close widget
   useEffect(() => {
+    // Only set up listener if widget is visible
+    if (isCheckoutPage) {
+      return;
+    }
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && chatbot.isOpen) {
         chatbot.close();
@@ -27,7 +28,12 @@ export const ChatbotWidget: React.FC = () => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [chatbot.isOpen, chatbot.close]);
+  }, [chatbot.isOpen, chatbot.close, isCheckoutPage]);
+
+  // Don't render anything on checkout pages
+  if (isCheckoutPage) {
+    return null;
+  }
 
   return (
     <>

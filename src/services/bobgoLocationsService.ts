@@ -1,4 +1,4 @@
-import { ENV } from "@/config/environment";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface BobGoLocation {
   id?: string;
@@ -37,29 +37,47 @@ export async function getBobGoLocations(
   radiusKm: number = 5
 ): Promise<BobGoLocation[]> {
   try {
+    // Validate input parameters
+    if (!latitude || !longitude || isNaN(latitude) || isNaN(longitude)) {
+      return [];
+    }
+
     const bounds = calculateBoundingBox(latitude, longitude, radiusKm);
 
-    const params = new URLSearchParams();
-    params.append("min_lat", bounds.min_lat.toString());
-    params.append("max_lat", bounds.max_lat.toString());
-    params.append("min_lng", bounds.min_lng.toString());
-    params.append("max_lng", bounds.max_lng.toString());
+    // Get auth session
+    const { data: sessionData } = await supabase.auth.getSession();
+    const authToken = sessionData?.session?.access_token;
 
-    const response = await fetch(
-      `${ENV.VITE_SUPABASE_URL}/functions/v1/bobgo-get-locations?${params.toString()}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${ENV.VITE_SUPABASE_ANON_KEY}`,
-          'apikey': ENV.VITE_SUPABASE_ANON_KEY,
-        },
-      }
-    );
+    // Build query parameters
+    const params = new URLSearchParams({
+      min_lat: bounds.min_lat.toString(),
+      max_lat: bounds.max_lat.toString(),
+      min_lng: bounds.min_lng.toString(),
+      max_lng: bounds.max_lng.toString(),
+    });
+
+    // Get the Supabase project URL from the client config
+    const supabaseUrl = supabase.supabaseUrl;
+    const apiUrl = `${supabaseUrl}/functions/v1/bobgo-get-locations?${params.toString()}`;
+
+    const response = await fetch(apiUrl, {
+      method: "GET",
+      headers: {
+        ...(authToken && { Authorization: `Bearer ${authToken}` }),
+        "Content-Type": "application/json",
+      },
+    });
 
     if (!response.ok) {
+      console.warn(`BobGo locations fetch failed with status ${response.status}`);
       return [];
     }
 
     const data = await response.json();
+
+    if (!data) {
+      return [];
+    }
 
     let locations: BobGoLocation[] = [];
 
@@ -100,6 +118,16 @@ export async function getBobGoLocations(
 
     return locations;
   } catch (error) {
+    // Log detailed error information for debugging
+    if (error instanceof Error) {
+      console.warn("BobGo locations service error:", {
+        message: error.message,
+        name: error.name,
+      });
+    } else {
+      console.warn("BobGo locations service error:", error);
+    }
+    // Return empty array to allow UI to gracefully handle the error
     return [];
   }
 }
