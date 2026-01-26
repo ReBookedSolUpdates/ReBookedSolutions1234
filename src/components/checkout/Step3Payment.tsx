@@ -54,6 +54,7 @@ interface Step3PaymentProps {
 const Step3Payment: React.FC<Step3PaymentProps> = ({
   orderSummary,
   onBack,
+  onCancel,
   onPaymentSuccess,
   onPaymentError,
   userId,
