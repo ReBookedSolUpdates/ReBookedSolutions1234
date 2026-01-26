@@ -30,6 +30,9 @@ function calculateBoundingBox(lat: number, lng: number, radiusKm: number = 5) {
 
 /**
  * Fetch nearby BobGo locations based on coordinates
+ *
+ * Note: This feature requires the bobgo-get-locations edge function.
+ * Currently returns an empty array as the edge function is not available.
  */
 export async function getBobGoLocations(
   latitude: number,
@@ -37,6 +40,11 @@ export async function getBobGoLocations(
   radiusKm: number = 5
 ): Promise<BobGoLocation[]> {
   try {
+    // Validate input parameters
+    if (!latitude || !longitude || isNaN(latitude) || isNaN(longitude)) {
+      return [];
+    }
+
     const bounds = calculateBoundingBox(latitude, longitude, radiusKm);
 
     const params = new URLSearchParams();
@@ -45,17 +53,26 @@ export async function getBobGoLocations(
     params.append("min_lng", bounds.min_lng.toString());
     params.append("max_lng", bounds.max_lng.toString());
 
+    // Ensure Supabase URL and key are available
+    if (!ENV.VITE_SUPABASE_URL || !ENV.VITE_SUPABASE_ANON_KEY) {
+      console.warn("BobGo locations: Missing Supabase configuration");
+      return [];
+    }
+
     const response = await fetch(
       `${ENV.VITE_SUPABASE_URL}/functions/v1/bobgo-get-locations?${params.toString()}`,
       {
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${ENV.VITE_SUPABASE_ANON_KEY}`,
           'apikey': ENV.VITE_SUPABASE_ANON_KEY,
+          'Content-Type': 'application/json',
         },
       }
     );
 
     if (!response.ok) {
+      console.warn(`BobGo locations fetch failed with status ${response.status}`);
       return [];
     }
 
@@ -100,6 +117,16 @@ export async function getBobGoLocations(
 
     return locations;
   } catch (error) {
+    // Log detailed error information for debugging
+    if (error instanceof Error) {
+      console.warn("BobGo locations service error:", {
+        message: error.message,
+        name: error.name,
+      });
+    } else {
+      console.warn("BobGo locations service error:", error);
+    }
+    // Return empty array to allow UI to gracefully handle the error
     return [];
   }
 }
