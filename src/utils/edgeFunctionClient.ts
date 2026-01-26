@@ -4,6 +4,7 @@
  */
 
 import { supabase } from '@/lib/supabase';
+import { ENV } from '@/config/environment';
 
 interface EdgeFunctionOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
@@ -35,7 +36,7 @@ function getCurrentOrigin(): string {
 function getEdgeFunctionHeaders(additionalHeaders: Record<string, string> = {}): Record<string, string> {
   return {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${supabase.supabaseKey}`,
+    'Authorization': `Bearer ${ENV.VITE_SUPABASE_ANON_KEY}`,
     'Origin': getCurrentOrigin(),
     ...additionalHeaders
   };
