@@ -3,18 +3,21 @@ export interface OpenAIMessage {
   content: string;
 }
 
-export interface OpenAIResponse {
+export interface OpenAIResult {
   success: boolean;
   response: string;
-  tokens_used?: {
-    prompt_tokens: number;
-    completion_tokens: number;
-    total_tokens: number;
-  };
-  error?: string;
+  tokens_used: number;
 }
 
-const SYSTEM_PROMPT = `You are ReBooked, a helpful and friendly customer assistant for ReBooked Solutions,
+export async function callOpenAI(
+  messages: OpenAIMessage[],
+  apiKey: string,
+  model: string = "gpt-4o-mini-2024-07-18"
+): Promise<OpenAIResult> {
+  try {
+    const systemMessage: OpenAIMessage = {
+      role: "system",
+      content: `You are ReBooked, a helpful and friendly customer assistant for ReBooked Solutions,
 South Africa's premier platform for buying and selling pre-owned academic textbooks.
 
 Your expertise covers:
@@ -52,77 +55,40 @@ Important reminders:
 - Be honest about limitations - redirect to support for issues you can't help with
 - If unsure about specific policies, recommend checking the Terms/Privacy pages or contacting support
 
-Your goal: Help users understand how to buy and sell textbooks on ReBooked, making the process simple and transparent.`;
-
-export async function callOpenAI(
-  messages: OpenAIMessage[],
-  apiKey: string,
-  model: string = "gpt-3.5-turbo",
-): Promise<OpenAIResponse> {
-  if (!apiKey) {
-    return {
-      success: false,
-      response: "",
-      error: "OpenAI API key not configured",
+Your goal: Help users understand how to buy and sell textbooks on ReBooked, making the process simple and transparent.`,
     };
-  }
-
-  try {
-    // Ensure system prompt is first
-    const messagesWithSystem: OpenAIMessage[] = [
-      { role: "system", content: SYSTEM_PROMPT },
-      ...messages,
-    ];
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
+        "Authorization": `Bearer ${apiKey}`,
         "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         model,
-        messages: messagesWithSystem,
+        messages: [systemMessage, ...messages],
+        max_tokens: 1000,
         temperature: 0.7,
-        max_tokens: 500,
-        top_p: 0.9,
       }),
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      return {
-        success: false,
-        response: "",
-        error: `OpenAI API error: ${error.error?.message || "Unknown error"}`,
-      };
+      const errorText = await response.text();
+      console.error("OpenAI API error:", response.status, errorText);
+      return { success: false, response: "", tokens_used: 0 };
     }
 
     const data = await response.json();
-
-    if (!data.choices?.[0]?.message?.content) {
-      return {
-        success: false,
-        response: "",
-        error: "Invalid response from OpenAI API",
-      };
-    }
+    const assistantMessage = data.choices?.[0]?.message?.content || "";
+    const tokensUsed = data.usage?.total_tokens || 0;
 
     return {
       success: true,
-      response: data.choices[0].message.content,
-      tokens_used: {
-        prompt_tokens: data.usage?.prompt_tokens || 0,
-        completion_tokens: data.usage?.completion_tokens || 0,
-        total_tokens: data.usage?.total_tokens || 0,
-      },
+      response: assistantMessage,
+      tokens_used: tokensUsed,
     };
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    return {
-      success: false,
-      response: "",
-      error: `Failed to call OpenAI API: ${errorMessage}`,
-    };
+    console.error("OpenAI call failed:", error);
+    return { success: false, response: "", tokens_used: 0 };
   }
 }
