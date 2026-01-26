@@ -593,23 +593,38 @@ Time: ${new Date().toISOString()}
           <span className="sm:hidden">←</span>
         </Button>
 
-        <Button
-          onClick={handleBobPayPayment}
-          disabled={processing}
-          className="flex-1 py-3 text-base font-semibold bg-green-600 hover:bg-green-700"
-        >
-          {processing ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Processing...
-            </>
-          ) : (
-            <>
-              <CreditCard className="w-4 h-4 mr-2" />
-              Complete Payment
-            </>
+        <div className="flex gap-3 flex-1">
+          {onCancel && (
+            <Button
+              variant="outline"
+              onClick={onCancel}
+              disabled={processing}
+              className="px-5 py-3 sm:py-4 text-base font-medium border-2"
+            >
+              <X className="w-4 h-4 mr-2" />
+              <span className="hidden sm:inline">Cancel</span>
+              <span className="sm:hidden">Cancel</span>
+            </Button>
           )}
-        </Button>
+
+          <Button
+            onClick={handleBobPayPayment}
+            disabled={processing}
+            className="flex-1 py-3 text-base font-semibold bg-green-600 hover:bg-green-700"
+          >
+            {processing ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <CreditCard className="w-4 h-4 mr-2" />
+                Complete Payment
+              </>
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );
