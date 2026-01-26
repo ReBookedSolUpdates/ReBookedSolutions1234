@@ -60,15 +60,28 @@ export const useChatbot = (userId: string | null | undefined) => {
         };
 
         // Call Edge Function
-        const response = await callEdgeFunction("chat-submit", {
+        const response = await callEdgeFunction<ChatSubmitResponse>("chat-submit", {
           method: "POST",
           body: request,
         });
 
-        const data = response as ChatSubmitResponse;
+        // Check wrapper-level success first
+        if (!response.success) {
+          throw new Error(response.error || "Failed to connect to chatbot service");
+        }
 
+        // Extract the actual ChatSubmitResponse from wrapper
+        const data = response.data;
+
+        if (!data) {
+          throw new Error("No response received from chatbot service");
+        }
+
+        // Check chatbot-level success
         if (!data.success) {
-          throw new Error(data.flag_reason || "Failed to get response from chatbot");
+          setError(`This message was flagged for safety reasons: ${data.flag_reason || "Content policy violation"}`);
+          setIsLoading(false);
+          return;
         }
 
         // If response was flagged, notify user
