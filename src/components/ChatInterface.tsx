@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { ChatMessage } from "@/types/chatbot";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MarkdownMessage } from "@/components/MarkdownMessage";
 import { AlertCircle, Loader2, Send, Trash2, MessageSquare } from "lucide-react";
 
 interface ChatInterfaceProps {
@@ -67,7 +68,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
       {/* Messages Container */}
       <div
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto px-3 sm:px-4 py-4 space-y-4 bg-gradient-to-b from-gray-50/50 to-white"
+        className="flex-1 overflow-y-auto scrollbar-hide px-3 sm:px-4 py-4 space-y-4 bg-gradient-to-b from-gray-50/50 to-white"
       >
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center py-8 sm:py-12">
@@ -92,7 +93,13 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                     : "bg-white text-gray-900 rounded-bl-sm border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
                 }`}
               >
-                <p className="text-sm sm:text-sm leading-relaxed break-words">{message.content}</p>
+                <div className="break-words">
+                  {message.role === "assistant" ? (
+                    <MarkdownMessage content={message.content} />
+                  ) : (
+                    <p className="text-sm sm:text-sm leading-relaxed break-words">{message.content}</p>
+                  )}
+                </div>
                 <p
                   className={`text-xs mt-1.5 ${
                     message.role === "user" ? "text-book-100/80" : "text-gray-500"

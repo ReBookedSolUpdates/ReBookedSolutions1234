@@ -4,6 +4,7 @@
  */
 
 import { supabase } from '@/lib/supabase';
+import { ENV } from '@/config/environment';
 
 interface EdgeFunctionOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
@@ -35,7 +36,7 @@ function getCurrentOrigin(): string {
 function getEdgeFunctionHeaders(additionalHeaders: Record<string, string> = {}): Record<string, string> {
   return {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${supabase.supabaseKey}`,
+    'Authorization': `Bearer ${ENV.VITE_SUPABASE_ANON_KEY}`,
     'Origin': getCurrentOrigin(),
     ...additionalHeaders
   };
@@ -61,6 +62,12 @@ export async function callEdgeFunction<T = any>(
   try {
     const url = `${supabase.supabaseUrl}/functions/v1/${functionName}`;
 
+    console.log(`[edgeFunctionClient] Calling ${functionName}:`, {
+      url,
+      method,
+      body: body ? { ...body, message: body.message?.substring?.(0, 50) + '...' } : undefined,
+    });
+
     const response = await fetch(url, {
       method,
       headers: getEdgeFunctionHeaders(headers),
@@ -85,7 +92,7 @@ export async function callEdgeFunction<T = any>(
 
     let responseData: any;
     const contentType = response.headers.get('content-type');
-    
+
     if (contentType?.includes('application/json')) {
       responseData = await response.json();
     } else {
@@ -93,7 +100,18 @@ export async function callEdgeFunction<T = any>(
       responseData = { message: textData };
     }
 
+    console.log(`[edgeFunctionClient] Response from ${functionName}:`, {
+      status: response.status,
+      ok: response.ok,
+      data: responseData,
+    });
+
     if (!response.ok) {
+      console.error(`[edgeFunctionClient] Error calling ${functionName}:`, {
+        status: response.status,
+        error: responseData.error,
+        details: responseData.details || responseData,
+      });
       return {
         success: false,
         error: responseData.error || 'API_ERROR',
@@ -108,8 +126,11 @@ export async function callEdgeFunction<T = any>(
 
   } catch (error) {
     clearTimeout(timeoutId);
-    
-    if (error.name === 'AbortError') {
+
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    console.error(`[edgeFunctionClient] Exception calling ${functionName}:`, error);
+
+    if (error instanceof Error && error.name === 'AbortError') {
       return {
         success: false,
         error: 'TIMEOUT',
@@ -123,7 +144,7 @@ export async function callEdgeFunction<T = any>(
       success: false,
       error: 'NETWORK_ERROR',
       details: {
-        message: error.message || 'Network request failed',
+        message: errorMsg || 'Network request failed',
         function_name: functionName
       }
     };

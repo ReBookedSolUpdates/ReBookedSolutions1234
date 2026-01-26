@@ -37,7 +37,7 @@ export interface ChatSubmitResponse {
 
 export interface ChatHistoryRequest {
   user_id: string;
-  limit: number;
+  limit?: number;
 }
 
 export interface ChatHistoryMessage {
