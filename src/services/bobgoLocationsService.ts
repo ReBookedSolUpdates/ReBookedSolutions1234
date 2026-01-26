@@ -56,23 +56,24 @@ export async function getBobGoLocations(
       max_lng: bounds.max_lng.toString(),
     });
 
-    // Call the edge function via Supabase
-    const { data, error } = await supabase.functions.invoke("bobgo-get-locations", {
+    // Get the Supabase project URL from the client config
+    const supabaseUrl = supabase.supabaseUrl;
+    const apiUrl = `${supabaseUrl}/functions/v1/bobgo-get-locations?${params.toString()}`;
+
+    const response = await fetch(apiUrl, {
+      method: "GET",
       headers: {
         ...(authToken && { Authorization: `Bearer ${authToken}` }),
-      },
-      body: {
-        min_lat: bounds.min_lat,
-        max_lat: bounds.max_lat,
-        min_lng: bounds.min_lng,
-        max_lng: bounds.max_lng,
+        "Content-Type": "application/json",
       },
     });
 
-    if (error) {
-      console.warn("BobGo locations fetch error:", error.message);
+    if (!response.ok) {
+      console.warn(`BobGo locations fetch failed with status ${response.status}`);
       return [];
     }
+
+    const data = await response.json();
 
     if (!data) {
       return [];
