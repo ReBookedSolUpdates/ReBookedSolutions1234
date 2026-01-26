@@ -108,7 +108,7 @@ export async function callEdgeFunction<T = any>(
     });
 
     if (!response.ok) {
-      console.error(`[edgeFunctionClient] Error calling ${functionName}:`, {
+      debugLogger.error('edgeFunctionClient', `Error calling ${functionName}:`, {
         status: response.status,
         error: responseData.error,
         details: responseData.details || responseData,
