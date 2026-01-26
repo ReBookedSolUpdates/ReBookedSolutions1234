@@ -129,7 +129,7 @@ export async function callEdgeFunction<T = any>(
     clearTimeout(timeoutId);
 
     const errorMsg = error instanceof Error ? error.message : String(error);
-    console.error(`[edgeFunctionClient] Exception calling ${functionName}:`, error);
+    debugLogger.error('edgeFunctionClient', `Exception calling ${functionName}:`, error);
 
     if (error instanceof Error && error.name === 'AbortError') {
       return {
