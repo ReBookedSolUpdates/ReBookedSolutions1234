@@ -63,7 +63,7 @@ export async function callEdgeFunction<T = any>(
   try {
     const url = `${supabase.supabaseUrl}/functions/v1/${functionName}`;
 
-    console.log(`[edgeFunctionClient] Calling ${functionName}:`, {
+    debugLogger.debug('edgeFunctionClient', `Calling ${functionName}:`, {
       url,
       method,
       body: body ? { ...body, message: body.message?.substring?.(0, 50) + '...' } : undefined,
