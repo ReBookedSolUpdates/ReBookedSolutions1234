@@ -1,5 +1,7 @@
+import { IS_PRODUCTION } from '@/config/envParser';
+
 const DevelopmentModeBanner = () => {
-  const isProduction = import.meta.env.VITE_PRODUCTION === 'true';
+  const isProduction = IS_PRODUCTION;
 
   if (isProduction) {
     return null;
