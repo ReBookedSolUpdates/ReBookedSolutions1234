@@ -90,9 +90,8 @@ export const useChatbot = (userId: string | null | undefined) => {
         }
 
         // Add bot message to UI
-        const botMsgId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         const botChatMessage: ChatMessage = {
-          id: botMsgId || data.message_id,
+          id: data.message_id,
           role: "assistant",
           content: data.response,
           timestamp: new Date().toISOString(),
