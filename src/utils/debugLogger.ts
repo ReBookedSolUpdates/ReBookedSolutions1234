@@ -5,7 +5,9 @@
  * When VITE_PRODUCTION=true, all logs are suppressed
  */
 
-const isProduction = import.meta.env.VITE_PRODUCTION === 'true';
+import { IS_PRODUCTION } from '@/config/envParser';
+
+const isProduction = IS_PRODUCTION;
 
 type LogLevel = 'info' | 'warn' | 'error' | 'debug';
 
