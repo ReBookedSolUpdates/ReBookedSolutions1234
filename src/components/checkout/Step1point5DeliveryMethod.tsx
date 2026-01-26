@@ -45,20 +45,11 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
   const [isLoadingSavedLocker, setIsLoadingSavedLocker] = useState(true);
   const [isSavingLocker, setIsSavingLocker] = useState(false);
   const [wantToChangeLocker, setWantToChangeLocker] = useState(false);
-  const [shouldAutoAdvance, setShouldAutoAdvance] = useState(false);
 
   // Load saved locker from profile on mount
   useEffect(() => {
     loadSavedLocker();
   }, []);
-
-  // Auto-advance after locker is saved and state is updated
-  useEffect(() => {
-    if (shouldAutoAdvance && savedLocker && !wantToChangeLocker) {
-      setShouldAutoAdvance(false);
-      onSelectDeliveryMethod("locker", savedLocker);
-    }
-  }, [shouldAutoAdvance, savedLocker, wantToChangeLocker, onSelectDeliveryMethod]);
 
   // Auto-select delivery method and locker when clicking locker option
   const handleSelectLockerMethod = (currentSavedLocker: BobGoLocation | null) => {
