@@ -30,6 +30,11 @@ export const ChatbotWidget: React.FC = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [chatbot.isOpen, chatbot.close, isCheckoutPage]);
 
+  // Don't render anything on checkout pages
+  if (isCheckoutPage) {
+    return null;
+  }
+
   return (
     <>
       {/* Floating Button */}
