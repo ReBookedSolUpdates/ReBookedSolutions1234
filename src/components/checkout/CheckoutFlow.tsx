@@ -911,6 +911,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
           <Step3Payment
             orderSummary={checkoutState.order_summary}
             onBack={() => goToStep(3)}
+            onCancel={handleCancelCheckout}
             onPaymentSuccess={handlePaymentSuccess}
             onPaymentError={handlePaymentError}
             userId={user.id}

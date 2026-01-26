@@ -158,11 +158,13 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
         .eq("id", user.id)
         .single();
 
+      let lockerToUse = selectedLocker;
       if (updatedProfile?.preferred_delivery_locker_data) {
         const refreshedLocker = updatedProfile.preferred_delivery_locker_data as BobGoLocation;
         // Update local state with the refreshed locker to ensure consistency
         setSavedLocker(refreshedLocker);
         setSelectedLocker(refreshedLocker);
+        lockerToUse = refreshedLocker;
       } else {
         // Fallback: use the local selectedLocker if refresh fails
         setSavedLocker(selectedLocker);
@@ -172,8 +174,11 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
       setWantToChangeLocker(false); // Reset to show saved locker view
 
       toast.success("Locker saved! 🎉", {
-        description: `${selectedLocker.name} is now your preferred locker. Click Next to continue.`,
+        description: `${selectedLocker.name} is now your preferred locker.`,
       });
+
+      // Directly proceed to next step with the locker we know was saved
+      onSelectDeliveryMethod("locker", lockerToUse);
     } catch (error) {
       toast.error("Failed to save locker to profile");
     } finally {
