@@ -1,6 +1,7 @@
 import { ReactNode, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
+import DevelopmentModeBanner from "./DevelopmentModeBanner";
 
 interface CampusLayoutProps {
   children: ReactNode;
@@ -27,6 +28,7 @@ const CampusLayout = ({ children }: CampusLayoutProps) => {
 
   return (
     <div className="min-h-screen bg-white">
+      <DevelopmentModeBanner />
       {/* Navigation */}
       <nav
         style={{

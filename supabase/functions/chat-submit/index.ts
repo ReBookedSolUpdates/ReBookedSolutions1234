@@ -82,13 +82,58 @@ serve(async (req) => {
       );
     }
 
+    // 2.5. Query articles table for relevant content
+    let articleContext = "";
+    try {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL");
+      const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+      if (supabaseUrl && supabaseServiceKey) {
+        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+        // Fetch all articles to find relevant ones
+        const { data: articles, error: articlesError } = await supabase
+          .from("articles")
+          .select("id, title, description, content, category");
+
+        if (!articlesError && articles && articles.length > 0) {
+          // Simple relevance scoring based on keyword matching
+          const userMessageLower = body.message.toLowerCase();
+          const relevantArticles = articles
+            .map((article) => {
+              const titleMatch = (article.title?.toLowerCase() || "").includes(userMessageLower) ? 2 : 0;
+              const descriptionMatch = (article.description?.toLowerCase() || "").includes(userMessageLower) ? 1.5 : 0;
+              const contentMatch = (article.content?.toLowerCase() || "").split(" ").filter((word) => userMessageLower.includes(word)).length * 0.1;
+              const score = titleMatch + descriptionMatch + contentMatch;
+              return { article, score };
+            })
+            .filter((item) => item.score > 0)
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 3);
+
+          if (relevantArticles.length > 0) {
+            articleContext = "\n\n=== RELEVANT ARTICLES FROM OUR KNOWLEDGE BASE ===\n";
+            relevantArticles.forEach((item) => {
+              articleContext += `\n**${item.article.title}** (Category: ${item.article.category})\n`;
+              articleContext += `${item.article.description}\n`;
+            });
+            articleContext += "\n===================================================\n";
+            console.log(`Found ${relevantArticles.length} relevant articles for the user query`);
+          }
+        }
+      }
+    } catch (articleError) {
+      console.error("Failed to fetch articles:", articleError);
+      // Continue without article context if fetch fails
+    }
+
     // 3. Prepare messages for OpenAI (include conversation history for context)
     const messagesForOpenAI: OpenAIMessage[] = [
       ...body.conversation_history.map(msg => ({
         role: msg.role as "user" | "assistant",
         content: msg.content,
       })),
-      { role: "user" as const, content: body.message },
+      { role: "user" as const, content: `${body.message}${articleContext}` },
     ];
 
     // 4. Call OpenAI API (model defaults to gpt-3.5-turbo if OPENAI_MODEL not set)
