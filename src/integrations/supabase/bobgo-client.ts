@@ -2,8 +2,9 @@
 // Routes to production or development edge functions based on VITE_PRODUCTION flag
 
 import { supabase } from "@/integrations/supabase/client";
+import { IS_PRODUCTION } from "@/config/envParser";
 
-const PRODUCTION_FLAG = import.meta.env.VITE_PRODUCTION === "true" ? "true" : "false";
+const PRODUCTION_FLAG = IS_PRODUCTION ? "true" : "false";
 
 /**
  * Get the correct function name based on VITE_PRODUCTION flag
