@@ -44,6 +44,7 @@ import {
 interface Step3PaymentProps {
   orderSummary: OrderSummary;
   onBack: () => void;
+  onCancel?: () => void;
   onPaymentSuccess: (orderData: OrderConfirmation) => void;
   onPaymentError: (error: string) => void;
   userId: string;
