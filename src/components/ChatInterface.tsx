@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { ChatMessage } from "@/types/chatbot";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MarkdownMessage } from "@/components/MarkdownMessage";
 import { AlertCircle, Loader2, Send, Trash2, MessageSquare } from "lucide-react";
 
 interface ChatInterfaceProps {
