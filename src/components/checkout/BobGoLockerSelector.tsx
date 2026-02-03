@@ -484,8 +484,7 @@ const BobGoLockerSelector: React.FC<BobGoLockerSelectorProps> = ({
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            No BobGo locations found near the selected address. Try searching
-            another location or contact support for assistance.
+            No locker locations available in this area, but that's okay! You can still list and sell your books using your home address instead. Just set up your pickup address and you'll be ready to go.
           </AlertDescription>
         </Alert>
       )}
