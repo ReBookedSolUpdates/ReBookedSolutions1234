@@ -58,7 +58,7 @@ const FAQ = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         <Card className="max-w-4xl mx-auto w-full">
           <CardHeader className="text-center px-4 sm:px-6">
-            <CardTitle className="text-2xl sm:text-3xl font-bold text-book-800">Frequently Asked Questions</CardTitle>
+            <h1 className="text-2xl sm:text-3xl font-bold text-book-800">Frequently Asked Questions</h1>
             <p className="text-gray-600 mt-2 text-sm sm:text-base">
               Find answers to common questions about using ReBooked Solutions
             </p>

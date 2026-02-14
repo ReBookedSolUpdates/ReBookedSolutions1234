@@ -14,6 +14,8 @@ import ReportBookDialog from "@/components/ReportBookDialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, AlertTriangle, BookOpen } from "lucide-react";
+import SEO from "@/components/SEO";
+import { generateBookSEO } from "@/utils/seoUtils";
 import { useBookDetails } from "@/hooks/useBookDetails";
 import { extractBookId } from "@/utils/bookUtils";
 import { toast } from "sonner";
@@ -42,6 +44,14 @@ const BookDetails = () => {
   }, [id, navigate]);
 
   const { book, isLoading, error } = useBookDetails(id || "");
+
+  const bookSEO = book ? generateBookSEO({
+    title: book.title,
+    author: book.author,
+    price: book.price,
+    description: book.description,
+    imageUrl: book.imageUrl,
+  }) : null;
 
   // Track book views and time spent
   useBookTracking({
@@ -237,6 +247,15 @@ const BookDetails = () => {
 
   return (
     <Layout>
+      {bookSEO && (
+        <SEO
+          title={bookSEO.title}
+          description={bookSEO.description}
+          image={bookSEO.image}
+          type="product"
+          url={`${window.location.origin}/books/${book?.id}`}
+        />
+      )}
       <div className="container mx-auto px-4 py-4 sm:py-8 max-w-6xl">
         {/* Back button */}
         <div className="mb-4 sm:mb-6">
