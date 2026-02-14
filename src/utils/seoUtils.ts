@@ -117,6 +117,7 @@ export const updateMetaTags = (config: SEOConfig) => {
   updateMetaTag("og:title", config.title, true);
   updateMetaTag("og:description", config.description, true);
   updateMetaTag("og:type", config.type || "website", true);
+  updateMetaTag("og:site_name", "Rebooked Solutions", true);
   if (config.url) updateMetaTag("og:url", config.url, true);
   if (config.image) updateMetaTag("og:image", config.image, true);
 
@@ -126,16 +127,29 @@ export const updateMetaTags = (config: SEOConfig) => {
   updateMetaTag("twitter:description", config.description);
   if (config.image) updateMetaTag("twitter:image", config.image);
 
-  // Update canonical URL
-  let canonical = document.querySelector(
-    'link[rel="canonical"]',
-  ) as HTMLLinkElement;
-  if (config.url) {
-    if (!canonical) {
-      canonical = document.createElement("link");
-      canonical.setAttribute("rel", "canonical");
-      document.head.appendChild(canonical);
+  // Update canonical URL and Hreflang
+  const updateLinkTag = (rel: string, href: string, attributes: Record<string, string> = {}) => {
+    let selector = `link[rel="${rel}"]`;
+    if (attributes.hreflang) {
+      selector += `[hreflang="${attributes.hreflang}"]`;
     }
-    canonical.setAttribute("href", config.url);
+
+    let element = document.querySelector(selector) as HTMLLinkElement;
+    if (!element) {
+      element = document.createElement("link");
+      element.setAttribute("rel", rel);
+      Object.entries(attributes).forEach(([key, value]) => {
+        element.setAttribute(key, value);
+      });
+      document.head.appendChild(element);
+    }
+    element.setAttribute("href", href);
+  };
+
+  if (config.url) {
+    updateLinkTag("canonical", config.url);
   }
+
+  updateLinkTag("alternate", "https://rebookedsolutions.co.za", { hreflang: "en-ZA" });
+  updateLinkTag("alternate", "https://rebookedsolutions.co.za", { hreflang: "x-default" });
 };

@@ -1,4 +1,5 @@
 import Layout from "@/components/Layout";
+import SEO from "@/components/SEO";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,6 +10,11 @@ import { AlertCircle, BookOpen, CheckCircle, Database, Eye, Globe, Lock, Shield 
 const Transparency = () => {
   return (
     <Layout>
+      <SEO
+        title="Transparency & Privacy | ReBooked Solutions"
+        description="Learn about our commitment to transparency, data privacy, and secure transactions. We protect your data with bank-grade security and POPIA compliance."
+        keywords="transparency, privacy, data security, POPIA, South Africa, textbook marketplace"
+      />
       <div className="relative">
         <div className="absolute inset-0 bg-gradient-to-br from-book-50 via-white to-blue-50" aria-hidden="true" />
         <div className="relative container mx-auto px-4 py-10 lg:py-14">

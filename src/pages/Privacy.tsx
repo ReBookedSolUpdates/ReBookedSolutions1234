@@ -17,12 +17,17 @@ const Privacy = () => {
 
   return (
     <Layout>
+      <SEO
+        title="Privacy Policy | ReBooked Solutions"
+        description="Our comprehensive Privacy Policy is compliant with the Protection of Personal Information Act (POPIA). Read about how we collect and protect your data."
+        canonical="https://rebookedsolutions.co.za/policies"
+      />
       <div className="container mx-auto px-4 py-4 sm:py-8">
         <Card className="max-w-4xl mx-auto">
           <CardHeader className="pb-4 sm:pb-6">
-            <CardTitle className="text-xl sm:text-2xl lg:text-3xl font-bold text-book-800">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-book-800">
               Privacy Policy
-            </CardTitle>
+            </h1>
             <p className="text-gray-600 text-sm sm:text-base">
               Page moved - redirecting you to our comprehensive policies
             </p>
