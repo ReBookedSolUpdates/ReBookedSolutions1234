@@ -208,29 +208,66 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Trust Banner */}
-          <div className="mt-16 p-6 sm:p-10 rounded-3xl bg-book-600 text-white shadow-2xl relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32 blur-3xl group-hover:bg-white/20 transition-all duration-500" aria-hidden="true"></div>
-            <div className="flex flex-col lg:flex-row items-center justify-between gap-8 relative z-10">
-              <div className="text-center lg:text-left">
-                <h3 className="text-2xl sm:text-3xl font-bold mb-2">Our Commitment to You</h3>
-                <p className="text-book-50 text-lg opacity-90">Verified sellers, authentic listings, and dedicated human support.</p>
+          {/* Trust & Safety Section - Redesigned for a more professional look */}
+          <div className="mt-16 bg-gradient-to-br from-book-50 to-blue-50 rounded-[2rem] p-8 sm:p-12 border border-book-100 shadow-sm relative overflow-hidden">
+            <div className="flex flex-col lg:flex-row items-center gap-10 relative z-10">
+              <div className="lg:w-1/2 text-center lg:text-left">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-book-100 text-book-700 text-xs font-bold mb-4 uppercase tracking-wider">
+                  Trust & Safety
+                </div>
+                <h3 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 tracking-tight">
+                  Your Security is Our Priority
+                </h3>
+                <p className="text-gray-600 text-lg leading-relaxed max-w-xl">
+                  We've built a multi-layered protection system to ensure every transaction on ReBooked is safe, transparent, and fair for both students and parents.
+                </p>
               </div>
-              <div className="flex flex-wrap justify-center gap-4 sm:gap-8">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-book-200" />
-                  <span className="font-medium">Buyer Protection</span>
+
+              <div className="lg:w-1/2 w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-start gap-4">
+                  <div className="p-2 bg-green-50 rounded-lg">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-900 text-sm">Buyer Protection</h4>
+                    <p className="text-gray-500 text-xs mt-1">Funds are held securely until you confirm receipt.</p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-book-200" />
-                  <span className="font-medium">Verified Listings</span>
+
+                <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-start gap-4">
+                  <div className="p-2 bg-blue-50 rounded-lg">
+                    <CheckCircle className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-900 text-sm">Verified Listings</h4>
+                    <p className="text-gray-500 text-xs mt-1">AI-assisted verification for book authenticity.</p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-book-200" />
-                  <span className="font-medium">Human Support</span>
+
+                <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-start gap-4">
+                  <div className="p-2 bg-purple-50 rounded-lg">
+                    <CheckCircle className="h-5 w-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-900 text-sm">Human Support</h4>
+                    <p className="text-gray-500 text-xs mt-1">Dedicated support team for dispute resolution.</p>
+                  </div>
+                </div>
+
+                <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-start gap-4">
+                  <div className="p-2 bg-amber-50 rounded-lg">
+                    <CheckCircle className="h-5 w-5 text-amber-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-900 text-sm">Secure Payouts</h4>
+                    <p className="text-gray-500 text-xs mt-1">PCI-compliant payment processing via BobPay.</p>
+                  </div>
                 </div>
               </div>
             </div>
+
+            {/* Background Accent */}
+            <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-96 h-96 bg-book-200/20 rounded-full blur-3xl" aria-hidden="true"></div>
           </div>
         </div>
       </section>
