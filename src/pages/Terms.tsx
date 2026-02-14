@@ -17,6 +17,11 @@ const Terms = () => {
 
   return (
     <Layout>
+      <SEO
+        title="Terms and Conditions | ReBooked Solutions"
+        description="Read our marketplace rules and legal terms for buying and selling textbooks in South Africa."
+        canonical="https://rebookedsolutions.co.za/policies"
+      />
       <div className="container mx-auto px-4 py-4 sm:py-8">
         <Card className="max-w-4xl mx-auto">
           <CardHeader className="pb-4 sm:pb-6">

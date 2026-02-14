@@ -3,7 +3,7 @@ import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import Layout from "@/components/Layout";
 import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
-import { Search, BookOpen, Laptop, Sigma, Dna, FlaskConical, Telescope, TrendingUp } from "lucide-react";
+import { Search, BookOpen, Laptop, Sigma, Dna, FlaskConical, Telescope, TrendingUp, CheckCircle } from "lucide-react";
 import FeaturedBooks from "@/components/home/FeaturedBooks";
 import HowItWorks from "@/components/home/HowItWorks";
 import ReadyToGetStarted from "@/components/home/ReadyToGetStarted";
@@ -154,6 +154,64 @@ const Index = () => {
         </div>
       </section>
 
+
+      {/* Why Choose ReBooked Section - Content Boost for SEO */}
+      <section className="py-12 sm:py-20 bg-white">
+        <div className="container mx-auto px-4 max-w-5xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-book-800 mb-6">
+              Why Choose ReBooked Solutions?
+            </h2>
+            <p className="text-lg text-gray-700 leading-relaxed mb-8">
+              At ReBooked Solutions, we are dedicated to making education more accessible by creating a sustainable marketplace for used textbooks. Our platform is designed specifically for South African students, parents, and educators who want to save money without compromising on quality.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Sustainable & Affordable Education</h3>
+                <p className="text-gray-600">
+                  Buying secondhand textbooks is not only good for your wallet but also for the environment. By reusing academic materials, we reduce the demand for new paper and help keep valuable resources in circulation.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Secure Transactions via BobPay</h3>
+                <p className="text-gray-600">
+                  Security is our top priority. All payments are processed through the secure BobPay gateway, supporting Instant EFT, Card payments, and more. Your funds are held safely until the transaction is confirmed.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Nationwide Shipping with BobGo</h3>
+                <p className="text-gray-600">
+                  We've partnered with BobGo to provide reliable, trackable shipping across South Africa. Whether you're in Cape Town, Johannesburg, or a small town in between, we ensure your books reach you safely.
+                </p>
+              </div>
+            </div>
+            <div className="bg-book-50 p-8 rounded-2xl border border-book-100">
+              <h3 className="text-2xl font-bold text-book-800 mb-4 text-center">Our Commitment to You</h3>
+              <ul className="space-y-4">
+                <li className="flex gap-3">
+                  <CheckCircle className="h-6 w-6 text-book-600 flex-shrink-0" />
+                  <span className="text-gray-700">Verified sellers and authentic textbook listings.</span>
+                </li>
+                <li className="flex gap-3">
+                  <CheckCircle className="h-6 w-6 text-book-600 flex-shrink-0" />
+                  <span className="text-gray-700">Automated buyer protection and refund policies.</span>
+                </li>
+                <li className="flex gap-3">
+                  <CheckCircle className="h-6 w-6 text-book-600 flex-shrink-0" />
+                  <span className="text-gray-700">Transparent fees with no hidden costs.</span>
+                </li>
+                <li className="flex gap-3">
+                  <CheckCircle className="h-6 w-6 text-book-600 flex-shrink-0" />
+                  <span className="text-gray-700">Dedicated support team to help you at every step.</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Featured Books Section */}
       <FeaturedBooks />
