@@ -3,7 +3,7 @@ import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import Layout from "@/components/Layout";
 import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
-import { Search, BookOpen, Laptop, Sigma, Dna, FlaskConical, Telescope, TrendingUp, CheckCircle } from "lucide-react";
+import { Search, BookOpen, Laptop, Sigma, Dna, FlaskConical, Telescope, TrendingUp, CheckCircle, Leaf, ShieldCheck, Truck } from "lucide-react";
 import FeaturedBooks from "@/components/home/FeaturedBooks";
 import HowItWorks from "@/components/home/HowItWorks";
 import ReadyToGetStarted from "@/components/home/ReadyToGetStarted";
@@ -155,59 +155,81 @@ const Index = () => {
       </section>
 
 
-      {/* Why Choose ReBooked Section - Content Boost for SEO */}
-      <section className="py-12 sm:py-20 bg-white">
-        <div className="container mx-auto px-4 max-w-5xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-book-800 mb-6">
-              Why Choose ReBooked Solutions?
+      {/* Why Choose ReBooked Section - Redesigned for better UI/UX */}
+      <section className="py-16 sm:py-24 bg-white relative overflow-hidden">
+        {/* Background Decorative Element */}
+        <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none" aria-hidden="true">
+          <div className="absolute top-[-10%] right-[-5%] w-[400px] h-[400px] rounded-full bg-book-400 blur-[100px]"></div>
+          <div className="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] rounded-full bg-blue-400 blur-[100px]"></div>
+        </div>
+
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-900 mb-6 tracking-tight">
+              Why <span className="text-book-600">ReBooked Solutions?</span>
             </h2>
-            <p className="text-lg text-gray-700 leading-relaxed mb-8">
-              At ReBooked Solutions, we are dedicated to making education more accessible by creating a sustainable marketplace for used textbooks. Our platform is designed specifically for South African students, parents, and educators who want to save money without compromising on quality.
+            <p className="text-lg text-gray-600 leading-relaxed">
+              We're building more than just a marketplace; we're creating a sustainable ecosystem for South African students to thrive.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Sustainable & Affordable Education</h3>
-                <p className="text-gray-600">
-                  Buying secondhand textbooks is not only good for your wallet but also for the environment. By reusing academic materials, we reduce the demand for new paper and help keep valuable resources in circulation.
-                </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Feature 1 */}
+            <div className="group p-8 rounded-3xl bg-gray-50 border border-gray-100 transition-all duration-300 hover:bg-white hover:shadow-xl hover:-translate-y-2">
+              <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <Leaf className="h-7 w-7 text-green-600" />
               </div>
-              <div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Secure Transactions via BobPay</h3>
-                <p className="text-gray-600">
-                  Security is our top priority. All payments are processed through the secure BobPay gateway, supporting Instant EFT, Card payments, and more. Your funds are held safely until the transaction is confirmed.
-                </p>
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Nationwide Shipping with BobGo</h3>
-                <p className="text-gray-600">
-                  We've partnered with BobGo to provide reliable, trackable shipping across South Africa. Whether you're in Cape Town, Johannesburg, or a small town in between, we ensure your books reach you safely.
-                </p>
-              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Sustainable Learning</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Give your books a second life. We help reduce the environmental impact of education while making textbooks affordable for everyone.
+              </p>
             </div>
-            <div className="bg-book-50 p-8 rounded-2xl border border-book-100">
-              <h3 className="text-2xl font-bold text-book-800 mb-4 text-center">Our Commitment to You</h3>
-              <ul className="space-y-4">
-                <li className="flex gap-3">
-                  <CheckCircle className="h-6 w-6 text-book-600 flex-shrink-0" />
-                  <span className="text-gray-700">Verified sellers and authentic textbook listings.</span>
-                </li>
-                <li className="flex gap-3">
-                  <CheckCircle className="h-6 w-6 text-book-600 flex-shrink-0" />
-                  <span className="text-gray-700">Automated buyer protection and refund policies.</span>
-                </li>
-                <li className="flex gap-3">
-                  <CheckCircle className="h-6 w-6 text-book-600 flex-shrink-0" />
-                  <span className="text-gray-700">Transparent fees with no hidden costs.</span>
-                </li>
-                <li className="flex gap-3">
-                  <CheckCircle className="h-6 w-6 text-book-600 flex-shrink-0" />
-                  <span className="text-gray-700">Dedicated support team to help you at every step.</span>
-                </li>
-              </ul>
+
+            {/* Feature 2 */}
+            <div className="group p-8 rounded-3xl bg-gray-50 border border-gray-100 transition-all duration-300 hover:bg-white hover:shadow-xl hover:-translate-y-2">
+              <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <ShieldCheck className="h-7 w-7 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Guaranteed Security</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Shop with confidence. Our BobPay integration ensures your funds are only released when the transaction is successfully completed.
+              </p>
+            </div>
+
+            {/* Feature 3 */}
+            <div className="group p-8 rounded-3xl bg-gray-50 border border-gray-100 transition-all duration-300 hover:bg-white hover:shadow-xl hover:-translate-y-2">
+              <div className="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <Truck className="h-7 w-7 text-purple-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Smart Logistics</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Nationwide door-to-door shipping powered by BobGo. Reliable tracking and fast pickups for sellers across South Africa.
+              </p>
+            </div>
+          </div>
+
+          {/* Trust Banner */}
+          <div className="mt-16 p-6 sm:p-10 rounded-3xl bg-book-600 text-white shadow-2xl relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32 blur-3xl group-hover:bg-white/20 transition-all duration-500" aria-hidden="true"></div>
+            <div className="flex flex-col lg:flex-row items-center justify-between gap-8 relative z-10">
+              <div className="text-center lg:text-left">
+                <h3 className="text-2xl sm:text-3xl font-bold mb-2">Our Commitment to You</h3>
+                <p className="text-book-50 text-lg opacity-90">Verified sellers, authentic listings, and dedicated human support.</p>
+              </div>
+              <div className="flex flex-wrap justify-center gap-4 sm:gap-8">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5 text-book-200" />
+                  <span className="font-medium">Buyer Protection</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5 text-book-200" />
+                  <span className="font-medium">Verified Listings</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5 text-book-200" />
+                  <span className="font-medium">Human Support</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
