@@ -215,6 +215,18 @@ const Profile = () => {
 
     setIsLoadingAddress(true);
     try {
+      // Detect if this is a deletion operation
+      const isPickupBeingDeleted = !!(
+        userAddresses?.pickup_address &&
+        !(pickup.street || pickup.streetAddress || pickup.street_address) &&
+        !pickup.city
+      );
+      const isShippingBeingDeleted = !!(
+        userAddresses?.shipping_address &&
+        !(shipping.street || shipping.streetAddress || shipping.street_address) &&
+        !shipping.city
+      );
+
       await saveUserAddresses(user.id, pickup, shipping, same);
       await loadUserAddresses();
 
@@ -237,7 +249,20 @@ const Profile = () => {
 
       toast.success("Addresses saved successfully");
     } catch (error) {
-      const formattedError = handleAddressError(error, "save");
+      // Determine the operation type for error messaging
+      const isPickupBeingDeleted = !!(
+        userAddresses?.pickup_address &&
+        !(pickup.street || pickup.streetAddress || pickup.street_address) &&
+        !pickup.city
+      );
+      const isShippingBeingDeleted = !!(
+        userAddresses?.shipping_address &&
+        !(shipping.street || shipping.streetAddress || shipping.street_address) &&
+        !shipping.city
+      );
+      const operation = (isPickupBeingDeleted || isShippingBeingDeleted) ? "delete" : "save";
+
+      const formattedError = handleAddressError(error, operation);
       toast.error(formattedError.userMessage);
       throw error;
     } finally {

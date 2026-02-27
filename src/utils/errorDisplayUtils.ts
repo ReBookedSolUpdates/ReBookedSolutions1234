@@ -136,11 +136,11 @@ export const createFormattedErrorHandler = (context: string) => {
 /**
  * Handles address-specific errors with helpful messages
  */
-export const handleAddressError = (error: unknown, operation: "save" | "load" | "encrypt" | "decrypt") => {
+export const handleAddressError = (error: unknown, operation: "save" | "load" | "encrypt" | "decrypt" | "delete") => {
   const formatted = formatErrorForDisplay(error);
-  
+
   let userMessage = formatted.userMessage;
-  
+
   // Provide specific guidance based on the operation
   switch (operation) {
     case "save":
@@ -150,6 +150,15 @@ export const handleAddressError = (error: unknown, operation: "save" | "load" | 
         userMessage = "Network error while saving your address. Please check your connection and try again.";
       } else {
         userMessage = "Failed to save your address. Please verify all fields are correct and try again.";
+      }
+      break;
+    case "delete":
+      if (formatted.developerMessage.includes("encrypt")) {
+        userMessage = "Failed to securely delete your address. This may be a temporary issue - please try again.";
+      } else if (formatted.developerMessage.includes("network") || formatted.developerMessage.includes("fetch")) {
+        userMessage = "Network error while deleting your address. Please check your connection and try again.";
+      } else {
+        userMessage = "Failed to delete your address. Please try again.";
       }
       break;
     case "load":
@@ -162,7 +171,7 @@ export const handleAddressError = (error: unknown, operation: "save" | "load" | 
       userMessage = "Failed to decrypt your saved address. This may indicate a security issue.";
       break;
   }
-  
+
   return {
     ...formatted,
     userMessage
