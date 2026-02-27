@@ -192,12 +192,27 @@ export const saveUserAddresses = async (
           .eq("id", userId);
 
         if (deleteError) {
-          throw deleteError;
+          throw new Error(
+            deleteError.message ||
+            deleteError.hint ||
+            'Failed to update database'
+          );
         }
         encryptionResults.pickup = true;
       } catch (deletionError) {
-        const errorMsg = deletionError instanceof Error ? deletionError.message : 'Unknown error';
-        safeLogError('Pickup address deletion failed', deletionError);
+        let errorMsg = 'Unknown error';
+        if (deletionError instanceof Error) {
+          errorMsg = deletionError.message;
+        } else if (typeof deletionError === 'object' && deletionError !== null) {
+          if ('message' in deletionError) {
+            errorMsg = String((deletionError as any).message);
+          } else if ('hint' in deletionError && (deletionError as any).hint) {
+            errorMsg = String((deletionError as any).hint);
+          } else {
+            errorMsg = JSON.stringify(deletionError).substring(0, 100);
+          }
+        }
+        safeLogError('Pickup address deletion failed', { deletionError, userId });
         throw new Error(`Failed to delete pickup address: ${errorMsg}`);
       }
     }
@@ -216,12 +231,27 @@ export const saveUserAddresses = async (
             .eq("id", userId);
 
           if (deleteError) {
-            throw deleteError;
+            throw new Error(
+              deleteError.message ||
+              deleteError.hint ||
+              'Failed to update database'
+            );
           }
           encryptionResults.shipping = true;
         } catch (deletionError) {
-          const errorMsg = deletionError instanceof Error ? deletionError.message : 'Unknown error';
-          safeLogError('Shipping address deletion failed', deletionError);
+          let errorMsg = 'Unknown error';
+          if (deletionError instanceof Error) {
+            errorMsg = deletionError.message;
+          } else if (typeof deletionError === 'object' && deletionError !== null) {
+            if ('message' in deletionError) {
+              errorMsg = String((deletionError as any).message);
+            } else if ('hint' in deletionError && (deletionError as any).hint) {
+              errorMsg = String((deletionError as any).hint);
+            } else {
+              errorMsg = JSON.stringify(deletionError).substring(0, 100);
+            }
+          }
+          safeLogError('Shipping address deletion failed', { deletionError, userId });
           throw new Error(`Failed to delete shipping address: ${errorMsg}`);
         }
       } else {
