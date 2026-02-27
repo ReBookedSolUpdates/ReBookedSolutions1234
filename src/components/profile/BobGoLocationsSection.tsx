@@ -190,7 +190,15 @@ const BobGoLocationsSection: React.FC<BobGoLocationsSectionProps> = ({ onLockerS
             Find and save a nearby locker location for deliveries
           </p>
 
-          {/* Address Search Input */}
+          {/* Disabled Feature Alert */}
+          <Alert className="bg-yellow-50 border-yellow-200">
+            <Info className="h-4 w-4 text-yellow-600" />
+            <AlertDescription className="text-yellow-800">
+              Locker search and adding new lockers is temporarily disabled. If you already have a saved locker, you can continue to use it.
+            </AlertDescription>
+          </Alert>
+
+          {/* Address Search Input - DISABLED */}
           <div className="relative" ref={dropdownRef}>
             <Label htmlFor="bobgo-address-search">Search Address</Label>
             <div className="relative mt-2">
@@ -201,6 +209,7 @@ const BobGoLocationsSection: React.FC<BobGoLocationsSectionProps> = ({ onLockerS
                 onChange={(e) => handleSearch(e.target.value)}
                 placeholder="Enter an address to find nearby locations..."
                 className="pr-10"
+                disabled={true}
               />
               {/* Mini Loading Indicator */}
               {isSearching && (
@@ -422,16 +431,16 @@ const BobGoLocationsSection: React.FC<BobGoLocationsSectionProps> = ({ onLockerS
                           )}
                         </div>
 
-                        {/* Save to Profile Button */}
+                        {/* Save to Profile Button - DISABLED */}
                         <div className="pt-3 border-t border-gray-100">
                           <Button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleSaveLockerToProfile(location);
                             }}
-                            disabled={savingLockerId === location.id}
+                            disabled={true}
                             variant="outline"
-                            className="w-full border-purple-300 text-purple-700 hover:bg-purple-50"
+                            className="w-full border-purple-300 text-purple-700 hover:bg-purple-50 opacity-50 cursor-not-allowed"
                           >
                             {savingLockerId === location.id ? (
                               <>
