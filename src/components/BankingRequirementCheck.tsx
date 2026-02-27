@@ -6,18 +6,28 @@ import {
   AlertTriangle,
   MapPin,
   Info,
+  Loader2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { BankingService } from "@/services/bankingService";
 import type { BankingRequirementsStatus } from "@/types/banking";
 import { useAuth } from "@/contexts/AuthContext";
-import BobGoLockerSelector from "@/components/checkout/BobGoLockerSelector";
-import { BobGoLocation } from "@/services/bobgoLocationsService";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import ManualAddressInput from "@/components/ManualAddressInput";
+import { saveSimpleUserAddresses } from "@/services/simplifiedAddressService";
+import { toast } from "sonner";
 
 interface BankingRequirementCheckProps {
   onCanProceed: (canProceed: boolean) => void;
   children?: React.ReactNode;
+}
+
+interface AddressData {
+  street: string;
+  city: string;
+  province: string;
+  postalCode: string;
 }
 
 const BankingRequirementCheck: React.FC<BankingRequirementCheckProps> = ({
@@ -28,12 +38,59 @@ const BankingRequirementCheck: React.FC<BankingRequirementCheckProps> = ({
   const [bankingStatus, setBankingStatus] =
     useState<BankingRequirementsStatus | null>(null);
   const [loading, setLoading] = useState(true);
+  const [pickupAddress, setPickupAddress] = useState<AddressData | null>(null);
+  const [isSavingAddress, setIsSavingAddress] = useState(false);
 
   useEffect(() => {
     if (user) {
       checkRequirements();
     }
   }, [user]);
+
+  const handleSavePickupAddress = async (address: AddressData) => {
+    if (!user) {
+      toast.error("You must be logged in to save an address");
+      return;
+    }
+
+    try {
+      setIsSavingAddress(true);
+
+      // Save the pickup address
+      await saveSimpleUserAddresses(
+        user.id,
+        {
+          streetAddress: address.street,
+          city: address.city,
+          province: address.province,
+          postalCode: address.postalCode,
+        },
+        {
+          streetAddress: address.street,
+          city: address.city,
+          province: address.province,
+          postalCode: address.postalCode,
+        },
+        true // addresses are the same
+      );
+
+      toast.success("Pickup address saved! You can now add books.", {
+        description: `${address.street}, ${address.city}`,
+      });
+
+      setPickupAddress(address);
+
+      // Refresh requirements to update UI
+      setTimeout(() => {
+        checkRequirements(true);
+      }, 500);
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : "Failed to save address";
+      toast.error(errorMsg);
+    } finally {
+      setIsSavingAddress(false);
+    }
+  };
 
   const checkRequirements = async (forceRefresh = false) => {
     if (!user) return;
@@ -119,32 +176,56 @@ const BankingRequirementCheck: React.FC<BankingRequirementCheckProps> = ({
       <Card className="border-blue-200 bg-blue-50">
         <CardHeader>
           <CardTitle className="text-blue-900 text-lg">
-            Before you start, please enter a locker
+            Before you start, please enter your pickup address
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-blue-800">
-            Select a BobGo locker where you'll drop off your book once it's sold:
+            Enter your home pickup address where buyers can collect books from you:
           </p>
 
-          {/* Locker Search Section */}
-          <div className="p-4 bg-white rounded-lg border border-blue-200">
-            <h4 className="font-medium text-gray-900 mb-3">
-              Search for a Location
-            </h4>
-            <BobGoLockerSelector
-              onLockerSelect={() => {}}
-              title="Find a Locker Location"
-              description="Enter an address to find nearby locker locations. Select one and click 'Save to Profile' to get started."
-              showCardLayout={false}
+          {/* Pickup Address Input Section */}
+          <div className="p-4 bg-white rounded-lg border border-blue-200 space-y-4">
+            <ManualAddressInput
+              onAddressSelect={(addressData) => {
+                setPickupAddress({
+                  street: addressData.street || "",
+                  city: addressData.city || "",
+                  province: addressData.province || "",
+                  postalCode: addressData.postalCode || "",
+                });
+              }}
+              placeholder="Enter your home pickup address..."
+              required
             />
+
+            {/* Save Button */}
+            {pickupAddress && (
+              <Button
+                onClick={() => handleSavePickupAddress(pickupAddress)}
+                disabled={isSavingAddress}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                {isSavingAddress ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving Address...
+                  </>
+                ) : (
+                  <>
+                    <MapPin className="h-4 w-4 mr-2" />
+                    Save Pickup Address
+                  </>
+                )}
+              </Button>
+            )}
           </div>
 
           {/* Info Box */}
           <Alert className="bg-blue-50 border-blue-200">
             <Info className="h-4 w-4 text-blue-600" />
             <AlertDescription className="text-blue-800">
-              <strong>Pro Tip:</strong> Lockers are the easiest way to list books. No need to coordinate with couriers—just drop off at a nearby BobGo location and get paid fast!
+              <strong>Note:</strong> You'll need a valid pickup address to list and sell books. This is where buyers will collect their purchases.
             </AlertDescription>
           </Alert>
         </CardContent>
