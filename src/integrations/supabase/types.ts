@@ -675,10 +675,8 @@ export type Database = {
         Row: {
           account_number: string | null
           bank_code: string | null
-          bank_name: string | null
           business_name: string | null
           created_at: string | null
-          email: string | null
           encrypted_account_number: string | null
           encrypted_bank_code: string | null
           encrypted_bank_name: string | null
@@ -687,20 +685,16 @@ export type Database = {
           encrypted_subaccount_code: string | null
           encryption_key_hash: string | null
           id: string
-          paystack_response: Json | null
           recipient_code: string | null
           status: string | null
-          subaccount_code: string | null
           updated_at: string | null
           user_id: string | null
         }
         Insert: {
           account_number?: string | null
           bank_code?: string | null
-          bank_name?: string | null
           business_name?: string | null
           created_at?: string | null
-          email?: string | null
           encrypted_account_number?: string | null
           encrypted_bank_code?: string | null
           encrypted_bank_name?: string | null
@@ -709,20 +703,16 @@ export type Database = {
           encrypted_subaccount_code?: string | null
           encryption_key_hash?: string | null
           id?: string
-          paystack_response?: Json | null
           recipient_code?: string | null
           status?: string | null
-          subaccount_code?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
         Update: {
           account_number?: string | null
           bank_code?: string | null
-          bank_name?: string | null
           business_name?: string | null
           created_at?: string | null
-          email?: string | null
           encrypted_account_number?: string | null
           encrypted_bank_code?: string | null
           encrypted_bank_name?: string | null
@@ -731,10 +721,8 @@ export type Database = {
           encrypted_subaccount_code?: string | null
           encryption_key_hash?: string | null
           id?: string
-          paystack_response?: Json | null
           recipient_code?: string | null
           status?: string | null
-          subaccount_code?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -1180,6 +1168,91 @@ export type Database = {
         }
         Relationships: []
       }
+      coupon_affiliate_earnings: {
+        Row: {
+          affiliate_id: string
+          amount: number
+          coupon_id: string
+          coupon_redemption_id: string | null
+          created_at: string
+          id: string
+          order_id: string | null
+          reversed_at: string | null
+          reversed_reason: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          affiliate_id: string
+          amount?: number
+          coupon_id: string
+          coupon_redemption_id?: string | null
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          reversed_at?: string | null
+          reversed_reason?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          affiliate_id?: string
+          amount?: number
+          coupon_id?: string
+          coupon_redemption_id?: string | null
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          reversed_at?: string | null
+          reversed_reason?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_affiliate_earnings_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "account_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_affiliate_earnings_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "account_details"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "coupon_affiliate_earnings_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_affiliate_earnings_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_affiliate_earnings_coupon_redemption_id_fkey"
+            columns: ["coupon_redemption_id"]
+            isOneToOne: false
+            referencedRelation: "coupon_redemptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_affiliate_earnings_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coupon_redemptions: {
         Row: {
           coupon_id: string
@@ -1224,6 +1297,8 @@ export type Database = {
       }
       coupons: {
         Row: {
+          affiliate_earning_amount: number | null
+          affiliate_id: string | null
           code: string
           created_at: string | null
           description: string | null
@@ -1232,6 +1307,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           max_discount_amount: number | null
+          max_order_amount: number | null
           max_uses: number | null
           min_order_amount: number | null
           updated_at: string | null
@@ -1240,6 +1316,8 @@ export type Database = {
           valid_until: string
         }
         Insert: {
+          affiliate_earning_amount?: number | null
+          affiliate_id?: string | null
           code: string
           created_at?: string | null
           description?: string | null
@@ -1248,6 +1326,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           max_discount_amount?: number | null
+          max_order_amount?: number | null
           max_uses?: number | null
           min_order_amount?: number | null
           updated_at?: string | null
@@ -1256,6 +1335,8 @@ export type Database = {
           valid_until: string
         }
         Update: {
+          affiliate_earning_amount?: number | null
+          affiliate_id?: string | null
           code?: string
           created_at?: string | null
           description?: string | null
@@ -1264,6 +1345,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           max_discount_amount?: number | null
+          max_order_amount?: number | null
           max_uses?: number | null
           min_order_amount?: number | null
           updated_at?: string | null
@@ -1271,7 +1353,29 @@ export type Database = {
           valid_from?: string
           valid_until?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "coupons_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "account_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupons_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "account_details"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "coupons_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cron_job_logs: {
         Row: {
@@ -2330,6 +2434,82 @@ export type Database = {
           },
         ]
       }
+      seller_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          id: string
+          is_anonymous: boolean | null
+          rating: number
+          reviewer_id: string
+          seller_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          is_anonymous?: boolean | null
+          rating: number
+          reviewer_id: string
+          seller_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          is_anonymous?: boolean | null
+          rating?: number
+          reviewer_id?: string
+          seller_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "account_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "account_details"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "seller_reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_reviews_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "account_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seller_reviews_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "account_details"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "seller_reviews_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subjects: {
         Row: {
           code: string | null
@@ -2694,6 +2874,10 @@ export type Database = {
         }[]
       }
       clear_user_aps_profile: { Args: { user_id?: string }; Returns: boolean }
+      confirm_coupon_affiliate_earning: {
+        Args: { p_order_id: string }
+        Returns: undefined
+      }
       create_buyer_feedback_record: {
         Args: {
           p_buyer_feedback?: string
@@ -2936,6 +3120,10 @@ export type Database = {
           total_withdrawn: number
         }[]
       }
+      has_completed_order_from_seller: {
+        Args: { p_buyer_id: string; p_seller_id: string }
+        Returns: boolean
+      }
       has_role:
         | {
             Args: {
@@ -2979,6 +3167,10 @@ export type Database = {
       reserve_book_stock: {
         Args: { p_book_id: string; p_qty?: number }
         Returns: boolean
+      }
+      reverse_coupon_affiliate_earning: {
+        Args: { p_order_id: string; p_reason?: string }
+        Returns: undefined
       }
       safe_delete_user: {
         Args: { user_id_to_delete: string }
