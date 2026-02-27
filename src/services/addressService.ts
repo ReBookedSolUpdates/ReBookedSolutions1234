@@ -186,8 +186,7 @@ export const saveUserAddresses = async (
         const { error: deleteError } = await supabase
           .from("profiles")
           .update({
-            pickup_address_encrypted: null,
-            pickup_address_iv: null
+            pickup_address_encrypted: null
           })
           .eq("id", userId);
 
@@ -225,8 +224,7 @@ export const saveUserAddresses = async (
           const { error: deleteError } = await supabase
             .from("profiles")
             .update({
-              shipping_address_encrypted: null,
-              shipping_address_iv: null
+              shipping_address_encrypted: null
             })
             .eq("id", userId);
 
