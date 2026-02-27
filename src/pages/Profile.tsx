@@ -217,12 +217,12 @@ const Profile = () => {
     try {
       // Detect if this is a deletion operation
       const isPickupBeingDeleted = !!(
-        userAddresses?.pickup_address &&
+        addressData?.pickup_address &&
         !(pickup.street || pickup.streetAddress || pickup.street_address) &&
         !pickup.city
       );
       const isShippingBeingDeleted = !!(
-        userAddresses?.shipping_address &&
+        addressData?.shipping_address &&
         !(shipping.street || shipping.streetAddress || shipping.street_address) &&
         !shipping.city
       );
@@ -251,12 +251,12 @@ const Profile = () => {
     } catch (error) {
       // Determine the operation type for error messaging
       const isPickupBeingDeleted = !!(
-        userAddresses?.pickup_address &&
+        addressData?.pickup_address &&
         !(pickup.street || pickup.streetAddress || pickup.street_address) &&
         !pickup.city
       );
       const isShippingBeingDeleted = !!(
-        userAddresses?.shipping_address &&
+        addressData?.shipping_address &&
         !(shipping.street || shipping.streetAddress || shipping.street_address) &&
         !shipping.city
       );
