@@ -250,7 +250,7 @@ serve(async (req) => {
           success: true, 
           quotes: [{ 
             provider: "bobgo", 
-            carrier: "simulated", 
+            carrier: "Bobgo Rates", 
             service_name: "Standard (Estimated)", 
             service_code: "STANDARD", 
             cost: 95, 
