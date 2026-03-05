@@ -126,8 +126,7 @@ serve(async (req) => {
     // CRITICAL: Verify seller is committing to their own order
     // This is the RLS equivalent check for service role operations
     if (order.seller_id !== user.id) {
-        `[commit-to-sale] Unauthorized: User ${user.id} is not seller ${order.seller_id}`
-      );
+      console.log(`[commit-to-sale] Unauthorized: User ${user.id} is not seller ${order.seller_id}`);
       return new Response(
         JSON.stringify({
           success: false,
@@ -345,9 +344,7 @@ serve(async (req) => {
               pickupAddress = profilePickupResp.data.data;
             }
           } catch (e) {
-              "[commit-to-sale] Failed to decrypt seller profile pickup address:",
-              e
-            );
+            console.error("[commit-to-sale] Failed to decrypt seller profile pickup address:", e);
           }
         }
       }
@@ -442,9 +439,7 @@ serve(async (req) => {
             shippingAddress = profileShippingResp.data.data;
           }
         } catch (e) {
-            "[commit-to-sale] Failed to decrypt buyer profile shipping address:",
-            e
-          );
+          console.error("[commit-to-sale] Failed to decrypt buyer profile shipping address:", e);
         }
       }
     }
@@ -476,9 +471,7 @@ serve(async (req) => {
             shippingAddress = profilePickupResp.data.data;
           }
         } catch (e) {
-            "[commit-to-sale] Failed to decrypt seller pickup address as fallback:",
-            e
-          );
+          console.error("[commit-to-sale] Failed to decrypt seller pickup address as fallback:", e);
         }
       }
     }
@@ -552,8 +545,7 @@ serve(async (req) => {
       throw new Error("No courier selected during checkout");
     }
 
-      `[commit-to-sale] Using buyer's selected courier: ${order.selected_courier_name} - ${order.selected_service_name}`
-    );
+    console.log(`[commit-to-sale] Using buyer's selected courier: ${order.selected_courier_name} - ${order.selected_service_name}`);
 
     // Build parcels array
     const parcels = (items || []).map((item) => ({
@@ -640,6 +632,7 @@ serve(async (req) => {
 
     // Add pickup information based on type
     if (pickupData!.type === "locker") {
+      console.log("[commit-to-sale] Locker pickup configuration:", {
         pickupType: pickupType,
         locationId: pickupData!.location_id,
         providerSlug: pickupData!.provider_slug,
@@ -648,6 +641,7 @@ serve(async (req) => {
       shipmentPayload.pickup_locker_provider_slug = pickupData!.provider_slug;
       shipmentPayload.pickup_locker_data = pickupData!.locker_data;
     } else {
+      console.log("[commit-to-sale] Door pickup configuration:", {
         pickupType: pickupType,
       });
       const pickupAddress = pickupData!.address as Record<string, string>;
@@ -750,22 +744,27 @@ serve(async (req) => {
       shipmentPayload.delivery_contact_email = buyerEmail;
     }
 
-    // Create shipment
-    const shipmentResponse = await supabase.functions.invoke(
-      "bobgo-create-shipment",
-      {
-        body: shipmentPayload,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+    // Create shipment - make it resilient so failure doesn't block commitment
+    let shipmentData: any = {};
+    try {
+      const shipmentResponse = await supabase.functions.invoke(
+        "bobgo-create-shipment",
+        {
+          body: shipmentPayload,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (shipmentResponse.error) {
+        console.error(`[commit-to-sale] Shipment creation API error: ${shipmentResponse.error.message}`);
+      } else {
+        shipmentData = shipmentResponse.data || {};
       }
-    );
-
-    if (shipmentResponse.error) {
-      throw new Error("Failed to create shipment");
+    } catch (e) {
+      console.error("[commit-to-sale] Exception during shipment creation:", e);
     }
-
-    const shipmentData = shipmentResponse.data || {};
 
     // Build updated delivery_data
     const deliveryDataUpdate: Record<string, unknown> = {

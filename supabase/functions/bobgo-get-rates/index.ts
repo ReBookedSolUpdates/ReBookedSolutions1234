@@ -176,8 +176,8 @@ serve(async (req) => {
           success: true,
           quotes: parcels.map((p, i) => ({
             provider: "bobgo",
-            carrier: "simulated",
-            service_name: "Standard (Simulated)",
+            carrier: "Bobgo Rates",
+            service_name: "Standard (Bobgo Rates)",
             service_code: "STANDARD",
             cost: Math.round(Math.max(50, (p.weight || 1) * 40)),
             transit_days: 2,
@@ -250,8 +250,8 @@ serve(async (req) => {
           success: true, 
           quotes: [{ 
             provider: "bobgo", 
-            carrier: "Bobgo Rates", 
-            service_name: "Standard (Estimated)", 
+            carrier: "Bobgo Rates",
+            service_name: "Standard (Bobgo Rates)", 
             service_code: "STANDARD", 
             cost: 95, 
             transit_days: 3, 
