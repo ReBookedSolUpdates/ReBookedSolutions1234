@@ -46,22 +46,15 @@ export const createBook = async (bookData: BookFormData, aiAssisted: boolean = f
 
       // If no locker, get pickup address from encrypted profile
       if (!hasLocker) {
-        const { data: encryptedAddressData, error: decryptError } = await supabase.functions.invoke('decrypt-address', {
-          body: {
-            fetch: {
-              table: 'profiles',
-              target_id: user.id,
-              address_type: 'pickup'
-            }
-          }
-        });
+        const { getSellerDeliveryAddress } = await import("@/services/simplifiedAddressService");
+        const decryptedAddress = await getSellerDeliveryAddress(user.id);
 
-        if (encryptedAddressData && encryptedAddressData.success && encryptedAddressData.data) {
-          pickupAddress = encryptedAddressData.data;
+        if (decryptedAddress) {
+          pickupAddress = decryptedAddress;
 
-          // Extract province from encrypted address
-          if (pickupAddress?.province) {
-            province = pickupAddress.province;
+          // Extract province from decrypted address
+          if (decryptedAddress.province) {
+            province = decryptedAddress.province;
           }
         } else {
           throw new Error("You must set up your pickup address or locker in your profile before listing a book. Please go to your profile and add your address.");

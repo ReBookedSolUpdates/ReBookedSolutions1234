@@ -136,15 +136,6 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
       // Validate pickup setup based on delivery method
       const pickupType = orderSummary.delivery_method === "locker" ? "locker" : "door";
 
-      const pickupErrors = validatePickupSetup(
-        pickupType,
-        orderSummary.delivery_method === "locker" ? orderSummary.selected_locker : null,
-        orderSummary.delivery_method === "door" ? orderSummary.seller_address : null
-      );
-      if (pickupErrors.length > 0) {
-        throw new Error(`Pickup validation failed: ${pickupErrors.join("; ")}`);
-      }
-
       const baseUrl = window.location.origin;
 
       // Step 1: Fetch buyer and seller profiles for denormalized data (in parallel)
@@ -170,6 +161,16 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
 
       if (!sellerProfile) {
         throw new Error("Failed to fetch seller profile");
+      }
+
+      // Validate pickup setup based on actual profile data (fixes the validation issue)
+      const pickupErrors = validatePickupSetup(
+        pickupType,
+        orderSummary.delivery_method === "locker" ? orderSummary.selected_locker : null,
+        pickupType === "door" ? sellerProfile.pickup_address_encrypted : null
+      );
+      if (pickupErrors.length > 0) {
+        throw new Error(`Pickup validation failed: ${pickupErrors.join("; ")}`);
       }
 
       const buyerFullName = buyerProfile.full_name || buyerProfile.name || `${buyerProfile.first_name || ''} ${buyerProfile.last_name || ''}`.trim() || 'Buyer';
@@ -272,7 +273,7 @@ const Step3Payment: React.FC<Step3PaymentProps> = ({
 
       const paymentRequest = {
         order_id: createdOrder.id,
-        amount: orderSummary.total_price,
+        amount: totalWithCoupon, // CRITICAL: Use the calculated total with discount
         email: buyerProfile.email || authUser.email,
         mobile_number: buyerProfile.phone_number || "",
         item_name: orderSummary.book.title,
