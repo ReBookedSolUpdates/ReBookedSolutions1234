@@ -49,14 +49,42 @@ const encryptAddress = async (address: Address, options?: { save?: { table: stri
 // Decrypt an address using the improved decrypt-address edge function
 const decryptAddress = async (params: { table: 'profiles' | 'orders' | 'books'; target_id: string; address_type?: 'pickup' | 'shipping' | 'delivery' }) => {
   try {
-    // Use the new fetch format to target exact encrypted columns
+    const encryptedColumn = params.address_type === 'shipping' ? 'shipping_address_encrypted' :
+                          params.address_type === 'delivery' ? 'delivery_address_encrypted' :
+                          'pickup_address_encrypted';
+
+    // Fetch the encrypted data directly first (using client-side RLS)
+    // This is more robust than the 'fetch' mode in the edge function which has strict auth checks
+    const { data: record, error: fetchError } = await supabase
+      .from(params.table)
+      .select(`${encryptedColumn}, address_encryption_version`)
+      .eq('id', params.target_id)
+      .maybeSingle();
+
+    if (fetchError || !record || !(record as any)[encryptedColumn]) {
+      return null;
+    }
+
+    const encryptedData = (record as any)[encryptedColumn];
+    let bundle;
+    try {
+      bundle = typeof encryptedData === 'string' ? JSON.parse(encryptedData) : encryptedData;
+    } catch (e) {
+      return null;
+    }
+
+    if (!bundle || !bundle.ciphertext || !bundle.iv || !bundle.authTag) {
+      return null;
+    }
+
+    // Call decrypt-address with the bundle
     const { data, error } = await supabase.functions.invoke('decrypt-address', {
       body: {
-        fetch: {
-          table: params.table,
-          target_id: params.target_id,
-          address_type: params.address_type || 'pickup',
-        },
+        encryptedData: bundle.ciphertext,
+        iv: bundle.iv,
+        authTag: bundle.authTag,
+        aad: bundle.aad,
+        version: bundle.version || record.address_encryption_version || 1
       },
     });
 
