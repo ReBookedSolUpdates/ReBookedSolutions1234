@@ -86,60 +86,6 @@ export interface UnifiedShipment {
   tracking_url?: string;
 }
 
-export interface UnifiedTrackingEvent {
-  timestamp: string;
-  status: string;
-  location?: string;
-  description?: string;
-  signature?: string;
-}
-
-export interface UnifiedTrackingResponse {
-  provider: "bobgo";
-  tracking_number: string;
-  custom_tracking_reference?: string;
-  shipment_id?: string;
-  status:
-    | "pending"
-    | "collected"
-    | "in_transit"
-    | "out_for_delivery"
-    | "delivered"
-    | "failed"
-    | "cancelled";
-  status_friendly?: string;
-  current_location?: string;
-  estimated_delivery?: string;
-  actual_delivery?: string;
-  events: UnifiedTrackingEvent[];
-  recipient_signature?: string;
-  proof_of_delivery?: string;
-  tracking_url?: string;
-  // Courier information
-  courier_name?: string;
-  courier_slug?: string;
-  courier_phone?: string;
-  courier_logo?: string;
-  service_level?: string;
-  service_level_code?: string;
-  // BobGo branding logos
-  bobgo_logo?: string;
-  bobgo_logo_white?: string;
-  bobgo_logo_black?: string;
-  // Merchant/Seller information
-  merchant_name?: string;
-  merchant_logo?: string;
-  // Order information
-  order_number?: string;
-  channel_order_number?: string;
-  // Timestamps
-  created_at?: string;
-  last_updated?: string;
-  // Raw API data for debugging
-  raw?: Record<string, unknown>;
-  simulated?: boolean;
-}
-
 const PROVINCE_CODE_MAP: Record<string, string> = {
   "eastern cape": "EC",
   "free state": "FS",
@@ -341,62 +287,6 @@ export const createUnifiedShipment = async (
   };
 };
 
-/** Track shipment via Bob Go */
-export const trackUnifiedShipment = async (
-  trackingNumber: string,
-  provider?: "bobgo",
-): Promise<UnifiedTrackingResponse> => {
-  const { data, error } = await supabase.functions.invoke("bobgo-track-shipment", {
-    method: "POST",
-    body: JSON.stringify({ tracking_number: trackingNumber }),
-  });
-  if (error) throw new Error(error.message);
-  const t = data?.tracking || {};
-
-
-  // Map checkpoints/events to events array
-  const events = (t.checkpoints || t.events || []).map((e: any) => ({
-    timestamp: e.time || e.timestamp,
-    status: (e.status || "").toLowerCase().replace(/_/g, "-"),
-    location: e.location || e.zone || e.city,
-    description: e.message || e.description || e.status_friendly || e.status,
-    signature: e.signature,
-  }));
-
-  return {
-    provider: "bobgo",
-    tracking_number: t.tracking_number || t.shipment_tracking_reference || trackingNumber,
-    custom_tracking_reference: t.custom_tracking_reference,
-    shipment_id: t.shipment_id || t.id,
-    status: (t.status || "pending").toLowerCase().replace(/_/g, "-"),
-    status_friendly: t.status_friendly || t.status,
-    current_location: t.current_location || t.zone || "Unknown",
-    estimated_delivery: t.estimated_delivery || t.shipment_estimated_delivery_date_to,
-    actual_delivery: t.delivered_at || t.shipment_movement_events?.delivered_time,
-    events,
-    recipient_signature: t.recipient_signature,
-    proof_of_delivery: undefined,
-    tracking_url: t.tracking_url || `https://track.bobgo.co.za/${encodeURIComponent(trackingNumber)}`,
-    courier_name: t.courier_name,
-    courier_slug: t.courier_slug,
-    courier_phone: t.courier_phone,
-    courier_logo: t.courier_logo,
-    service_level: t.service_level,
-    service_level_code: t.service_level_code,
-    bobgo_logo: t.bobgo_logo,
-    bobgo_logo_white: t.bobgo_logo_white,
-    bobgo_logo_black: t.bobgo_logo_black,
-    merchant_name: t.merchant_name,
-    merchant_logo: t.merchant_logo,
-    order_number: t.order_number,
-    channel_order_number: t.channel_order_number,
-    created_at: t.created_at,
-    last_updated: t.updated_at,
-    raw: data,
-    simulated: data?.simulated,
-  };
-};
-
 function detectProviderFromTrackingNumber(_trackingNumber: string): "bobgo" {
   return "bobgo";
 }
@@ -420,6 +310,5 @@ function generateFallbackQuotes(request: UnifiedQuoteRequest): UnifiedQuote[] {
 export default {
   getAllDeliveryQuotes,
   createUnifiedShipment,
-  trackUnifiedShipment,
   detectProviderFromTrackingNumber,
 };
