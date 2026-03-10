@@ -104,7 +104,7 @@ const SellerPolicyModal = ({ isOpen, onClose }: SellerPolicyModalProps) => {
                 <div>
                   <p className="font-semibold text-gray-900 text-sm">Order Process & Payouts</p>
                   <ul className="list-disc pl-5 space-y-1 text-gray-700 text-sm mt-1">
-                    <li>Once an order is placed, the seller must securely package the book for collection via Bobgo.</li>
+                    <li>Once an order is placed, the seller must securely package the book for collection via The Courier Guy or Pudo drop-off.</li>
                     <li>Funds are held until delivery confirmation or resolution of disputes.</li>
                     <li>If a buyer files a valid complaint, funds remain on hold until the case is resolved.</li>
                     <li>Sellers at fault for misrepresentation forfeit payouts and may incur fines.</li>
@@ -176,22 +176,22 @@ const SellerPolicyModal = ({ isOpen, onClose }: SellerPolicyModalProps) => {
             <section className="space-y-2">
               <h3 className="font-semibold text-base flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-green-600" />
-                4. Shipping & Delivery (Bobgo)
+                4. Shipping & Delivery (Courier Guy & Pudo)
               </h3>
               <div className="space-y-3 ml-6">
                 <div>
                   <p className="font-semibold text-gray-900 text-sm">Seller Responsibility</p>
                   <ul className="list-disc pl-5 space-y-1 text-gray-700 text-sm mt-1">
-                    <li>Sellers prepare, package, and make items available for Bobgo collection within 3 business days of payment confirmation.</li>
+                    <li>Sellers prepare, package, and make items available for collection or locker drop-off within 3 business days of payment confirmation.</li>
                     <li>Packaging must be secure and tamper-resistant.</li>
-                    <li>Sellers respond promptly to Bobgo collection requests.</li>
+                    <li>Sellers respond promptly to collection requests or drop-off deadlines.</li>
                   </ul>
                 </div>
                 <div>
                   <p className="font-semibold text-gray-900 text-sm">Delivery Timeframes</p>
                   <ul className="list-disc pl-5 space-y-1 text-gray-700 text-sm mt-1">
                     <li>Standard delivery: 2–7 business days from collection.</li>
-                    <li>Tracking updates provided via Bobgo; buyers should monitor delivery status.</li>
+                    <li>Tracking updates provided via our delivery partners; buyers should monitor delivery status.</li>
                   </ul>
                 </div>
               </div>
@@ -217,7 +217,7 @@ const SellerPolicyModal = ({ isOpen, onClose }: SellerPolicyModalProps) => {
                 <div>
                   <p className="font-semibold text-gray-900 text-sm">Return Responsibilities</p>
                   <ul className="list-disc pl-5 space-y-1 text-gray-700 text-sm mt-1">
-                    <li>Buyers pay return shipping via Bobgo, unless the seller is at fault</li>
+                    <li>Buyers pay return shipping via our approved partners, unless the seller is at fault</li>
                     <li>Items must be returned securely packaged and in original condition</li>
                     <li>If the buyer does not return the book, ReBooked Solutions may donate it to partner charities</li>
                   </ul>
@@ -240,7 +240,7 @@ const SellerPolicyModal = ({ isOpen, onClose }: SellerPolicyModalProps) => {
               <ul className="list-disc pl-5 space-y-1 text-gray-700">
                 <li>Provide complete and accurate delivery information</li>
                 <li>Cannot cancel orders after the seller marks them "Dispatched"</li>
-                <li>Accept deliveries promptly or collect from Bobgo pickup points</li>
+                <li>Accept deliveries promptly or collect from Pudo pickup lockers</li>
                 <li>Report discrepancies within 3 calendar days</li>
                 <li>Repeated fraud, abuse, or delivery non-compliance may result in suspension or permanent ban</li>
               </ul>

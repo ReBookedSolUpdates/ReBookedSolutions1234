@@ -7,30 +7,22 @@ const getEnvVar = (key: string, fallback = ""): string => {
   return value;
 };
 
-// Development fallback values (only used in development mode)
-const DEV_FALLBACKS = {
-  VITE_SUPABASE_URL: "",
-  VITE_SUPABASE_ANON_KEY: "",
+// Hardcoded publishable fallbacks (these are anon/public keys, safe to include)
+const FALLBACKS = {
+  VITE_SUPABASE_URL: "https://kbpjqzaqbqukutflwixf.supabase.co",
+  VITE_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImticGpxemFxYnF1a3V0Zmx3aXhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc1NjMzNzcsImV4cCI6MjA2MzEzOTM3N30.3EdAkGlyFv1JRaRw9OFMyA5AkkKoXp0hdX1bFWpLVMc",
   VITE_APP_URL: "http://localhost:8080",
 };
 
 export const ENV = {
   NODE_ENV: import.meta.env.NODE_ENV || "production",
-  VITE_SUPABASE_URL: getEnvVar(
-    "VITE_SUPABASE_URL",
-    import.meta.env.PROD ? "" : DEV_FALLBACKS.VITE_SUPABASE_URL,
-  ),
-  VITE_SUPABASE_ANON_KEY: getEnvVar(
-    "VITE_SUPABASE_ANON_KEY",
-    import.meta.env.PROD ? "" : DEV_FALLBACKS.VITE_SUPABASE_ANON_KEY,
-  ),
+  VITE_SUPABASE_URL: getEnvVar("VITE_SUPABASE_URL", FALLBACKS.VITE_SUPABASE_URL),
+  VITE_SUPABASE_ANON_KEY: getEnvVar("VITE_SUPABASE_ANON_KEY", FALLBACKS.VITE_SUPABASE_ANON_KEY),
   VITE_PAYSTACK_PUBLIC_KEY: getEnvVar("VITE_PAYSTACK_PUBLIC_KEY"),
   VITE_PAYSTACK_SECRET_KEY: getEnvVar("VITE_PAYSTACK_SECRET_KEY"),
   VITE_APP_URL: getEnvVar(
     "VITE_APP_URL",
-    import.meta.env.PROD
-      ? "https://rebookedsolutions.co.za"
-      : DEV_FALLBACKS.VITE_APP_URL,
+    import.meta.env.PROD ? "https://rebookedsolutions.co.za" : FALLBACKS.VITE_APP_URL,
   ),
   VITE_COURIER_GUY_API_KEY: getEnvVar("VITE_COURIER_GUY_API_KEY"),
   VITE_FASTWAY_API_KEY: getEnvVar("VITE_FASTWAY_API_KEY"),
@@ -101,9 +93,9 @@ Current environment: ${ENV.NODE_ENV}
   // Additional validation for production
   if (
     import.meta.env.PROD &&
-    ENV.VITE_SUPABASE_URL === DEV_FALLBACKS.VITE_SUPABASE_URL
+    ENV.VITE_SUPABASE_URL === FALLBACKS.VITE_SUPABASE_URL
   ) {
-    // Using development Supabase credentials in production
+    // Using fallback Supabase credentials in production
   }
 
 

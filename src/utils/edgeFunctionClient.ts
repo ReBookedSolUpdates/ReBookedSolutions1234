@@ -3,9 +3,12 @@
  * Handles API calls to Supabase Edge Functions with proper CORS headers
  */
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { ENV } from '@/config/environment';
 import debugLogger from '@/utils/debugLogger';
+
+// Derive the Supabase URL from the ENV config (always has a fallback)
+const SUPABASE_FUNCTIONS_BASE = `${ENV.VITE_SUPABASE_URL}/functions/v1`;
 
 interface EdgeFunctionOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
@@ -61,7 +64,7 @@ export async function callEdgeFunction<T = any>(
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   try {
-    const url = `${supabase.supabaseUrl}/functions/v1/${functionName}`;
+    const url = `${SUPABASE_FUNCTIONS_BASE}/${functionName}`;
 
     debugLogger.debug('edgeFunctionClient', `Calling ${functionName}:`, {
       url,

@@ -3,7 +3,8 @@ import { ChatMessage } from "@/types/chatbot";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MarkdownMessage } from "@/components/MarkdownMessage";
-import { AlertCircle, Loader2, Send, Trash2, MessageSquare } from "lucide-react";
+import { AlertCircle, Loader2, Send, Trash2, Bot, User } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface ChatInterfaceProps {
   messages: ChatMessage[];
@@ -24,15 +25,9 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
 }) => {
   const [inputValue, setInputValue] = React.useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    if (messagesEndRef.current) {
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, 0);
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -44,144 +39,199 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-b from-gray-50 to-white">
+    <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="bg-gradient-to-r from-book-600 via-book-700 to-book-800 text-white px-4 py-3 sm:p-4 border-b border-book-700">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <MessageSquare size={20} className="flex-shrink-0" />
-            <h2 className="text-sm sm:text-base font-bold truncate">ReBooked Assistant</h2>
+      <div className="relative bg-primary px-5 py-4 text-primary-foreground">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-9 h-9 rounded-full bg-primary-foreground/15 backdrop-blur-sm">
+              <Bot size={18} />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold tracking-tight">ReBooked Genius mini</h2>
+              <p className="text-[11px] opacity-80 font-medium">Online · Ready to help</p>
+            </div>
           </div>
           <button
             onClick={onClearHistory}
-            className="p-2 hover:bg-book-500 rounded-lg transition-colors flex-shrink-0 hover:shadow-md"
+            className="p-2 rounded-lg hover:bg-primary-foreground/10 transition-colors"
             title="Clear chat history"
           >
-            <Trash2 size={16} />
+            <Trash2 size={15} />
           </button>
         </div>
-        <p className="text-xs sm:text-xs text-book-100 mt-1.5 font-medium opacity-90">
-          Your smart guide to buying and selling textbooks
-        </p>
       </div>
 
-      {/* Messages Container */}
-      <div
-        ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto scrollbar-hide px-3 sm:px-4 py-4 space-y-4 bg-gradient-to-b from-gray-50/50 to-white"
-      >
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-muted/30">
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center py-8 sm:py-12">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-book-100 flex items-center justify-center mb-3 sm:mb-4">
-              <MessageSquare size={24} className="sm:w-8 sm:h-8 text-book-600" />
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center justify-center h-full text-center py-10"
+          >
+            <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+              <Bot size={28} className="text-primary" />
             </div>
-            <p className="text-sm sm:text-base font-semibold text-gray-900 mb-1">No messages yet</p>
-            <p className="text-xs sm:text-sm text-gray-600 max-w-xs">
-              Ask me anything about buying textbooks, selling your books, delivery, pricing, or anything ReBooked!
+            <p className="text-sm font-semibold text-foreground mb-1">Hi there! 👋</p>
+            <p className="text-xs text-muted-foreground max-w-[250px] leading-relaxed">
+              I can help with buying & selling textbooks, delivery, payments, and more. Ask me anything!
             </p>
-          </div>
+            <div className="mt-5 flex flex-wrap gap-2 justify-center max-w-xs">
+              {["How do I sell a book?", "Delivery options", "Payment methods"].map((q) => (
+                <button
+                  key={q}
+                  onClick={() => onSendMessage(q)}
+                  className="text-[11px] px-3 py-1.5 rounded-full border border-border bg-background text-foreground hover:bg-accent transition-colors font-medium"
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+          </motion.div>
         ) : (
-          messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${message.role === "user" ? "justify-end" : "justify-start"} animate-in fade-in slide-in-from-bottom-2 duration-300`}
-            >
-              <div
-                className={`max-w-[80%] sm:max-w-sm px-4 py-2.5 rounded-2xl ${
-                  message.role === "user"
-                    ? "bg-book-600 text-white rounded-br-sm shadow-md"
-                    : "bg-white text-gray-900 rounded-bl-sm border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
-                }`}
+          <AnimatePresence initial={false}>
+            {messages.map((message) => (
+              <motion.div
+                key={message.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2 }}
+                className={`flex gap-2.5 ${message.role === "user" ? "justify-end" : "justify-start"}`}
               >
-                <div className="break-words">
-                  {message.role === "assistant" ? (
-                    <MarkdownMessage content={message.content} />
-                  ) : (
-                    <p className="text-sm sm:text-sm leading-relaxed break-words">{message.content}</p>
-                  )}
-                </div>
-                <p
-                  className={`text-xs mt-1.5 ${
-                    message.role === "user" ? "text-book-100/80" : "text-gray-500"
+                {message.role === "assistant" && (
+                  <div className="flex-shrink-0 w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
+                    <Bot size={14} className="text-primary" />
+                  </div>
+                )}
+                <div
+                  className={`max-w-[78%] px-3.5 py-2.5 text-sm leading-relaxed ${
+                    message.role === "user"
+                      ? "bg-primary text-primary-foreground rounded-2xl rounded-br-md"
+                      : "bg-card text-card-foreground rounded-2xl rounded-bl-md border border-border shadow-sm"
                   }`}
                 >
-                  {new Date(message.timestamp).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-              </div>
-            </div>
-          ))
-        )}
-
-        {/* Typing Indicator */}
-        {isLoading && (
-          <div className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="bg-white text-gray-900 px-4 py-2.5 rounded-2xl rounded-bl-sm border border-gray-200 shadow-sm">
-              <div className="flex items-center gap-2">
-                <div className="flex gap-1">
-                  <div className="w-2 h-2 bg-book-500 rounded-full animate-bounce" style={{ animationDelay: "0s" }}></div>
-                  <div className="w-2 h-2 bg-book-500 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
-                  <div className="w-2 h-2 bg-book-500 rounded-full animate-bounce" style={{ animationDelay: "0.4s" }}></div>
-                </div>
-                <span className="text-xs text-gray-600 ml-1">Thinking...</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Error Message */}
-        {error && (
-          <div className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="bg-red-50 border border-red-200 text-red-900 px-4 py-3 rounded-2xl rounded-bl-sm max-w-[80%] sm:max-w-sm shadow-sm">
-              <div className="flex gap-3">
-                <AlertCircle size={16} className="flex-shrink-0 mt-0.5 text-red-600" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold mb-1">Something went wrong</p>
-                  <p className="text-xs text-red-800 break-words mb-2">{error}</p>
-                  <button
-                    onClick={onClearError}
-                    className="text-xs font-medium text-red-700 hover:text-red-900 underline underline-offset-1"
+                  <div className="break-words">
+                    {message.role === "assistant" ? (
+                      <MarkdownMessage content={message.content} />
+                    ) : (
+                      <p className="text-sm leading-relaxed">{message.content}</p>
+                    )}
+                  </div>
+                  <p
+                    className={`text-[10px] mt-1.5 ${
+                      message.role === "user" ? "text-primary-foreground/60" : "text-muted-foreground"
+                    }`}
                   >
-                    Dismiss
-                  </button>
+                    {new Date(message.timestamp).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </div>
+                {message.role === "user" && (
+                  <div className="flex-shrink-0 w-7 h-7 rounded-full bg-primary flex items-center justify-center mt-0.5">
+                    <User size={14} className="text-primary-foreground" />
+                  </div>
+                )}
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        )}
+
+        {/* Typing indicator */}
+        <AnimatePresence>
+          {isLoading && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              className="flex gap-2.5 justify-start"
+            >
+              <div className="flex-shrink-0 w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
+                <Bot size={14} className="text-primary" />
+              </div>
+              <div className="bg-card text-card-foreground px-4 py-3 rounded-2xl rounded-bl-md border border-border shadow-sm">
+                <div className="flex items-center gap-1.5">
+                  <motion.div
+                    className="w-1.5 h-1.5 bg-primary/60 rounded-full"
+                    animate={{ y: [0, -4, 0] }}
+                    transition={{ duration: 0.6, repeat: Infinity, delay: 0 }}
+                  />
+                  <motion.div
+                    className="w-1.5 h-1.5 bg-primary/60 rounded-full"
+                    animate={{ y: [0, -4, 0] }}
+                    transition={{ duration: 0.6, repeat: Infinity, delay: 0.15 }}
+                  />
+                  <motion.div
+                    className="w-1.5 h-1.5 bg-primary/60 rounded-full"
+                    animate={{ y: [0, -4, 0] }}
+                    transition={{ duration: 0.6, repeat: Infinity, delay: 0.3 }}
+                  />
                 </div>
               </div>
-            </div>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Error */}
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="flex justify-start"
+            >
+              <div className="bg-destructive/10 border border-destructive/20 text-destructive px-3.5 py-2.5 rounded-2xl rounded-bl-md max-w-[80%]">
+                <div className="flex gap-2">
+                  <AlertCircle size={14} className="flex-shrink-0 mt-0.5" />
+                  <div className="text-xs">
+                    <p className="break-words">{error}</p>
+                    <button
+                      onClick={onClearError}
+                      className="mt-1 font-medium underline underline-offset-2 hover:no-underline"
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area */}
-      <div className="border-t border-gray-200 bg-white px-3 sm:px-4 py-3 sm:py-4 shadow-lg">
+      {/* Input */}
+      <div className="border-t border-border bg-background px-4 py-3">
         <form onSubmit={handleSubmit} className="flex gap-2">
           <Input
             type="text"
-            placeholder="Type your question..."
+            placeholder="Ask me anything..."
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             disabled={isLoading}
-            className="flex-1 text-sm h-10 sm:h-11 rounded-full border-gray-300 placeholder:text-gray-500 focus:border-book-500 focus:ring-book-500"
+            className="flex-1 h-10 rounded-xl border-border bg-muted/50 text-sm placeholder:text-muted-foreground focus-visible:ring-primary"
             autoFocus
           />
           <Button
             type="submit"
             disabled={isLoading || !inputValue.trim()}
-            className="bg-book-600 hover:bg-book-700 disabled:bg-gray-300 text-white px-4 h-10 sm:h-11 rounded-full transition-all active:scale-95 shadow-md hover:shadow-lg font-medium flex items-center gap-2"
+            size="icon"
+            className="h-10 w-10 rounded-xl shrink-0"
           >
             {isLoading ? (
               <Loader2 size={16} className="animate-spin" />
             ) : (
-              <>
-                <Send size={16} />
-              </>
+              <Send size={16} />
             )}
           </Button>
         </form>
-        <p className="text-xs text-gray-500 mt-2 text-center">Messages saved locally for 30 days</p>
+        <p className="text-[10px] text-muted-foreground mt-1.5 text-center">
+          ReBooked Solutions Terms And Conditions Apply · Messages saved 30 days
+        </p>
       </div>
     </div>
   );

@@ -100,13 +100,13 @@ serve(async (req) => {
       );
     }
 
-    // STEP 1: Cancel shipment with BobGo
+    // STEP 1: Cancel shipment via unified cancel-shipment function
     let shipmentCancelled = false;
     let shipmentCancelError = null;
 
     if (order.tracking_number || order.id) {
       try {
-        const cancelShipmentUrl = `${SUPABASE_URL}/functions/v1/bobgo-cancel-shipment`;
+        const cancelShipmentUrl = `${SUPABASE_URL}/functions/v1/cancel-shipment`;
 
         const shipmentResponse = await fetch(cancelShipmentUrl, {
           method: 'POST',
@@ -116,9 +116,8 @@ serve(async (req) => {
             'apikey': SUPABASE_ANON_KEY,
           },
           body: JSON.stringify({
-            tracking_number: order.tracking_number,
+            tracking_reference: order.tracking_number,
             order_id: order.id,
-            reason: reason || 'Order cancelled by user',
           }),
         });
 

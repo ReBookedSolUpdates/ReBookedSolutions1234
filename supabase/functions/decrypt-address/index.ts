@@ -303,13 +303,13 @@ Deno.serve(async (req: Request) => {
         throw new Error(`Failed to fetch record: ${error.message}`)
       }
 
-      if (!data) {
-        // Record not found
+    if (!data) {
+        // Record not found — return empty, not an error
         return jsonResponse({
           success: false, 
           data: null, 
-          error: { code: 'NOT_FOUND', message: 'Record not found' }
-        }, { status: 404 })
+          error: null
+        })
       }
 
       const encryptedData = (data as any)[encryptedColumn]
@@ -356,12 +356,12 @@ Deno.serve(async (req: Request) => {
         }
       }
 
-      // No data found
+      // No encrypted data stored yet — not an error, just empty
       return jsonResponse({
         success: false,
         data: null, 
-        error: { code: 'NOT_FOUND', message: 'No address data found' }
-      }, { status: 404 })
+        error: null
+      })
     }
 
     // Handle new format with fetch object
@@ -439,10 +439,12 @@ Deno.serve(async (req: Request) => {
       }
 
       if (!row || !(row as any)[column]) {
+        // No encrypted data stored yet — not an error, just empty
         return jsonResponse({ 
           success: false, 
-          error: { code: 'NOT_FOUND', message: 'No encrypted data found for the given record/column.' } 
-        }, { status: 404 })
+          data: null,
+          error: null
+        })
       }
 
       let bundle: EncryptedBundle

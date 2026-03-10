@@ -194,7 +194,7 @@ export const ManualAddressInput = ({
 
         {/* Suggestions Dropdown */}
         {showDropdown && suggestions.length > 0 && (
-          <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+          <div className="absolute z-[70] w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
             {suggestions.map((suggestion) => (
               <button
                 key={suggestion.place_id}

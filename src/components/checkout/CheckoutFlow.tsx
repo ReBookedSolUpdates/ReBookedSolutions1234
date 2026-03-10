@@ -73,7 +73,9 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   }, [book.id, user?.id]);
 
   const initializeCheckout = async () => {
+    console.log("[CHECKOUT_FLOW] Initializing checkout for book:", book.id, "User:", user?.id);
     if (!user?.id) {
+      console.error("[CHECKOUT_FLOW] No user ID found");
       setCheckoutState((prev) => ({
         ...prev,
         error: "Please log in to continue",
@@ -94,6 +96,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         .eq("id", book.id)
         .single();
 
+      console.log("[CHECKOUT_FLOW] Book data fetched:", data, "Error:", bookError);
       bookData = data; // Assign to outer scope variable
 
       if (bookError) {
@@ -136,7 +139,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         // 1. Fetch seller profile (basic info)
         supabase
           .from("profiles")
-          .select("id, first_name, last_name, email")
+          .select("id, full_name, first_name, last_name, email, encryption_status, addresses_same")
           .eq("id", bookData.seller_id)
           .maybeSingle(),
         // 2. Fetch subaccount (for payment, non-critical)
@@ -150,7 +153,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         // 4. Fetch seller locker preference (in parallel with address)
         supabase
           .from("profiles")
-          .select("preferred_delivery_locker_data, preferred_pickup_method")
+          .select("preferred_delivery_locker_data, preferred_pickup_locker_data, preferred_pickup_method")
           .eq("id", bookData.seller_id)
           .maybeSingle(),
       ]);
@@ -158,6 +161,9 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       // Process seller profile result
       if (sellerProfileResult.status === 'fulfilled' && sellerProfileResult.value.data) {
         sellerProfile = sellerProfileResult.value.data;
+        console.log("[CHECKOUT_FLOW] Seller profile:", sellerProfile);
+      } else {
+        console.warn("[CHECKOUT_FLOW] Seller profile fetch failed or empty:", sellerProfileResult);
       }
 
       // Process subaccount result (non-critical)
@@ -175,7 +181,9 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       // Process seller address result
       if (sellerAddressResult.status === 'fulfilled') {
         sellerAddress = sellerAddressResult.value;
+        console.log("[CHECKOUT_FLOW] Seller address:", sellerAddress);
       } else if (sellerAddressResult.status === 'rejected') {
+        console.error("[CHECKOUT_FLOW] Seller address fetch rejected:", sellerAddressResult.reason);
       }
 
       // Process seller locker preference result
@@ -188,16 +196,16 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         }
 
         // Only load locker if preferred method is locker
-        if (profile.preferred_pickup_method === "locker" && profile.preferred_delivery_locker_data) {
-          const lockerData = profile.preferred_delivery_locker_data as any;
+        // Coalesce delivery and pickup locker data since they should be the same
+        const lockerData = (profile.preferred_delivery_locker_data || profile.preferred_pickup_locker_data) as any;
+        if (profile.preferred_pickup_method === "locker" && lockerData) {
           if (lockerData.id && lockerData.name && lockerData.provider_slug) {
             sellerLockerData = lockerData;
           }
         }
 
         // Fallback: if no preferred method set but has locker, use locker as preference
-        if (!sellerPreferredPickupMethod && profile.preferred_delivery_locker_data) {
-          const lockerData = profile.preferred_delivery_locker_data as any;
+        if (!sellerPreferredPickupMethod && lockerData) {
           if (lockerData.id && lockerData.name && lockerData.provider_slug) {
             sellerLockerData = lockerData;
             sellerPreferredPickupMethod = "locker";
@@ -343,15 +351,23 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       if (!buyerAddress) {
         try {
           const { getSimpleUserAddresses } = await import("@/services/simplifiedAddressService");
+          const { normalizeAddressFields } = await import("@/utils/addressNormalizationUtils");
           const addrData = await getSimpleUserAddresses(user.id);
           const sa: any = addrData?.shipping_address || addrData?.pickup_address;
-          if ((sa?.streetAddress || sa?.street) && sa?.city && sa?.province && (sa?.postalCode || sa?.postal_code)) {
+          const normalized = normalizeAddressFields(sa);
+
+          if (normalized && normalized.street && normalized.city && normalized.province && normalized.postalCode) {
             buyerAddress = {
-              street: sa.streetAddress || sa.street,
-              city: sa.city,
-              province: sa.province,
-              postal_code: sa.postalCode || sa.postal_code,
-              country: "South Africa",
+              street: normalized.street,
+              city: normalized.city,
+              province: normalized.province,
+              postal_code: normalized.postalCode,
+              country: normalized.country || "South Africa",
+              suburb: normalized.suburb || "",
+              latitude: normalized.latitude || null,
+              longitude: normalized.longitude || null,
+              type: normalized.type || "residential",
+              additional_info: (sa as any).company || (sa as any).additional_info || ""
             };
           }
         } catch (err) {
@@ -371,6 +387,11 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
               province: sa.province,
               postal_code: sa.postalCode || sa.postal_code,
               country: sa.country || "South Africa",
+              suburb: sa.suburb || sa.local_area || "",
+              latitude: sa.latitude || sa.lat || null,
+              longitude: sa.longitude || sa.lng || null,
+              type: sa.type || "residential",
+              additional_info: sa.company || sa.additional_info || ""
             } as CheckoutAddress;
           }
         } catch (err) {
@@ -378,7 +399,24 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       }
 
       if (buyerAddress) {
+        console.log("[CHECKOUT_FLOW] Buyer address found:", buyerAddress);
       } else {
+        console.warn("[CHECKOUT_FLOW] No buyer address found");
+      }
+
+      // Load buyer's preferred locker
+      const { data: buyerProfile } = await supabase
+        .from("profiles")
+        .select("preferred_delivery_locker_data, preferred_pickup_locker_data")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      let buyerLocker = null;
+      const lockerData = (buyerProfile?.preferred_delivery_locker_data || buyerProfile?.preferred_pickup_locker_data) as any;
+      if (lockerData) {
+        if (lockerData.id && lockerData.name) {
+          buyerLocker = lockerData;
+        }
       }
 
       // Determine available delivery methods and auto-select if only one exists
@@ -386,14 +424,13 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
       const hasHomeDeliveryOption = !!buyerAddress || !!sellerAddress;
 
       // Auto-select delivery method - default to locker when available
-      let autoDeliveryMethod: "locker" | "home" | null = null;
+      let autoDeliveryMethod: "locker" | "home" | null = "locker";
 
-      if (hasLockerOption) {
-        // Prefer locker if available
+      if (!hasLockerOption && hasHomeDeliveryOption) {
+        // Even if the seller doesn't have a locker, we can still default to locker delivery
+        // because we can do door-to-locker or similar.
+        // But if there's no locker setup, we can stick with locker as default.
         autoDeliveryMethod = "locker";
-      } else if (hasHomeDeliveryOption) {
-        // Fall back to home delivery if locker is not available
-        autoDeliveryMethod = "home";
       }
 
       setCheckoutState((prev) => ({
@@ -404,8 +441,10 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
         seller_preferred_pickup_method: sellerPreferredPickupMethod,
         buyer_address: buyerAddress,
         delivery_method: autoDeliveryMethod,
+        selected_locker: buyerLocker,
         loading: false,
       }));
+      console.log("[CHECKOUT_FLOW] Initialization complete. State updated.");
 
       if (!buyerAddress && !autoDeliveryMethod) {
         toast.info("Please add your delivery address to continue with checkout");
@@ -438,6 +477,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   };
 
   const goToStep = (step: 1 | 2 | 3 | 4 | 5) => {
+    console.log(`[CHECKOUT_FLOW] Transitioning to step ${step} from ${checkoutState.step.current}`);
     // Always show all steps - no auto-skipping
     // Users should see the delivery method selection step
     setCheckoutState((prev) => ({
@@ -472,6 +512,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   };
 
   const handleDeliverySelection = (delivery: DeliveryOption) => {
+    console.log("[CHECKOUT_FLOW] Delivery selected:", delivery);
     // For locker delivery, we need the locker; for home delivery, we need the buyer address
     const isLockerDelivery = checkoutState.delivery_method === "locker" && checkoutState.selected_locker;
 
@@ -534,6 +575,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   };
 
   const handlePaymentSuccess = async (orderData: OrderConfirmation) => {
+    console.log("[CHECKOUT_FLOW] Payment success:", orderData);
     setOrderConfirmation(orderData);
 
     // Track purchase (non-blocking)
@@ -609,6 +651,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
   };
 
   const handlePaymentError = (error: string) => {
+    console.error("[CHECKOUT_FLOW] Payment error:", error);
     const errorMessage = typeof error === 'string' ? error : String(error || 'Unknown error');
     const safeMessage = errorMessage === '[object Object]' ? 'Payment processing failed' : errorMessage;
 
@@ -623,7 +666,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
     toast.error(`Payment failed: ${safeMessage}`);
     setCheckoutState((prev) => ({
       ...prev,
-      error: "Payment failed. Please try again.",
+      error: `Payment failed: ${safeMessage}`,
     }));
   };
 
@@ -647,7 +690,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
     }
 
     // Navigate back to the book details page
-    navigate(`/book/${book.id}`);
+    navigate(`/books/${book.id}`);
   };
 
   const handleAddressSubmit = (address: CheckoutAddress) => {
@@ -850,6 +893,8 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
             onBack={() => goToStep(1)}
             onCancel={handleCancelCheckout}
             loading={checkoutState.loading}
+            sellerLockerData={checkoutState.seller_locker_data}
+            sellerAddress={checkoutState.seller_address}
           />
         )}
 
@@ -859,7 +904,7 @@ const CheckoutFlow: React.FC<CheckoutFlowProps> = ({ book }) => {
             <>
               {checkoutState.delivery_method === "locker" && checkoutState.selected_locker ? (
                 <Step2DeliveryOptions
-                  buyerAddress={checkoutState.buyer_address || { street: "", city: "", province: "", postal_code: "", country: "" }}
+                  buyerAddress={checkoutState.buyer_address}
                   sellerAddress={checkoutState.seller_address}
                   sellerLockerData={checkoutState.seller_locker_data}
                   sellerPreferredPickupMethod={checkoutState.seller_preferred_pickup_method}

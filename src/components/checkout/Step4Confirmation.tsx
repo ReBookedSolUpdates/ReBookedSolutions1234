@@ -32,6 +32,7 @@ const Step4Confirmation: React.FC<Step4ConfirmationProps> = ({
   const [isDownloading, setIsDownloading] = React.useState(false);
 
   useEffect(() => {
+    console.log("[STEP4_CONFIRMATION] Order complete! Order Data:", orderData);
     // Send confirmation email
     sendConfirmationEmail();
 
@@ -55,6 +56,7 @@ const Step4Confirmation: React.FC<Step4ConfirmationProps> = ({
   };
 
   const downloadReceipt = async () => {
+    console.log("[STEP4_CONFIRMATION] Generating receipt for order:", orderData.order_id);
     if (!receiptRef.current) {
       toast.error("Receipt element not found");
       return;

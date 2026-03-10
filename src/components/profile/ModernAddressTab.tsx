@@ -34,8 +34,8 @@ import { toast } from "sonner";
 import ManualAddressInput from "@/components/ManualAddressInput";
 import type { AddressData as GoogleAddressData } from "@/components/ManualAddressInput";
 import { AddressData, Address } from "@/types/address";
-import { handleAddressError } from "@/utils/errorDisplayUtils";
-import BobGoLocationsSection from "./BobGoLocationsSection";
+import BobPayCheckoutHelper from "@/utils/bobpayCheckoutHelper";
+import PudoLocationsSection from "./BobGoLocationsSection";
 import SavedLockersCard from "./SavedLockersCard";
 
 interface ModernAddressTabProps {
@@ -74,6 +74,10 @@ const ModernAddressTab = ({
       setPickupAddress(addressData.pickup_address);
       setShippingAddress(addressData.shipping_address);
       setSameAsPickup(addressData.addresses_same || false);
+    } else {
+      setPickupAddress(null);
+      setShippingAddress(null);
+      setSameAsPickup(false);
     }
   }, [addressData]);
 
@@ -153,28 +157,7 @@ const ModernAddressTab = ({
     loadPreferenceAndLockerStatus();
   }, [pickupAddress]);
 
-  // Small optimization: prefill addresses quickly without awaiting heavy decrypt flows elsewhere
-  useEffect(() => {
-    // if no address data yet, attempt a lightweight cached fetch (non-blocking)
-    let cancelled = false;
-    const tryPrefetch = async () => {
-      if (addressData) return;
-      try {
-        const cacheKey = `cached_address_${window?.__USER_ID__}`;
-        const cached = cacheKey ? (window as any)?.localStorage?.getItem?.(cacheKey) : null;
-        if (cached && !cancelled) {
-          const parsed = JSON.parse(cached);
-          setPickupAddress(parsed.pickup_address || null);
-          setShippingAddress(parsed.shipping_address || null);
-          setSameAsPickup(parsed.addresses_same || false);
-        }
-      } catch (e) {
-        // ignore cache failures
-      }
-    };
-    tryPrefetch();
-    return () => { cancelled = true; };
-  }, []);
+  // Preference selection removed as Locker is now mandatory for pickups
 
   const formatAddress = (address: Address | null | undefined) => {
     if (!address) return null;
@@ -296,23 +279,29 @@ const ModernAddressTab = ({
   };
 
   const handleDeletePickupAddress = async () => {
+    const emptyAddress: Address = {
+      street: "",
+      city: "",
+      province: "",
+      postalCode: "",
+      country: "South Africa",
+    };
+
+    const wasSame = sameAsPickup;
     setPickupAddress(null);
     setSameAsPickup(false);
+    if (wasSame) {
+      setShippingAddress(null);
+    }
     setDeleteConfirm(null);
 
     // Attempt to save the deletion
-    if (onSaveAddresses && shippingAddress) {
+    if (onSaveAddresses) {
       setIsSaving(true);
       try {
         await onSaveAddresses(
-          {
-            street: "",
-            city: "",
-            province: "",
-            postalCode: "",
-            country: "South Africa",
-          },
-          shippingAddress,
+          emptyAddress,
+          wasSame ? emptyAddress : (shippingAddress || emptyAddress),
           false
         );
       } catch (error) {
@@ -329,23 +318,29 @@ const ModernAddressTab = ({
   };
 
   const handleDeleteShippingAddress = async () => {
+    const emptyAddress: Address = {
+      street: "",
+      city: "",
+      province: "",
+      postalCode: "",
+      country: "South Africa",
+    };
+
+    const wasSame = sameAsPickup;
     setShippingAddress(null);
     setSameAsPickup(false);
+    if (wasSame) {
+      setPickupAddress(null);
+    }
     setDeleteConfirm(null);
 
     // Attempt to save the deletion
-    if (onSaveAddresses && pickupAddress) {
+    if (onSaveAddresses) {
       setIsSaving(true);
       try {
         await onSaveAddresses(
-          pickupAddress,
-          {
-            street: "",
-            city: "",
-            province: "",
-            postalCode: "",
-            country: "South Africa",
-          },
+          wasSame ? emptyAddress : (pickupAddress || emptyAddress),
+          emptyAddress,
           false
         );
       } catch (error) {
@@ -429,8 +424,8 @@ const ModernAddressTab = ({
       {/* Saved Lockers Section - Moved to Top */}
       <SavedLockersCard ref={savedLockersCardRef} isLoading={isLoading} />
 
-      {/* BobGo Locations Section - Moved to Top */}
-      <BobGoLocationsSection onLockerSaved={() => {
+      {/* Pudo Locations Section - Moved to Top */}
+      <PudoLocationsSection onLockerSaved={() => {
         savedLockersCardRef.current?.loadSavedLockers();
         // Reload preference and locker status when a new locker is saved
         setIsLoadingPreference(true);
@@ -461,72 +456,7 @@ const ModernAddressTab = ({
         })();
       }} />
 
-      {/* Preferred Pickup Method Selection - Only show if both locker and pickup address exist */}
-      {!isLoadingPreference && hasSavedLocker && pickupAddress && (
-        <Card className="border-2 border-purple-200 shadow-md">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base md:text-lg flex items-center gap-2">
-              <Navigation className="h-5 w-5 text-purple-600" />
-              Preferred Pickup Method
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <RadioGroup
-              value={preferredPickupMethod || ""}
-              onValueChange={(value) => savePreferredPickupMethod(value as "locker" | "pickup")}
-              disabled={isSavingPreference}
-            >
-              <div className="space-y-2">
-                {/* Locker Option */}
-                <div className="flex items-center space-x-3 p-3 border border-purple-200 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer"
-                  onClick={() => !isSavingPreference && savePreferredPickupMethod("locker")}
-                >
-                  <RadioGroupItem
-                    value="locker"
-                    id="prefer-locker"
-                    disabled={isSavingPreference}
-                    className="flex-shrink-0"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <Label htmlFor="prefer-locker" className="cursor-pointer">
-                      <div className="flex items-center gap-2">
-                        <Package className="h-4 w-4 text-purple-600 flex-shrink-0" />
-                        <span className="font-semibold text-sm">BobGo Locker</span>
-                      </div>
-                    </Label>
-                  </div>
-                  {isSavingPreference && preferredPickupMethod === "locker" && (
-                    <Loader2 className="h-4 w-4 text-purple-600 animate-spin flex-shrink-0" />
-                  )}
-                </div>
-
-                {/* Home Address Option */}
-                <div className="flex items-center space-x-3 p-3 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer"
-                  onClick={() => !isSavingPreference && savePreferredPickupMethod("pickup")}
-                >
-                  <RadioGroupItem
-                    value="pickup"
-                    id="prefer-pickup"
-                    disabled={isSavingPreference}
-                    className="flex-shrink-0"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <Label htmlFor="prefer-pickup" className="cursor-pointer">
-                      <div className="flex items-center gap-2">
-                        <Home className="h-4 w-4 text-blue-600 flex-shrink-0" />
-                        <span className="font-semibold text-sm">Home Address</span>
-                      </div>
-                    </Label>
-                  </div>
-                  {isSavingPreference && preferredPickupMethod === "pickup" && (
-                    <Loader2 className="h-4 w-4 text-blue-600 animate-spin flex-shrink-0" />
-                  )}
-                </div>
-              </div>
-            </RadioGroup>
-          </CardContent>
-        </Card>
-      )}
+      {/* Preference Selection removed as Locker is now mandatory for pickups */}
 
       {/* Address Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -534,7 +464,7 @@ const ModernAddressTab = ({
         <Card className="border-2 border-blue-100 hover:shadow-lg transition-shadow">
           <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100">
             <CardTitle className="flex items-center gap-2">
-              <Package className="h-5 w-5 text-blue-600" />
+              <Home className="h-5 w-5 text-blue-600" />
               Pickup Address
               {pickupAddress && (
                 <Badge
@@ -550,14 +480,49 @@ const ModernAddressTab = ({
           <CardContent className="p-6">
             <div className="space-y-4">
               <p className="text-sm text-gray-600">
-                Where our couriers can pick up your books
+                Where books you sell will be picked up from
               </p>
 
-              {pickupAddress && editMode !== "pickup" && editMode !== "both" ? (
+              {(editMode === "pickup" || editMode === "both") ? (
+                <div className="space-y-4">
+                  <ManualAddressInput
+                    label="Pickup Address"
+                    required
+                    onAddressSelect={handlePickupAddressChange}
+                    defaultValue={
+                      pickupAddress
+                        ? {
+                            formattedAddress: `${pickupAddress.street}, ${pickupAddress.city}, ${pickupAddress.province}, ${pickupAddress.postalCode}`,
+                            street: pickupAddress.street,
+                            city: pickupAddress.city,
+                            province: pickupAddress.province,
+                            postalCode: pickupAddress.postalCode,
+                            country: pickupAddress.country,
+                          }
+                        : undefined
+                    }
+                  />
+                  <div className="flex items-center space-x-2 pt-2">
+                    <input
+                      type="checkbox"
+                      id="same-as-pickup"
+                      checked={sameAsPickup}
+                      onChange={(e) => setSameAsPickup(e.target.checked)}
+                      className="h-4 w-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                    />
+                    <Label
+                      htmlFor="same-as-pickup"
+                      className="text-sm font-medium text-gray-700 cursor-pointer"
+                    >
+                      Use this as my shipping address too
+                    </Label>
+                  </div>
+                </div>
+              ) : pickupAddress ? (
                 <div className="space-y-3">
                   <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                     <div className="flex items-start gap-3">
-                      <Home className="h-5 w-5 text-blue-600 mt-0.5" />
+                      <Navigation className="h-5 w-5 text-blue-600 mt-0.5" />
                       <div className="flex-1">
                         <p className="font-medium text-blue-900">
                           Current Address
@@ -572,7 +537,7 @@ const ModernAddressTab = ({
                   {deleteConfirm === "pickup" ? (
                     <div className="p-3 bg-red-50 rounded-lg border border-red-200 space-y-3">
                       <p className="text-sm text-red-800">
-                        Are you sure you want to delete this pickup address? This action cannot be undone.
+                        Are you sure you want to delete this pickup address?
                       </p>
                       <div className="flex gap-2">
                         <Button
@@ -619,34 +584,14 @@ const ModernAddressTab = ({
                     </div>
                   )}
                 </div>
-              ) : editMode === "pickup" || editMode === "both" ? (
-                <div className="space-y-4">
-                  <ManualAddressInput
-                    label="Pickup Address"
-                    required
-                    onAddressSelect={handlePickupAddressChange}
-                    defaultValue={
-                      pickupAddress
-                        ? {
-                            formattedAddress: `${pickupAddress.street}, ${pickupAddress.city}, ${pickupAddress.province}, ${pickupAddress.postalCode}`,
-                            street: pickupAddress.street,
-                            city: pickupAddress.city,
-                            province: pickupAddress.province,
-                            postalCode: pickupAddress.postalCode,
-                            country: pickupAddress.country,
-                          }
-                        : undefined
-                    }
-                  />
-                </div>
               ) : (
                 <div className="text-center py-8">
-                  <Package className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <Home className="h-12 w-12 text-gray-300 mx-auto mb-3" />
                   <h3 className="font-medium text-gray-600 mb-2">
                     No Pickup Address Set
                   </h3>
                   <p className="text-sm text-gray-500 mb-4">
-                    Add a pickup address to start selling books
+                    Add a pickup address to sell books
                   </p>
                   <Button
                     onClick={() => startEditing("pickup")}
@@ -684,9 +629,27 @@ const ModernAddressTab = ({
                 Where you want to receive books that are shipped to you
               </p>
 
-              {shippingAddress &&
-              editMode !== "shipping" &&
-              editMode !== "both" ? (
+              {(editMode === "shipping" || editMode === "both") ? (
+                <div className="space-y-4">
+                  <ManualAddressInput
+                    label="Shipping Address"
+                    required
+                    onAddressSelect={handleShippingAddressChange}
+                    defaultValue={
+                      shippingAddress
+                        ? {
+                            formattedAddress: `${shippingAddress.street}, ${shippingAddress.city}, ${shippingAddress.province}, ${shippingAddress.postalCode}`,
+                            street: shippingAddress.street,
+                            city: shippingAddress.city,
+                            province: shippingAddress.province,
+                            postalCode: shippingAddress.postalCode,
+                            country: shippingAddress.country,
+                          }
+                        : undefined
+                    }
+                  />
+                </div>
+              ) : shippingAddress ? (
                 <div className="space-y-3">
                   <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                     <div className="flex items-start gap-3">
@@ -698,11 +661,6 @@ const ModernAddressTab = ({
                         <p className="text-sm text-green-800 mt-1">
                           {formatAddress(shippingAddress)}
                         </p>
-                        {sameAsPickup && (
-                          <Badge className="mt-2 bg-green-100 text-green-800 border-0">
-                            Same as pickup address
-                          </Badge>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -755,67 +713,6 @@ const ModernAddressTab = ({
                         Delete
                       </Button>
                     </div>
-                  )}
-                </div>
-              ) : editMode === "shipping" || editMode === "both" ? (
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
-                    <input
-                      type="checkbox"
-                      id="same-as-pickup"
-                      checked={sameAsPickup}
-                      onChange={(e) => {
-                        const checked = e.target.checked;
-                        setSameAsPickup(checked);
-                        if (checked && pickupAddress) {
-                          // Explicitly set shipping address to match pickup address
-                          setShippingAddress({
-                            street: pickupAddress.street,
-                            city: pickupAddress.city,
-                            province: pickupAddress.province,
-                            postalCode: pickupAddress.postalCode,
-                            country: pickupAddress.country,
-                          });
-                        }
-                      }}
-                      className="rounded border-gray-300"
-                    />
-                    <label
-                      htmlFor="same-as-pickup"
-                      className="text-sm font-medium"
-                    >
-                      Use pickup address for shipping
-                    </label>
-                  </div>
-
-                  {!sameAsPickup && (
-                    <ManualAddressInput
-                      label="Shipping Address"
-                      required
-                      onAddressSelect={handleShippingAddressChange}
-                      defaultValue={
-                        shippingAddress
-                          ? {
-                              formattedAddress: `${shippingAddress.street}, ${shippingAddress.city}, ${shippingAddress.province}, ${shippingAddress.postalCode}`,
-                              street: shippingAddress.street,
-                              city: shippingAddress.city,
-                              province: shippingAddress.province,
-                              postalCode: shippingAddress.postalCode,
-                              country: shippingAddress.country,
-                            }
-                          : undefined
-                      }
-                    />
-                  )}
-
-                  {sameAsPickup && (
-                    <Alert>
-                      <Info className="h-4 w-4" />
-                      <AlertDescription>
-                        Your shipping address will be the same as your pickup
-                        address.
-                      </AlertDescription>
-                    </Alert>
                   )}
                 </div>
               ) : (
@@ -920,7 +817,7 @@ const ModernAddressTab = ({
             >
               <div className="flex items-center gap-2 font-semibold">
                 <Package className="h-5 w-5" />
-                BobGo Locker
+                Pudo Locker
               </div>
               <span className="text-sm font-normal text-purple-700">Convenient locker-based pickup</span>
             </Button>

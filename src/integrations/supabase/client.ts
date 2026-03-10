@@ -2,43 +2,23 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "./types";
 
-import { ENV } from "@/config/environment";
+const getSafeEnvVar = (key: string, fallback: string) => {
+  const value = import.meta.env[key];
+  return (value && value !== "undefined" && value.trim() !== "") ? value : fallback;
+};
+
+const SUPABASE_URL = getSafeEnvVar("VITE_SUPABASE_URL", "https://kbpjqzaqbqukutflwixf.supabase.co");
+const SUPABASE_ANON_KEY = getSafeEnvVar("VITE_SUPABASE_ANON_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImticGpxemFxYnF1a3V0Zmx3aXhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc1NjMzNzcsImV4cCI6MjA2MzEzOTM3N30.3EdAkGlyFv1JRaRw9OFMyA5AkkKoXp0hdX1bFWpLVMc");
 
 // Validate Supabase configuration before creating client
 const validateSupabaseConfig = () => {
-  if (!ENV.VITE_SUPABASE_URL || ENV.VITE_SUPABASE_URL.trim() === "") {
-    throw new Error(
-      "VITE_SUPABASE_URL is required. Please set this environment variable.",
-    );
+  if (!SUPABASE_URL || SUPABASE_URL.trim() === "") {
+    throw new Error("VITE_SUPABASE_URL is required.");
   }
-
-  if (!ENV.VITE_SUPABASE_ANON_KEY || ENV.VITE_SUPABASE_ANON_KEY.trim() === "") {
-    throw new Error(
-      "VITE_SUPABASE_ANON_KEY is required. Please set this environment variable.",
-    );
+  if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.trim() === "") {
+    throw new Error("VITE_SUPABASE_ANON_KEY is required.");
   }
-
-  // Basic URL validation
-  try {
-    new URL(ENV.VITE_SUPABASE_URL);
-  } catch {
-    throw new Error(
-      `Invalid VITE_SUPABASE_URL: "${ENV.VITE_SUPABASE_URL}". Must be a valid URL.`,
-    );
-  }
-
-  // Validate API key format to prevent malformed keys with newlines
-  const cleanKey = ENV.VITE_SUPABASE_ANON_KEY.replace(/\s+/g, '');
-
-  // Check for basic JWT structure (should have 3 parts separated by dots)
-  const keyParts = cleanKey.split('.');
-  if (keyParts.length !== 3) {
-    throw new Error(
-      'Invalid VITE_SUPABASE_ANON_KEY format. Expected JWT format with 3 parts.',
-    );
-  }
-
-  return cleanKey;
+  return SUPABASE_ANON_KEY.replace(/\s+/g, "");
 };
 
 // Validate configuration and get clean API key
@@ -57,8 +37,8 @@ const createSupabaseClient = () => {
   }
 
   supabaseInstance = createClient<Database>(
-    ENV.VITE_SUPABASE_URL,
-    cleanApiKey, // Use cleaned API key
+    SUPABASE_URL,
+    cleanApiKey,
     {
       auth: {
         autoRefreshToken: true,

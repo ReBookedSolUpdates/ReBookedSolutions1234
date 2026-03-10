@@ -45,7 +45,7 @@ import ResetPassword from "./pages/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
 import Verify from "./pages/Verify";
 import AuthCallback from "./pages/AuthCallback";
-import EnvironmentConfigHelper from "./components/EnvironmentConfigHelper";
+// EnvironmentConfigHelper no longer needed — credentials have reliable fallbacks
 
 
 // Support Pages
@@ -55,9 +55,11 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Policies from "./pages/Policies";
 import Shipping from "./pages/Shipping";
+import Tracking from "./pages/Tracking";
 import Report from "./pages/Report";
 import SellerProfile from "./pages/SellerProfile";
 import GettingStarted from "./pages/GettingStarted";
+import Transparency from "./pages/Transparency";
 
 // Other Pages
 import NotificationsNew from "./pages/NotificationsNew";
@@ -105,6 +107,7 @@ function AppRoutes() {
         <Route path="/" element={<Index />} />
         <Route path="/books" element={<BookListing />} />
         <Route path="/books/:id" element={<BookDetails />} />
+        <Route path="/book/:id" element={<BookDetails />} />
         <Route
           path="/edit-book/:id"
           element={
@@ -271,7 +274,9 @@ function AppRoutes() {
         <Route path="/terms" element={<Terms />} />
         <Route path="/policies" element={<Policies />} />
         <Route path="/shipping" element={<Shipping />} />
+        <Route path="/tracking" element={<Tracking />} />
         <Route path="/getting-started" element={<GettingStarted />} />
+        <Route path="/transparency" element={<Transparency />} />
         <Route path="/report" element={<Report />} />
         <Route path="/webhook-test" element={<WebhookTest />} />
 
@@ -284,28 +289,6 @@ function AppRoutes() {
 
 function App() {
   debugLogger.info("App", "App component initializing");
-
-  // Check environment configuration first
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-  const isEnvironmentConfigured = !!(
-    supabaseUrl &&
-    supabaseUrl.trim() !== "" &&
-    supabaseUrl !== "undefined" &&
-    supabaseKey &&
-    supabaseKey.trim() !== "" &&
-    supabaseKey !== "undefined"
-  );
-
-  debugLogger.info("App", "Environment configuration check", { isEnvironmentConfigured });
-
-  // Show configuration helper if environment is not properly set up
-  if (!isEnvironmentConfigured) {
-    debugLogger.warn("App", "Environment not properly configured, showing config helper");
-    return <EnvironmentConfigHelper />;
-  }
-
   debugLogger.info("App", "Rendering app with all providers");
 
   return (

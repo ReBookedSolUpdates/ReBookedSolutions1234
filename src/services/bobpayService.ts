@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
+import { IS_PRODUCTION } from '@/config/envParser';
 
 export interface BobPayInitRequest {
   amount: number;
@@ -55,7 +56,8 @@ export const initializeBobPayPayment = async (
       throw new Error('Not authenticated');
     }
 
-    const { data, error } = await supabase.functions.invoke('bobpay-initialize-payment', {
+    const functionName = !IS_PRODUCTION ? 'production_bobpay-initialize-payment' : 'bobpay-initialize-payment';
+    const { data, error } = await supabase.functions.invoke(functionName, {
       headers: {
         Authorization: `Bearer ${session.access_token}`,
       },
@@ -119,7 +121,8 @@ export const processBobPayRefund = async (
       };
     }
 
-    const { data, error } = await supabase.functions.invoke('bobpay-refund', {
+    const functionName = !IS_PRODUCTION ? 'production_bobpay-refund' : 'bobpay-refund';
+    const { data, error } = await supabase.functions.invoke(functionName, {
       headers: {
         Authorization: `Bearer ${session.access_token}`,
       },

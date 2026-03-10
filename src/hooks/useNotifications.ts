@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import debugLogger from "@/utils/debugLogger";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import {

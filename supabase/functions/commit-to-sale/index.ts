@@ -126,7 +126,9 @@ serve(async (req) => {
     // CRITICAL: Verify seller is committing to their own order
     // This is the RLS equivalent check for service role operations
     if (order.seller_id !== user.id) {
-      console.log(`[commit-to-sale] Unauthorized: User ${user.id} is not seller ${order.seller_id}`);
+      console.warn(
+        `[commit-to-sale] Unauthorized: User ${user.id} is not seller ${order.seller_id}`,
+      );
       return new Response(
         JSON.stringify({
           success: false,
@@ -344,7 +346,10 @@ serve(async (req) => {
               pickupAddress = profilePickupResp.data.data;
             }
           } catch (e) {
-            console.error("[commit-to-sale] Failed to decrypt seller profile pickup address:", e);
+            console.warn(
+              "[commit-to-sale] Failed to decrypt seller profile pickup address:",
+              e,
+            );
           }
         }
       }
@@ -439,7 +444,10 @@ serve(async (req) => {
             shippingAddress = profileShippingResp.data.data;
           }
         } catch (e) {
-          console.error("[commit-to-sale] Failed to decrypt buyer profile shipping address:", e);
+          console.warn(
+            "[commit-to-sale] Failed to decrypt buyer profile shipping address:",
+            e,
+          );
         }
       }
     }
@@ -471,7 +479,10 @@ serve(async (req) => {
             shippingAddress = profilePickupResp.data.data;
           }
         } catch (e) {
-          console.error("[commit-to-sale] Failed to decrypt seller pickup address as fallback:", e);
+          console.warn(
+            "[commit-to-sale] Failed to decrypt seller pickup address as fallback:",
+            e,
+          );
         }
       }
     }
@@ -545,16 +556,17 @@ serve(async (req) => {
       throw new Error("No courier selected during checkout");
     }
 
-    console.log(`[commit-to-sale] Using buyer's selected courier: ${order.selected_courier_name} - ${order.selected_service_name}`);
+    console.info(
+      `[commit-to-sale] Using buyer's selected courier: ${order.selected_courier_name} - ${order.selected_service_name}`,
+    );
 
-    // Build parcels array
+    // Build parcels array in TCG/ShipLogic format
     const parcels = (items || []).map((item) => ({
-      description: item?.title || "Book",
-      weight: 1,
-      length: 25,
-      width: 20,
-      height: 3,
-      value: Number(item?.price) || 100,
+      parcel_description: item?.title || "Book",
+      submitted_weight_kg: 1,
+      submitted_length_cm: 25,
+      submitted_width_cm: 20,
+      submitted_height_cm: 3,
     }));
 
     // Initialize selected courier info from order
@@ -576,205 +588,208 @@ serve(async (req) => {
     // If seller is using locker pickup, recalculate rates for locker-to-locker route
     if (pickupType === "locker" && deliveryType === "locker" && pickupData && deliveryData) {
       try {
-        const getRatesResponse = await supabase.functions.invoke("bobgo-get-rates", {
+        const getRatesResponse = await supabase.functions.invoke("get-rates", {
           body: {
-            collectionPickupPoint: {
-              locationId: pickupData.location_id,
-              providerSlug: pickupData.provider_slug,
-            },
-            deliveryPickupPoint: {
-              locationId: deliveryData.location_id,
-              providerSlug: deliveryData.provider_slug,
-            },
-            parcels: parcels.map((p) => ({
-              weight: p.weight,
-              length: p.length,
-              width: p.width,
-              height: p.height,
-              value: p.value,
-              description: p.description,
-            })),
-            declaredValue: parcels.reduce((sum, p) => sum + (p.value || 0), 0),
-          },
-          headers: {
-            Authorization: `Bearer ${token}`,
+            collection_pickup_point_id: String(pickupData.location_id),
+            delivery_pickup_point_id: String(deliveryData.location_id),
+            parcels,
+            declared_value: parcels.reduce((sum, p) => sum + 100, 0),
           },
         });
 
         if (
           !getRatesResponse.error &&
-          getRatesResponse.data?.quotes &&
-          getRatesResponse.data.quotes.length > 0
+          getRatesResponse.data?.success &&
+          getRatesResponse.data?.rates?.length > 0
         ) {
-          const quotes = getRatesResponse.data.quotes;
-          rateQuote =
-            quotes.find(
-              (q: { provider_slug: string }) => q.provider_slug === pickupData!.provider_slug
-            ) || quotes[0];
-          selectedCourierSlug = rateQuote!.provider_slug;
-          selectedServiceCode = rateQuote!.service_level_code;
-          selectedShippingCost = rateQuote!.cost;
-          selectedCourierName = rateQuote!.provider_name || rateQuote!.carrier;
-          selectedServiceName = rateQuote!.service_name;
+          // Flatten rates - may be nested by provider
+          let allRates: any[] = [];
+          for (const item of getRatesResponse.data.rates) {
+            if (item.rates && Array.isArray(item.rates)) {
+              for (const r of item.rates) {
+                allRates.push({ ...r, _provider: item.provider });
+              }
+            } else {
+              allRates.push(item);
+            }
+          }
+          
+          if (allRates.length > 0) {
+            const rate = allRates[0];
+            rateQuote = {
+              provider_slug: rate.provider_slug || selectedCourierSlug || "tcg",
+              service_level_code: rate.service_level?.code || rate.service_level_code || selectedServiceCode,
+              cost: rate.rate || rate.base_rate?.charge || selectedShippingCost || 0,
+              provider_name: rate._provider || rate.provider || selectedCourierName,
+              service_name: rate.service_level?.name || rate.service_name || selectedServiceName || "Standard",
+              transit_days: rate.service_level?.delivery_date_from ? 3 : 3,
+            };
+            selectedCourierSlug = rateQuote.provider_slug;
+            selectedServiceCode = rateQuote.service_level_code;
+            selectedShippingCost = rateQuote.cost;
+            selectedCourierName = rateQuote.provider_name;
+            selectedServiceName = rateQuote.service_name;
+          }
         }
       } catch (e) {
       }
     }
 
-    // Build shipment payload
-    const shipmentPayload: Record<string, unknown> = {
-      order_id,
-      provider_slug: selectedCourierSlug,
-      service_level_code: selectedServiceCode,
-      parcels,
-      reference: `ORDER-${order_id}`,
+    // Build shipment payload in TCG/ShipLogic API format
+    const collectionAddress: Record<string, unknown> = {};
+    const collectionContact: Record<string, unknown> = {
+      name: sellerName,
+      mobile_number: sellerPhone,
+      email: sellerEmail,
+    };
+    const deliveryAddress: Record<string, unknown> = {};
+    const deliveryContact: Record<string, unknown> = {
+      name: buyerName,
+      mobile_number: buyerPhone,
+      email: buyerEmail,
     };
 
-    // Add pickup information based on type
+    // Add pickup/collection information based on type
     if (pickupData!.type === "locker") {
-      console.log("[commit-to-sale] Locker pickup configuration:", {
-        pickupType: pickupType,
-        locationId: pickupData!.location_id,
-        providerSlug: pickupData!.provider_slug,
-      });
-      shipmentPayload.pickup_locker_location_id = pickupData!.location_id;
-      shipmentPayload.pickup_locker_provider_slug = pickupData!.provider_slug;
-      shipmentPayload.pickup_locker_data = pickupData!.locker_data;
+      // For locker pickup, we still need a collection address for the API
+      collectionAddress.street_address = "";
+      collectionAddress.city = "";
+      collectionAddress.zone = "ZA";
+      collectionAddress.country = "ZA";
+      collectionAddress.code = "";
     } else {
-      console.log("[commit-to-sale] Door pickup configuration:", {
-        pickupType: pickupType,
-      });
       const pickupAddress = pickupData!.address as Record<string, string>;
-      shipmentPayload.pickup_address = {
-        street_address:
-          pickupAddress.street ||
-          pickupAddress.streetAddress ||
-          pickupAddress.street_address ||
-          "",
-        local_area:
-          pickupAddress.local_area ||
-          pickupAddress.suburb ||
-          pickupAddress.city ||
-          "",
-        city:
-          pickupAddress.city ||
-          pickupAddress.local_area ||
-          pickupAddress.suburb ||
-          "",
-        zone: pickupAddress.province || pickupAddress.provinceCode || pickupAddress.zone || "ZA",
-        code:
-          pickupAddress.postalCode ||
-          pickupAddress.postal_code ||
-          pickupAddress.code ||
-          "",
-        country: pickupAddress.country || "ZA",
-        company: sellerName,
-      };
+      collectionAddress.street_address =
+        pickupAddress.street ||
+        pickupAddress.streetAddress ||
+        pickupAddress.street_address || "";
+      collectionAddress.local_area =
+        pickupAddress.local_area ||
+        pickupAddress.suburb ||
+        pickupAddress.city || "";
+      collectionAddress.city =
+        pickupAddress.city ||
+        pickupAddress.local_area ||
+        pickupAddress.suburb || "";
+      collectionAddress.zone = pickupAddress.province || pickupAddress.provinceCode || pickupAddress.zone || "ZA";
+      collectionAddress.code =
+        pickupAddress.postalCode ||
+        pickupAddress.postal_code ||
+        pickupAddress.code || "";
+      collectionAddress.country = pickupAddress.country || "ZA";
+      collectionAddress.company = sellerName;
     }
-
-    // Always include pickup contact details (required by BobGo)
-    shipmentPayload.pickup_contact_name = sellerName;
-    shipmentPayload.pickup_contact_phone = sellerPhone;
-    shipmentPayload.pickup_contact_email = sellerEmail;
 
     // Add delivery information based on type
     if (deliveryData!.type === "locker") {
-      shipmentPayload.delivery_locker_location_id = deliveryData!.location_id;
-      shipmentPayload.delivery_locker_provider_slug = deliveryData!.provider_slug;
-      shipmentPayload.delivery_locker_data = deliveryData!.locker_data;
-
       const shippingAddr = deliveryData!.address as Record<string, string> | null;
       if (shippingAddr) {
-        shipmentPayload.delivery_address = {
-          street_address:
-            shippingAddr.street ||
-            shippingAddr.streetAddress ||
-            shippingAddr.street_address ||
-            "",
-          local_area:
-            shippingAddr.local_area ||
-            shippingAddr.suburb ||
-            shippingAddr.city ||
-            "",
-          city:
-            shippingAddr.city ||
-            shippingAddr.local_area ||
-            shippingAddr.suburb ||
-            "",
-          zone: shippingAddr.province || shippingAddr.provinceCode || shippingAddr.zone || "ZA",
-          code:
-            shippingAddr.postalCode ||
-            shippingAddr.postal_code ||
-            shippingAddr.code ||
-            "",
-          country: shippingAddr.country || "ZA",
-        };
-      }
-      shipmentPayload.delivery_contact_name = buyerName;
-      shipmentPayload.delivery_contact_phone = buyerPhone;
-      shipmentPayload.delivery_contact_email = buyerEmail;
-    } else {
-      const shippingAddr = deliveryData!.address as Record<string, string>;
-      shipmentPayload.delivery_address = {
-        street_address:
+        deliveryAddress.street_address =
           shippingAddr.street ||
           shippingAddr.streetAddress ||
-          shippingAddr.street_address ||
-          "",
-        local_area:
+          shippingAddr.street_address || "";
+        deliveryAddress.local_area =
           shippingAddr.local_area ||
           shippingAddr.suburb ||
-          shippingAddr.city ||
-          "",
-        city:
+          shippingAddr.city || "";
+        deliveryAddress.city =
           shippingAddr.city ||
           shippingAddr.local_area ||
-          shippingAddr.suburb ||
-          "",
-        zone: shippingAddr.province || shippingAddr.provinceCode || shippingAddr.zone || "ZA",
-        code:
+          shippingAddr.suburb || "";
+        deliveryAddress.zone = shippingAddr.province || shippingAddr.provinceCode || shippingAddr.zone || "ZA";
+        deliveryAddress.code =
           shippingAddr.postalCode ||
           shippingAddr.postal_code ||
-          shippingAddr.code ||
-          "",
-        country: shippingAddr.country || "ZA",
-      };
-      shipmentPayload.delivery_contact_name = buyerName;
-      shipmentPayload.delivery_contact_phone = buyerPhone;
-      shipmentPayload.delivery_contact_email = buyerEmail;
+          shippingAddr.code || "";
+        deliveryAddress.country = shippingAddr.country || "ZA";
+      }
+    } else {
+      const shippingAddr = deliveryData!.address as Record<string, string>;
+      deliveryAddress.street_address =
+        shippingAddr.street ||
+        shippingAddr.streetAddress ||
+        shippingAddr.street_address || "";
+      deliveryAddress.local_area =
+        shippingAddr.local_area ||
+        shippingAddr.suburb ||
+        shippingAddr.city || "";
+      deliveryAddress.city =
+        shippingAddr.city ||
+        shippingAddr.local_area ||
+        shippingAddr.suburb || "";
+      deliveryAddress.zone = shippingAddr.province || shippingAddr.provinceCode || shippingAddr.zone || "ZA";
+      deliveryAddress.code =
+        shippingAddr.postalCode ||
+        shippingAddr.postal_code ||
+        shippingAddr.code || "";
+      deliveryAddress.country = shippingAddr.country || "ZA";
     }
 
-    // Create shipment - make it resilient so failure doesn't block commitment
-    let shipmentData: any = {};
+    // Create shipment via unified create-shipment edge function (non-fatal)
+    let shipmentData: Record<string, unknown> = {};
+    let shipmentError: string | null = null;
     try {
+      const shipmentBody: any = {
+        order_id,
+        collection_contact: collectionContact,
+        delivery_contact: deliveryContact,
+        parcels,
+        service_level_code: selectedServiceCode,
+        declared_value: parcels.length * 100,
+        special_instructions_collection: "",
+        special_instructions_delivery: "",
+        customer_reference_name: "Order no.",
+        customer_reference: order_id,
+        provider: selectedCourierSlug === "shiplogic" ? undefined : selectedCourierSlug,
+      };
+
+      if (pickupType === "locker") {
+        shipmentBody.collection_pickup_point_id = String(pickupData!.location_id);
+      } else {
+        shipmentBody.collection_address = collectionAddress;
+      }
+
+      if (deliveryType === "locker") {
+        shipmentBody.delivery_pickup_point_id = String(deliveryData!.location_id);
+      } else {
+        shipmentBody.delivery_address = deliveryAddress;
+      }
+
       const shipmentResponse = await supabase.functions.invoke(
-        "bobgo-create-shipment",
+        "create-shipment",
         {
-          body: shipmentPayload,
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          body: shipmentBody,
         }
       );
 
       if (shipmentResponse.error) {
-        console.error(`[commit-to-sale] Shipment creation API error: ${shipmentResponse.error.message}`);
+        shipmentError = `Shipment creation failed: ${shipmentResponse.error.message || "Unknown"}`;
+        console.error("[commit-to-sale]", shipmentError);
+      } else if (shipmentResponse.data?.success) {
+        shipmentData = {
+          shipment_id: shipmentResponse.data.shipment?.id,
+          tracking_number: shipmentResponse.data.tracking_reference,
+          waybill_url: null, // Fetched separately via get-shipment-label
+          provider: shipmentResponse.data.provider,
+        };
       } else {
-        shipmentData = shipmentResponse.data || {};
+        shipmentError = `Shipment creation failed: ${shipmentResponse.data?.error || "Unknown"}`;
+        console.error("[commit-to-sale]", shipmentError);
       }
     } catch (e) {
-      console.error("[commit-to-sale] Exception during shipment creation:", e);
+      shipmentError = `Shipment creation exception: ${e instanceof Error ? e.message : String(e)}`;
+      console.error("[commit-to-sale]", shipmentError);
     }
 
     // Build updated delivery_data
     const deliveryDataUpdate: Record<string, unknown> = {
       ...(order.delivery_data || {}),
-      courier: "bobgo",
-      provider: selectedCourierName || "bobgo",
+      courier: selectedCourierSlug || "tcg",
+      provider: selectedCourierName || "The Courier Guy",
       provider_slug: selectedCourierSlug,
       service_level: selectedServiceName || "Standard",
       service_level_code: selectedServiceCode,
-      rate_amount: selectedShippingCost / 100,
+      rate_amount: typeof selectedShippingCost === 'number' ? selectedShippingCost / 100 : 0,
       delivery_price: selectedShippingCost,
       shipment_id: shipmentData.shipment_id,
       waybill_url: shipmentData.waybill_url,
@@ -793,7 +808,7 @@ serve(async (req) => {
     if (rateQuote) {
       deliveryDataUpdate.delivery_quote = {
         price: rateQuote.cost / 100,
-        courier: "bobgo",
+        courier: selectedCourierSlug || "tcg",
         zone_type:
           pickupType === "locker" && deliveryType === "locker"
             ? "locker-to-locker"
@@ -987,11 +1002,14 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        message: "Order committed successfully",
-        tracking_number: shipmentData.tracking_number,
-        waybill_url: shipmentData.waybill_url,
+        message: shipmentError
+          ? "Order committed successfully but shipment creation had issues. Our team will follow up."
+          : "Order committed successfully",
+        tracking_number: shipmentData.tracking_number || null,
+        waybill_url: shipmentData.waybill_url || null,
         pickup_type: pickupType,
         delivery_type: deliveryType,
+        shipment_warning: shipmentError || undefined,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

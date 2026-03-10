@@ -49,42 +49,14 @@ const encryptAddress = async (address: Address, options?: { save?: { table: stri
 // Decrypt an address using the improved decrypt-address edge function
 const decryptAddress = async (params: { table: 'profiles' | 'orders' | 'books'; target_id: string; address_type?: 'pickup' | 'shipping' | 'delivery' }) => {
   try {
-    const encryptedColumn = params.address_type === 'shipping' ? 'shipping_address_encrypted' :
-                          params.address_type === 'delivery' ? 'delivery_address_encrypted' :
-                          'pickup_address_encrypted';
-
-    // Fetch the encrypted data directly first (using client-side RLS)
-    // This is more robust than the 'fetch' mode in the edge function which has strict auth checks
-    const { data: record, error: fetchError } = await supabase
-      .from(params.table)
-      .select(`${encryptedColumn}, address_encryption_version`)
-      .eq('id', params.target_id)
-      .maybeSingle();
-
-    if (fetchError || !record || !(record as any)[encryptedColumn]) {
-      return null;
-    }
-
-    const encryptedData = (record as any)[encryptedColumn];
-    let bundle;
-    try {
-      bundle = typeof encryptedData === 'string' ? JSON.parse(encryptedData) : encryptedData;
-    } catch (e) {
-      return null;
-    }
-
-    if (!bundle || !bundle.ciphertext || !bundle.iv || !bundle.authTag) {
-      return null;
-    }
-
-    // Call decrypt-address with the bundle
+    // Use the new fetch format to target exact encrypted columns
     const { data, error } = await supabase.functions.invoke('decrypt-address', {
       body: {
-        encryptedData: bundle.ciphertext,
-        iv: bundle.iv,
-        authTag: bundle.authTag,
-        aad: bundle.aad,
-        version: bundle.version || record.address_encryption_version || 1
+        fetch: {
+          table: params.table,
+          target_id: params.target_id,
+          address_type: params.address_type || 'pickup',
+        },
       },
     });
 
@@ -312,7 +284,7 @@ export const saveUserAddresses = async (
     // Only update encryption status and addresses_same flag - no plaintext storage
     const updateData: any = {
       addresses_same: addressesSame,
-      encryption_status: 'encrypted', // Will be updated if any encryption failed
+      encryption_status: (isPickupDeleted && (addressesSame || isShippingDeleted)) ? 'none' : 'encrypted',
     };
 
     // Check encryption results and throw explicit error if any failed
@@ -504,28 +476,39 @@ export const updateBooksPickupAddress = async (
   newPickupAddress: any,
 ): Promise<{ success: boolean; updatedCount: number; error?: string }> => {
   try {
-    // Validate and normalize address before encryption
-    const validationErrors = validateAddressStructure(newPickupAddress);
-    if (validationErrors.length > 0) {
-      return {
-        success: false,
-        updatedCount: 0,
-        error: validationErrors.join("; "),
-      };
-    }
+    // Check if we are clearing the address
+    const isClearing = !newPickupAddress || (
+      !newPickupAddress.street &&
+      !newPickupAddress.streetAddress &&
+      !newPickupAddress.street_address &&
+      !newPickupAddress.city
+    );
 
-    // Normalize address to ensure consistency
-    const normalizedAddress = normalizeAddressFields(newPickupAddress);
-    if (!normalizedAddress) {
-      return {
-        success: false,
-        updatedCount: 0,
-        error: "Invalid address structure",
-      };
-    }
+    // Validate and normalize address before encryption (only if not clearing)
+    let normalizedAddress = null;
+    let province = null;
 
-    // Extract province (now guaranteed to be valid)
-    const province = normalizedAddress.province;
+    if (!isClearing) {
+      const validationErrors = validateAddressStructure(newPickupAddress);
+      if (validationErrors.length > 0) {
+        return {
+          success: false,
+          updatedCount: 0,
+          error: validationErrors.join("; "),
+        };
+      }
+
+      // Normalize address to ensure consistency
+      normalizedAddress = normalizeAddressFields(newPickupAddress);
+      if (!normalizedAddress) {
+        return {
+          success: false,
+          updatedCount: 0,
+          error: "Invalid address structure",
+        };
+      }
+      province = normalizedAddress.province;
+    }
 
     // Get all user's books
     const { data: books, error: fetchError } = await supabase
@@ -548,54 +531,60 @@ export const updateBooksPickupAddress = async (
       };
     }
 
-    // Encrypt address for each book (use comprehensive encryption preparation)
-    const addressForEncryption = prepareAddressForEncryption(normalizedAddress);
-    const encryptPromises = books.map(book =>
-      encryptAddress(addressForEncryption, {
-        save: {
-          table: 'books',
-          target_id: book.id,
-          address_type: 'pickup'
-        }
-      })
-    );
+    // Perform the update for each book
+    if (isClearing) {
+      // CLEAR all book pickup addresses
+      const { data, error } = await supabase
+        .from("books")
+        .update({
+          pickup_address_encrypted: null,
+          province: null
+        })
+        .eq("seller_id", userId)
+        .select("id");
 
-    await Promise.all(encryptPromises);
+      if (error) throw error;
+      return { success: true, updatedCount: data?.length || 0 };
+    } else {
+      // UPDATE with new encrypted address
+      const addressForEncryption = prepareAddressForEncryption(normalizedAddress!);
+      const encryptPromises = books.map(book =>
+        encryptAddress(addressForEncryption, {
+          save: {
+            table: 'books',
+            target_id: book.id,
+            address_type: 'pickup'
+          }
+        })
+      );
 
-    // Update only province metadata - addresses are encrypted only
-    const updateData: any = {};
-    if (province) {
-      updateData.province = province;
-    }
+      await Promise.all(encryptPromises);
 
-    // Only update if we have something to update
-    if (Object.keys(updateData).length === 0) {
+      // Update only province metadata - addresses are encrypted only
+      const updateData: any = {};
+      if (province) {
+        updateData.province = province;
+      }
+
+      const { data, error } = await supabase
+        .from("books")
+        .update(updateData)
+        .eq("seller_id", userId)
+        .select("id");
+
+      if (error) {
+        return {
+          success: false,
+          updatedCount: 0,
+          error: error.message || "Failed to update book listings",
+        };
+      }
+
       return {
         success: true,
-        updatedCount: books.length,
+        updatedCount: data?.length || 0,
       };
     }
-
-    const { data, error } = await supabase
-      .from("books")
-      .update(updateData)
-      .eq("seller_id", userId)
-      .select("id");
-
-    if (error) {
-      return {
-        success: false,
-        updatedCount: 0,
-        error: error.message || "Failed to update book listings",
-      };
-    }
-
-    const updatedCount = data?.length || 0;
-
-    return {
-      success: true,
-      updatedCount,
-    };
   } catch (error) {
     return {
       success: false,

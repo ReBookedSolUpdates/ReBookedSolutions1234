@@ -20,6 +20,9 @@ export interface Profile {
   status: string;
   profile_picture_url?: string;
   bio?: string;
+  created_at?: string;
+  preferred_delivery_locker_data?: any;
+  pickup_address?: any;
 }
 
 export const loginUser = async (email: string, password: string) => {
@@ -244,7 +247,7 @@ export const fetchUserProfileQuick = async (
     const { data: profile, error: profileError } = (await withTimeout(
       supabase
         .from("profiles")
-        .select("id, first_name, last_name, name, full_name, email, status, profile_picture_url, bio, is_admin")
+        .select("id, first_name, last_name, name, full_name, email, status, profile_picture_url, bio, is_admin, created_at, preferred_delivery_locker_data, pickup_address")
         .eq("id", user.id)
         .single(),
       12000, // Increased to 12 seconds
@@ -279,6 +282,9 @@ export const fetchUserProfileQuick = async (
       status: profile.status || "active",
       profile_picture_url: profile.profile_picture_url,
       bio: profile.bio,
+      created_at: profile.created_at,
+      preferred_delivery_locker_data: profile.preferred_delivery_locker_data,
+      pickup_address: profile.pickup_address,
     };
 
     return profileData;
@@ -301,7 +307,7 @@ export const fetchUserProfile = async (user: User): Promise<Profile | null> => {
           supabase
             .from("profiles")
             .select(
-              "id, first_name, last_name, name, full_name, email, status, profile_picture_url, bio, is_admin",
+              "id, first_name, last_name, name, full_name, email, status, profile_picture_url, bio, is_admin, created_at, preferred_delivery_locker_data, pickup_address",
             )
             .eq("id", user.id)
             .single(),
@@ -367,6 +373,9 @@ export const fetchUserProfile = async (user: User): Promise<Profile | null> => {
       status: profile.status || "active",
       profile_picture_url: profile.profile_picture_url,
       bio: profile.bio,
+      created_at: profile.created_at,
+      preferred_delivery_locker_data: profile.preferred_delivery_locker_data,
+      pickup_address: profile.pickup_address,
     };
   } catch (error) {
     logError("Error in fetchUserProfile", error);
@@ -407,7 +416,7 @@ export const createUserProfile = async (user: User): Promise<Profile> => {
       return await supabase
         .from("profiles")
         .upsert([profileData], { onConflict: "id" })
-        .select("id, first_name, last_name, name, email, status, profile_picture_url, bio, is_admin")
+        .select("id, first_name, last_name, name, email, status, profile_picture_url, bio, is_admin, created_at, preferred_delivery_locker_data, pickup_address")
         .single();
     });
 
@@ -432,6 +441,9 @@ export const createUserProfile = async (user: User): Promise<Profile> => {
       status: newProfile.status,
       profile_picture_url: newProfile.profile_picture_url,
       bio: newProfile.bio,
+      created_at: newProfile.created_at,
+      preferred_delivery_locker_data: newProfile.preferred_delivery_locker_data,
+      pickup_address: newProfile.pickup_address,
     };
   } catch (error) {
     logError("Error in createUserProfile", error);

@@ -112,18 +112,21 @@ export const getBuyerCheckoutData = async (userId: string) => {
       const addr = shippingAddr || pickupAddr;
 
       if (addr) {
-        const street = (addr as any).streetAddress || (addr as any).street || "";
-        const city = (addr as any).city || "";
-        const province = (addr as any).province || "";
-        const postal = (addr as any).postalCode || (addr as any).postal_code || "";
+        const { normalizeAddressFields } = await import("@/utils/addressNormalizationUtils");
+        const normalized = normalizeAddressFields(addr);
 
-        if (street && city && province && postal) {
+        if (normalized && normalized.street && normalized.city && normalized.province && normalized.postalCode) {
           address = {
-            street,
-            city,
-            province,
-            postal_code: postal,
-            country: "South Africa",
+            street: normalized.street,
+            city: normalized.city,
+            province: normalized.province,
+            postal_code: normalized.postalCode,
+            country: normalized.country || "South Africa",
+            suburb: normalized.suburb || "",
+            latitude: normalized.latitude || null,
+            longitude: normalized.longitude || null,
+            type: normalized.type || "residential",
+            additional_info: (addr as any).company || (addr as any).additional_info || ""
           };
         }
       }
@@ -136,9 +139,15 @@ export const getBuyerCheckoutData = async (userId: string) => {
       try {
         const sa: any = (profile as any).shipping_address;
         const street = sa.streetAddress || sa.street || sa.line1 || "";
-        const city = sa.city || sa.suburb || "";
+        const city = sa.city || "";
         const province = sa.province || sa.state || "";
         const postal = sa.postalCode || sa.postal_code || sa.zip || "";
+        const suburb = sa.suburb || sa.local_area || "";
+        const lat = sa.latitude || sa.lat || null;
+        const lng = sa.longitude || sa.lng || null;
+        const type = sa.type || "residential";
+        const company = sa.company || "";
+
         if (street && city && province && postal) {
           address = {
             street,
@@ -146,6 +155,11 @@ export const getBuyerCheckoutData = async (userId: string) => {
             province,
             postal_code: postal,
             country: "South Africa",
+            suburb,
+            latitude: lat,
+            longitude: lng,
+            type,
+            additional_info: company
           } as CheckoutAddress;
         }
       } catch (e) {

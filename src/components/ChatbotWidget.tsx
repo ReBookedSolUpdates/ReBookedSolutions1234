@@ -1,80 +1,106 @@
 import React, { useEffect } from "react";
 import { useChatbot } from "@/hooks/useChatbot";
 import { ChatInterface } from "./ChatInterface";
-import { MessageCircle, X, ChevronDown, ChevronUp } from "lucide-react";
+import { MessageCircle, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 
 export const ChatbotWidget: React.FC = () => {
   const { user } = useAuth();
   const { pathname } = useLocation();
   const chatbot = useChatbot(user?.id);
 
-  // Hide chat widget on checkout and success pages
-  const isCheckoutPage = pathname.includes("/checkout") || pathname.includes("/checkout-cart") || pathname.includes("/payment-confirmation") || pathname.includes("/order-success");
+  const isCheckoutPage =
+    pathname.includes("/checkout") ||
+    pathname.includes("/checkout-cart") ||
+    pathname.includes("/payment-confirmation") ||
+    pathname.includes("/order-success");
 
-  // Handle ESC key to close widget
   useEffect(() => {
-    // Only set up listener if widget is visible
-    if (isCheckoutPage) {
-      return;
-    }
-
+    if (isCheckoutPage) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && chatbot.isOpen) {
-        chatbot.close();
-      }
+      if (e.key === "Escape" && chatbot.isOpen) chatbot.close();
     };
-
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [chatbot.isOpen, chatbot.close, isCheckoutPage]);
 
-  // Don't render anything on checkout pages
-  if (isCheckoutPage) {
-    return null;
-  }
+  if (isCheckoutPage) return null;
 
   return (
     <>
-      {/* Floating Button */}
-      <button
+      {/* Floating Action Button */}
+      <motion.button
         onClick={chatbot.toggleOpen}
-        className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-book-600 hover:bg-book-700 text-white shadow-lg hover:shadow-2xl transition-all duration-200 flex items-center justify-center z-40 ${
-          chatbot.isOpen ? "scale-75 opacity-60" : "scale-100 opacity-100 hover:scale-125 active:scale-95"
-        }`}
-        title="Open ReBooked Assistant"
-        aria-label="Open ReBooked Assistant"
+        className="fixed bottom-5 right-5 z-[101] w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-xl flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        animate={chatbot.isOpen ? { rotate: 90 } : { rotate: 0 }}
+        transition={{ type: "spring", stiffness: 400, damping: 17 }}
+        title={chatbot.isOpen ? "Close assistant" : "Open ReBooked Genius mini"}
+        aria-label={chatbot.isOpen ? "Close assistant" : "Open ReBooked Genius mini"}
       >
-        {chatbot.isOpen ? (
-          <X size={20} className="sm:w-6 sm:h-6" />
-        ) : (
-          <MessageCircle size={20} className="sm:w-6 sm:h-6" />
+        <AnimatePresence mode="wait" initial={false}>
+          {chatbot.isOpen ? (
+            <motion.span
+              key="close"
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.5 }}
+              transition={{ duration: 0.15 }}
+            >
+              <X size={22} />
+            </motion.span>
+          ) : (
+            <motion.span
+              key="open"
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.5 }}
+              transition={{ duration: 0.15 }}
+            >
+              <MessageCircle size={22} />
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </motion.button>
+
+      {/* Chat Panel */}
+      <AnimatePresence>
+        {chatbot.isOpen && (
+          <>
+            {/* Mobile overlay */}
+            <motion.div
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[90] sm:hidden"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={chatbot.close}
+              aria-hidden="true"
+            />
+
+            {/* Chat window */}
+            <motion.div
+              className="fixed bottom-20 right-5 left-5 sm:bottom-24 sm:right-5 sm:left-auto sm:w-[340px] h-[60vh] sm:h-[650px] max-h-[calc(100vh-120px)] mx-auto sm:mx-0 z-[100] overflow-hidden rounded-2xl border border-border bg-background shadow-2xl flex flex-col"
+              initial={{ opacity: 0, y: 40, scale: 0.92 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 40, scale: 0.92 }}
+              transition={{ type: "spring", stiffness: 350, damping: 28 }}
+            >
+              <ChatInterface
+                messages={chatbot.messages}
+                isLoading={chatbot.isLoading}
+                error={chatbot.error}
+                onSendMessage={chatbot.sendMessage}
+                onClearHistory={chatbot.clearHistory}
+                onClearError={chatbot.clearError}
+              />
+            </motion.div>
+          </>
         )}
-      </button>
-
-      {/* Chat Modal */}
-      {chatbot.isOpen && (
-        <div className="fixed bottom-16 right-2 left-2 sm:bottom-24 sm:right-6 sm:left-auto sm:w-96 h-[50vh] sm:h-[630px] max-w-xs sm:max-w-none max-h-[calc(100vh-120px)] sm:max-h-[calc(100vh-200px)] mx-auto sm:mx-0 bg-white rounded-2xl sm:rounded-xl shadow-2xl border border-gray-200 flex flex-col z-50 animate-in slide-in-from-bottom-4 duration-300 overflow-hidden">
-          <ChatInterface
-            messages={chatbot.messages}
-            isLoading={chatbot.isLoading}
-            error={chatbot.error}
-            onSendMessage={chatbot.sendMessage}
-            onClearHistory={chatbot.clearHistory}
-            onClearError={chatbot.clearError}
-          />
-        </div>
-      )}
-
-      {/* Background overlay for mobile */}
-      {chatbot.isOpen && (
-        <div
-          className="fixed inset-0 bg-black/30 z-30 sm:hidden"
-          onClick={chatbot.close}
-          aria-hidden="true"
-        />
-      )}
+      </AnimatePresence>
     </>
   );
 };

@@ -6,6 +6,10 @@ export interface CheckoutAddress {
   province: string;
   postal_code: string;
   country: string;
+  suburb?: string;
+  type?: "residential" | "business";
+  latitude?: number;
+  longitude?: number;
   phone?: string;
   additional_info?: string;
 }

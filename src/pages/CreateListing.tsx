@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { createBook } from "@/services/book/bookMutations";
 import { BookFormData } from "@/types/book";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, AlertTriangle, Sparkles } from "lucide-react";
+import { ArrowLeft, Loader2, AlertTriangle, Sparkles, MapPin } from "lucide-react";
 import EnhancedMobileImageUpload from "@/components/EnhancedMobileImageUpload";
 import FirstUploadSuccessDialog from "@/components/FirstUploadSuccessDialog";
 import PostListingSuccessDialog from "@/components/PostListingSuccessDialog";
@@ -34,8 +34,9 @@ import { BookTypeSection } from "@/components/create-listing/BookTypeSection";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { getSellerDeliveryAddress } from "@/services/simplifiedAddressService";
 import { fallbackAddressService } from "@/services/fallbackAddressService";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
+import PudoLockerSelector from "@/components/checkout/BobGoLockerSelector";
 
 const CreateListing = () => {
   const { user, profile } = useAuth();
@@ -81,18 +82,23 @@ const CreateListing = () => {
   const [canListBooks, setCanListBooks] = useState<boolean | null>(null);
   const [isCheckingAddress, setIsCheckingAddress] = useState(true);
   const [preferredPickupMethod, setPreferredPickupMethod] = useState<"locker" | "pickup" | null>(null);
+  const [savedLocker, setSavedLocker] = useState<any>(null);
   const [isProcessingAI, setIsProcessingAI] = useState(false);
   const [aiPreview, setAiPreview] = useState<any>(null);
   const [showAIPreview, setShowAIPreview] = useState(false);
   const [showAIReadyButton, setShowAIReadyButton] = useState(false);
   const [showAIWarning, setShowAIWarning] = useState(false);
   const [showAIAnalysisModal, setShowAIAnalysisModal] = useState(false);
+  const [showLockerChange, setShowLockerChange] = useState(false);
 
   // Use ref to prevent multiple address checks
   const addressCheckDoneRef = useRef(false);
 
-  // Check if user can list books on component mount
+  // Check if user can list books on component mount or when locker changes
   useEffect(() => {
+    // Reset ref if locker data changes so we re-check status
+    addressCheckDoneRef.current = false;
+
     const checkAddressStatus = async () => {
       if (!user?.id || addressCheckDoneRef.current) {
         setCanListBooks(false);
@@ -106,6 +112,7 @@ const CreateListing = () => {
       try {
         let hasValidAddress = false;
         let preferredMethod: "locker" | "pickup" | null = null;
+        let userSavedLocker = null;
 
         // Run locker and address checks in parallel for speed
         const [lockerResult, pickupResult] = await Promise.all([
@@ -121,12 +128,12 @@ const CreateListing = () => {
               if (!error && profile?.preferred_delivery_locker_data) {
                 const lockerData = profile.preferred_delivery_locker_data as any;
                 if (lockerData.id && lockerData.name) {
-                  return { hasLocker: true };
+                  return { hasLocker: true, locker: lockerData };
                 }
               }
-              return { hasLocker: false };
+              return { hasLocker: false, locker: null };
             } catch {
-              return { hasLocker: false };
+              return { hasLocker: false, locker: null };
             }
           })(),
           // Check pickup address
@@ -155,13 +162,16 @@ const CreateListing = () => {
         if (lockerResult.hasLocker) {
           preferredMethod = "locker";
           hasValidAddress = true;
-        } else if (pickupResult.hasPickup) {
-          preferredMethod = "pickup";
-          hasValidAddress = true;
+          userSavedLocker = lockerResult.locker;
+        } else {
+          // Home address is no longer allowed for new listings as per user requirement
+          // Users must have a locker saved
+          hasValidAddress = false;
         }
 
         setCanListBooks(hasValidAddress);
         setPreferredPickupMethod(preferredMethod);
+        setSavedLocker(userSavedLocker);
       } catch (error) {
         setCanListBooks(false);
       } finally {
@@ -170,7 +180,7 @@ const CreateListing = () => {
     };
 
     checkAddressStatus();
-  }, [user?.id]);
+  }, [user?.id, profile?.preferred_delivery_locker_data, (profile as any)?.pickup_address]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -398,10 +408,9 @@ const CreateListing = () => {
       return;
     }
 
-    // Check if user can list books before validating form (address is required)
+    // Check if user can list books before validating form (locker is required)
     if (canListBooks === false) {
-      toast.error("❌ Please add a pickup address before listing your book.");
-      navigate("/profile?tab=addresses");
+      toast.error("❌ Please select and save a Pudo locker before listing your book.");
       return;
     }
 
@@ -586,123 +595,146 @@ const CreateListing = () => {
         </BackButton>
 
         <BankingRequirementCheck onCanProceed={() => {}}>
-          <div
-            className={`bg-white rounded-lg shadow-md ${isMobile ? "p-4" : "p-8"}`}
-          >
-            <div className="flex items-center justify-between gap-4 mb-6">
-              <h1
-                className="text-xl md:text-3xl font-bold text-book-800 flex-1 text-center"
-              >
-                Create New Listing
-              </h1>
-              <Button
-                type="button"
-                onClick={() => setShowAIAnalysisModal(true)}
-                variant="outline"
-                className="flex items-center gap-2 whitespace-nowrap"
-              >
-                <Sparkles className="h-4 w-4" />
-                Use AI
-              </Button>
+          {canListBooks === false && !isCheckingAddress ? (
+            <div className="max-w-2xl mx-auto space-y-6 bg-white p-6 md:p-8 rounded-lg shadow-md border border-amber-100">
+              <div className="text-center space-y-2 mb-4">
+                <h2 className="text-2xl font-bold text-gray-900">Pudo Locker Selection Required</h2>
+                <p className="text-gray-600">Before you can list a book, you must select and save a Pudo locker for book collections.</p>
+              </div>
+
+              <Alert className="bg-amber-50 border-amber-200 text-amber-900 mb-6">
+                <AlertTriangle className="h-5 w-5 text-amber-600" />
+                <AlertTitle className="font-bold">Locker Information Needed</AlertTitle>
+                <AlertDescription>
+                  Please search for and save a Pudo locker below. This is where you will drop off your books once they are sold. <strong>You must click "Save to Profile" on your chosen locker.</strong>
+                </AlertDescription>
+              </Alert>
+
+              <PudoLockerSelector
+                onLockerSelect={() => {}}
+                title="Select & Save Your Pudo Locker"
+                description="Search for an address to find nearby Pudo lockers, then click 'Save to Profile'."
+              />
             </div>
-
-            <form
-              onSubmit={handleSubmit}
-              className="space-y-4 md:space-y-6"
+          ) : (
+            <div
+              className={`bg-white rounded-lg shadow-md ${isMobile ? "p-4" : "p-8"}`}
             >
-              <div
-                className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8"
-              >
-                <BookInformationForm
-                  formData={formData}
-                  errors={errors}
-                  onInputChange={handleInputChange}
-                  showAIWarning={showAIWarning}
-                />
+              <div className="flex items-center justify-between gap-4 mb-6">
+                <h1
+                  className="text-xl md:text-3xl font-bold text-book-800 flex-1 text-center"
+                >
+                  Create New Listing
+                </h1>
+                <Button
+                  type="button"
+                  onClick={() => setShowAIAnalysisModal(true)}
+                  variant="outline"
+                  className="flex items-center gap-2 whitespace-nowrap"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  Use AI
+                </Button>
+              </div>
 
-                <div className="space-y-3 md:space-y-4">
-                  <PricingSection
+              <form
+                onSubmit={handleSubmit}
+                className="space-y-4 md:space-y-6"
+              >
+                <div
+                  className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8"
+                >
+                  <BookInformationForm
                     formData={formData}
                     errors={errors}
                     onInputChange={handleInputChange}
+                    showAIWarning={showAIWarning}
                   />
 
-                  <BookTypeSection
-                    bookType={bookType}
-                    formData={formData}
-                    errors={errors}
-                    onBookTypeChange={handleBookTypeChange}
-                    onSelectChange={handleSelectChange}
-                  />
-                </div>
-              </div>
+                  <div className="space-y-3 md:space-y-4">
+                    <PricingSection
+                      formData={formData}
+                      errors={errors}
+                      onInputChange={handleInputChange}
+                    />
 
-              <div>
-                <EnhancedMobileImageUpload
-                  currentImages={bookImages}
-                  onImagesChange={(images) =>
-                    setBookImages(images as typeof bookImages)
-                  }
-                  variant="object"
-                  maxImages={5}
-                  onAllRequiredImagesReady={() => setShowAIReadyButton(true)}
-                />
-                {(errors.frontCover ||
-                  errors.backCover ||
-                  errors.insidePages) && (
-                  <div className="mt-2 space-y-1">
-                    {errors.frontCover && (
-                      <p
-                        className={`${isMobile ? "text-xs" : "text-sm"} text-red-500`}
-                      >
-                        {errors.frontCover}
-                      </p>
-                    )}
-                    {errors.backCover && (
-                      <p
-                        className={`${isMobile ? "text-xs" : "text-sm"} text-red-500`}
-                      >
-                        {errors.backCover}
-                      </p>
-                    )}
-                    {errors.insidePages && (
-                      <p
-                        className={`${isMobile ? "text-xs" : "text-sm"} text-red-500`}
-                      >
-                        {errors.insidePages}
-                      </p>
-                    )}
+                    <BookTypeSection
+                      bookType={bookType}
+                      formData={formData}
+                      errors={errors}
+                      onBookTypeChange={handleBookTypeChange}
+                      onSelectChange={handleSelectChange}
+                    />
                   </div>
-                )}
-              </div>
+                </div>
 
-              <Button
-                type="submit"
-                disabled={
-                  isSubmitting ||
-                  isCheckingAddress ||
-                  canListBooks === false
-                }
-                className="w-full transition-all duration-200 font-semibold bg-book-600 hover:bg-book-700 hover:shadow-lg active:scale-[0.98] text-white py-4 h-12 md:h-14 md:text-lg touch-manipulation rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Creating Listing...
-                  </>
-                ) : isCheckingAddress ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Checking Address...
-                  </>
-                ) : canListBooks === false ? (
-                  "❌ Pickup Address Required"
-                ) : (
-                  "📚 Create Listing"
-                )}
-              </Button>
-            </form>
-          </div>
+                <div>
+                  <EnhancedMobileImageUpload
+                    currentImages={bookImages}
+                    onImagesChange={(images) =>
+                      setBookImages(images as typeof bookImages)
+                    }
+                    variant="object"
+                    maxImages={5}
+                    onAllRequiredImagesReady={() => setShowAIReadyButton(true)}
+                  />
+                  {(errors.frontCover ||
+                    errors.backCover ||
+                    errors.insidePages) && (
+                    <div className="mt-2 space-y-1">
+                      {errors.frontCover && (
+                        <p
+                          className={`${isMobile ? "text-xs" : "text-sm"} text-red-500`}
+                        >
+                          {errors.frontCover}
+                        </p>
+                      )}
+                      {errors.backCover && (
+                        <p
+                          className={`${isMobile ? "text-xs" : "text-sm"} text-red-500`}
+                        >
+                          {errors.backCover}
+                        </p>
+                      )}
+                      {errors.insidePages && (
+                        <p
+                          className={`${isMobile ? "text-xs" : "text-sm"} text-red-500`}
+                        >
+                          {errors.insidePages}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={
+                    isSubmitting ||
+                    isCheckingAddress ||
+                    canListBooks === false
+                  }
+                  className="w-full transition-all duration-200 font-semibold bg-book-600 hover:bg-book-700 hover:shadow-lg active:scale-[0.98] text-white py-4 h-12 md:h-14 md:text-lg touch-manipulation rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Creating Listing...
+                    </>
+                  ) : isCheckingAddress ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Checking Address...
+                    </>
+                  ) : canListBooks === false ? (
+                    "❌ Locker Selection Required"
+                  ) : (
+                    "📚 Create Listing"
+                  )}
+                </Button>
+              </form>
+            </div>
+          )}
 
           <AIAnalysisModal
             open={showAIAnalysisModal}

@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export interface BobGoLocation {
-  id?: string;
+export interface PickupPointLocation {
+  id?: string | number;
   name: string;
   address: string;
   latitude: number;
@@ -9,125 +9,87 @@ export interface BobGoLocation {
   distance?: number;
   hours?: string;
   phone?: string;
+  type?: string;
+  provider?: string;
   [key: string]: any;
 }
 
-/**
- * Calculate bounding box from a center point
- * radiusKm: radius in kilometers (default 5km)
- */
-function calculateBoundingBox(lat: number, lng: number, radiusKm: number = 5) {
-  const latOffset = radiusKm / 111; // 1 degree latitude ≈ 111 km
-  const lngOffset = radiusKm / (111 * Math.cos((lat * Math.PI) / 180)); // Adjust for latitude
-
-  return {
-    min_lat: lat - latOffset,
-    max_lat: lat + latOffset,
-    min_lng: lng - lngOffset,
-    max_lng: lng + lngOffset,
-  };
-}
+// Keep the old type name as an alias for backwards compatibility
+export type BobGoLocation = PickupPointLocation;
 
 /**
- * Fetch nearby BobGo locations based on coordinates
+ * Fetch nearby pickup points (lockers, counters, etc.) using the new get-pickup-points edge function
  */
-export async function getBobGoLocations(
+export async function getPickupPointLocations(
   latitude: number,
   longitude: number,
-  radiusKm: number = 5
-): Promise<BobGoLocation[]> {
+  radius?: number,
+  type?: "locker" | "counter" | "point"
+): Promise<PickupPointLocation[]> {
   try {
-    // Validate input parameters
     if (!latitude || !longitude || isNaN(latitude) || isNaN(longitude)) {
       return [];
     }
 
-    const bounds = calculateBoundingBox(latitude, longitude, radiusKm);
-
-    // Get auth session
-    const { data: sessionData } = await supabase.auth.getSession();
-    const authToken = sessionData?.session?.access_token;
-
-    // Build query parameters
-    const params = new URLSearchParams({
-      min_lat: bounds.min_lat.toString(),
-      max_lat: bounds.max_lat.toString(),
-      min_lng: bounds.min_lng.toString(),
-      max_lng: bounds.max_lng.toString(),
-    });
-
-    // Get the Supabase project URL from the client config
-    const supabaseUrl = supabase.supabaseUrl;
-    const apiUrl = `${supabaseUrl}/functions/v1/bobgo-get-locations?${params.toString()}`;
-
-    const response = await fetch(apiUrl, {
-      method: "GET",
-      headers: {
-        ...(authToken && { Authorization: `Bearer ${authToken}` }),
-        "Content-Type": "application/json",
+    const { data, error } = await supabase.functions.invoke("get-pickup-points", {
+      body: {
+        lat: latitude,
+        lng: longitude,
+        radius: radius,
+        type: type,
+        order_closest: true,
       },
     });
 
-    if (!response.ok) {
-      console.warn(`BobGo locations fetch failed with status ${response.status}`);
+    if (error) {
+      console.warn("Pickup points fetch error:", error.message);
       return [];
     }
 
-    const data = await response.json();
-
-    if (!data) {
+    if (!data || !data.success) {
       return [];
     }
 
-    let locations: BobGoLocation[] = [];
-
-    // Handle different response structures from the edge function
-    if (data.success && data.data) {
-      // Structure: { success: true, data: {...} }
-      const innerData = data.data;
-
-      // Check if innerData is an array
-      if (Array.isArray(innerData)) {
-        locations = innerData;
-      }
-      // Check if innerData has a locations property
-      else if (innerData.locations && Array.isArray(innerData.locations)) {
-        locations = innerData.locations;
-      }
-      // Check if innerData has a results property (common API pattern)
-      else if (innerData.results && Array.isArray(innerData.results)) {
-        locations = innerData.results;
-      }
-      // If it's an object with location data, treat it as single item
-      else if (typeof innerData === 'object' && innerData.name) {
-        locations = [innerData];
-      }
+    // Handle nested response: { pickup_points: { count, pickup_points: [...] } }
+    // or flat: { pickup_points: [...] }
+    let rawPoints = data.pickup_points || [];
+    if (rawPoints && !Array.isArray(rawPoints) && rawPoints.pickup_points) {
+      rawPoints = rawPoints.pickup_points;
     }
-    // Direct array response
-    else if (Array.isArray(data)) {
-      locations = data;
-    }
-    // Check for locations property at root level
-    else if (data.locations && Array.isArray(data.locations)) {
-      locations = data.locations;
-    }
-    // Check for results property at root level
-    else if (data.results && Array.isArray(data.results)) {
-      locations = data.results;
+    
+    // Normalize the response into our standard format
+    if (Array.isArray(rawPoints)) {
+      return rawPoints.map((p: any) => ({
+        ...p,
+        id: p.pickup_point_id || p.id || p.location_id,
+        name: p.name || p.address?.company || p.description || "Pickup Point",
+        address: typeof p.address === 'object'
+          ? (p.address?.street_address ? `${p.address.street_address}, ${p.address.city || ''}, ${p.address.code || ''}`.trim() : '')
+          : (p.address || p.street_address || ""),
+        full_address: typeof p.full_address === 'object'
+          ? (p.full_address?.street_address ? `${p.full_address.street_address}, ${p.full_address.city || ''}, ${p.full_address.code || ''}`.trim() : '')
+          : (p.full_address || ""),
+        latitude: p.lat || p.latitude || p.address?.lat || 0,
+        longitude: p.lng || p.longitude || p.address?.lng || 0,
+        distance: p.distance,
+        hours: p.trading_hours || p.hours || p.operating_hours,
+        phone: p.phone || p.contact_number,
+        type: p.type || p.address?.type,
+        provider: p.pickup_point_provider || p.provider || p.provider_slug || data.provider || "Pudo",
+        provider_slug: p.provider_slug || p.pickup_point_provider_slug || (p.pickup_point_provider ? String(p.pickup_point_provider).toLowerCase() : "pudo"),
+        pickup_point_provider_name: p.pickup_point_provider_name || p.provider || p.pickup_point_provider || "Pudo",
+        pickup_point_id: p.pickup_point_id,
+        available_compartment_sizes: p.available_compartment_sizes,
+        structured_trading_hours: p.structured_trading_hours,
+      }));
     }
 
-    return locations;
+    return [];
   } catch (error) {
-    // Log detailed error information for debugging
-    if (error instanceof Error) {
-      console.warn("BobGo locations service error:", {
-        message: error.message,
-        name: error.name,
-      });
-    } else {
-      console.warn("BobGo locations service error:", error);
-    }
-    // Return empty array to allow UI to gracefully handle the error
+    console.warn("Pickup points service error:", error);
     return [];
   }
 }
+
+// Backwards-compatible alias
+export const getBobGoLocations = getPickupPointLocations;

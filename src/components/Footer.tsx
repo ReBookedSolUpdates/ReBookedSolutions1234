@@ -163,12 +163,12 @@ const Footer = () => {
               </li>
               <li>
                 <a
-                  href="https://news.rebookedsolutions.co.za"
+                  href="https://genius.rebookedsolutions.co.za/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-gray-600 hover:text-book-600 text-sm"
                 >
-                  ReBooked News
+                  ReBooked Genius
                 </a>
               </li>
               <li>

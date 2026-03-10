@@ -21,6 +21,7 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
   onCancel,
   loading = false,
 }) => {
+  console.log("[STEP1_SUMMARY] Component rendered. Book:", book.id, "Seller:", book.seller_id);
   // Use useState to make cart data reactive
   const [cartData, setCartData] = useState(null);
   const [sellerFullName, setSellerFullName] = useState<string | null>(null);
@@ -32,6 +33,7 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
       const cartDataStr = localStorage.getItem('checkoutCart');
       if (cartDataStr) {
         const parsedData = JSON.parse(cartDataStr);
+        console.log("[STEP1_SUMMARY] Found cart data in localStorage:", parsedData);
         // Validate cart data is recent (within 1 hour)
         const oneHourAgo = Date.now() - (60 * 60 * 1000);
         if (parsedData.timestamp && parsedData.timestamp > oneHourAgo) {
@@ -40,6 +42,7 @@ const Step1OrderSummary: React.FC<Step1OrderSummaryProps> = ({
         }
       }
     } catch (error) {
+      console.error("[STEP1_SUMMARY] Error loading cart data:", error);
     }
     setCartData(null);
   };

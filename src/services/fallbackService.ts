@@ -1,4 +1,5 @@
-import { supabase } from "../lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
+import { ENV } from "@/config/environment";
 
 export interface FallbackConfig {
   enableFallback: boolean;
@@ -31,7 +32,7 @@ class FallbackService {
       ...config,
     };
 
-    this.supabaseBaseUrl = `${supabase.supabaseUrl}/functions/v1`;
+    this.supabaseBaseUrl = `${ENV.VITE_SUPABASE_URL}/functions/v1`;
     this.vercelBaseUrl = config?.vercelBaseUrl || window.location.origin;
   }
 

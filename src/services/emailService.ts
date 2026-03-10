@@ -1,4 +1,5 @@
-import { supabase } from "../lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
+import { ENV } from "@/config/environment";
 
 export interface EmailRequest {
   to: string | string[];
@@ -55,7 +56,7 @@ class EmailService {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = `${supabase.supabaseUrl}/functions/v1`;
+    this.baseUrl = `${ENV.VITE_SUPABASE_URL}/functions/v1`;
   }
 
   private async makeRequest(

@@ -9,6 +9,8 @@ import {
   MapPin,
   Loader2,
   CheckCircle,
+  AlertTriangle,
+  Info,
   ArrowLeft,
   ArrowRight,
   Save,
@@ -16,19 +18,21 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import BobGoLockerSelector from "@/components/checkout/BobGoLockerSelector";
-import { BobGoLocation } from "@/services/bobgoLocationsService";
+import PudoLockerSelector from "@/components/checkout/BobGoLockerSelector";
+import { BobGoLocation as PudoLocker } from "@/services/bobgoLocationsService";
 
 interface Step1point5DeliveryMethodProps {
   bookTitle: string;
   onSelectDeliveryMethod: (
     method: "home" | "locker",
-    locker?: BobGoLocation | null
+    locker?: PudoLocker | null
   ) => void;
   onBack: () => void;
   onCancel?: () => void;
   loading?: boolean;
   preSelectedMethod?: "home" | "locker" | null;
+  sellerLockerData?: PudoLocker | null;
+  sellerAddress?: any | null;
 }
 
 const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
@@ -38,27 +42,51 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
   onCancel,
   loading = false,
   preSelectedMethod = null,
+  sellerLockerData = null,
+  sellerAddress = null,
 }) => {
+  console.log("[STEP1.5_METHOD] Component rendered. Pre-selected:", preSelectedMethod, "Seller Locker:", !!sellerLockerData, "Seller Address:", !!sellerAddress);
   const [deliveryMethod, setDeliveryMethod] = useState<"home" | "locker">(preSelectedMethod || "locker");
-  const [selectedLocker, setSelectedLocker] = useState<BobGoLocation | null>(null);
-  const [savedLocker, setSavedLocker] = useState<BobGoLocation | null>(null);
+  const [selectedLocker, setSelectedLocker] = useState<PudoLocker | null>(null);
+  const [savedLocker, setSavedLocker] = useState<PudoLocker | null>(null);
   const [isLoadingSavedLocker, setIsLoadingSavedLocker] = useState(true);
   const [isSavingLocker, setIsSavingLocker] = useState(false);
   const [wantToChangeLocker, setWantToChangeLocker] = useState(false);
+
+  // Determine if we need to filter lockers by provider
+  const sellerHasOnlyLocker = !sellerAddress && sellerLockerData;
+  const requiredProviderSlug = sellerHasOnlyLocker ? sellerLockerData?.provider_slug : null;
 
   // Load saved locker from profile on mount
   useEffect(() => {
     loadSavedLocker();
   }, []);
 
+  useEffect(() => {
+    // If we have a saved locker and it mismatches the required provider, force change to home delivery
+    if (requiredProviderSlug && savedLocker && savedLocker.provider_slug !== requiredProviderSlug) {
+      console.warn(`[STEP1.5_METHOD] Saved locker provider (${savedLocker.provider_slug}) mismatches seller provider (${requiredProviderSlug}). Forcing home delivery.`);
+      setDeliveryMethod("home");
+      setSelectedLocker(null);
+    }
+  }, [requiredProviderSlug, savedLocker]);
+
   // Auto-select delivery method and locker when clicking locker option
-  const handleSelectLockerMethod = (currentSavedLocker: BobGoLocation | null) => {
+  const handleSelectLockerMethod = (currentSavedLocker: PudoLocker | null) => {
+    console.log("[STEP1.5_METHOD] Locker method selected. Saved locker:", !!currentSavedLocker);
     setDeliveryMethod("locker");
     // Automatically select the saved locker if it exists
     if (currentSavedLocker) {
       setSelectedLocker(currentSavedLocker);
     }
   };
+
+  useEffect(() => {
+    // If we have a saved locker and method is locker, ensure it's selected
+    if (deliveryMethod === "locker" && savedLocker && !selectedLocker) {
+      setSelectedLocker(savedLocker);
+    }
+  }, [deliveryMethod, savedLocker, selectedLocker]);
 
   const loadSavedLocker = async () => {
     try {
@@ -85,7 +113,7 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
       }
 
       if (profile?.preferred_delivery_locker_data) {
-        const lockerData = profile.preferred_delivery_locker_data as BobGoLocation;
+        const lockerData = profile.preferred_delivery_locker_data as PudoLocker;
         setSavedLocker(lockerData);
       }
     } catch (error) {
@@ -137,11 +165,14 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
       }
 
       // Update user profile with full locker data
+      const lockerId = selectedLocker.id ? String(selectedLocker.id) : null;
+      const numericLockerId = lockerId && !isNaN(Number(lockerId)) ? parseInt(lockerId) : null;
+
       const { error } = await supabase
         .from("profiles")
         .update({
           preferred_delivery_locker_data: selectedLocker,
-          preferred_pickup_locker_location_id: selectedLocker.id ? parseInt(selectedLocker.id) : null,
+          preferred_pickup_locker_location_id: numericLockerId,
           preferred_pickup_locker_provider_slug: selectedLocker.provider_slug || null,
           preferred_delivery_locker_saved_at: new Date().toISOString(),
         })
@@ -160,7 +191,7 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
 
       let lockerToUse = selectedLocker;
       if (updatedProfile?.preferred_delivery_locker_data) {
-        const refreshedLocker = updatedProfile.preferred_delivery_locker_data as BobGoLocation;
+        const refreshedLocker = updatedProfile.preferred_delivery_locker_data as PudoLocker;
         // Update local state with the refreshed locker to ensure consistency
         setSavedLocker(refreshedLocker);
         setSelectedLocker(refreshedLocker);
@@ -187,6 +218,7 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
   };
 
   const handleProceed = () => {
+    console.log("[STEP1.5_METHOD] handleProceed called. Method:", deliveryMethod, "Selected Locker:", !!selectedLocker, "Saved Locker:", !!savedLocker);
     if (deliveryMethod === "home") {
       onSelectDeliveryMethod("home", null);
     } else if (deliveryMethod === "locker") {
@@ -225,6 +257,8 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
     );
   }
 
+  const hasLockerMismatch = requiredProviderSlug && savedLocker && savedLocker.provider_slug !== requiredProviderSlug;
+
   return (
     <div className="space-y-6 sm:space-y-8">
       <div className="text-center mb-6 sm:mb-8">
@@ -236,21 +270,34 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
         </p>
       </div>
 
+      {/* Provider Incompatibility Alert */}
+      {hasLockerMismatch && (
+        <Alert className="bg-blue-50 border-blue-200">
+          <Info className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-blue-800">
+            Locker-to-locker delivery is currently unavailable because the seller's locker provider is different from yours. <strong>Home Delivery</strong> has been selected for you instead.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Delivery Method Cards */}
       <div className="space-y-4 sm:space-y-5">
         {/* Locker Option */}
         <div
           className={`p-5 sm:p-6 border-2 rounded-xl cursor-pointer transition-all shadow-sm hover:shadow-md ${
             deliveryMethod === "locker"
-              ? "bg-purple-50 border-purple-400 shadow-md"
-              : "bg-white border-gray-200 hover:border-purple-300"
+              ? "bg-book-50 border-book-400 shadow-md"
+              : hasLockerMismatch
+                ? "bg-gray-50 border-gray-100 opacity-60 cursor-not-allowed"
+                : "bg-white border-gray-200 hover:border-book-300"
           }`}
-          onClick={() => handleSelectLockerMethod(savedLocker)}
+          onClick={() => !hasLockerMismatch && handleSelectLockerMethod(savedLocker)}
           role="radio"
           aria-checked={deliveryMethod === "locker"}
-          tabIndex={0}
+          aria-disabled={hasLockerMismatch}
+          tabIndex={hasLockerMismatch ? -1 : 0}
           onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
+            if (!hasLockerMismatch && (e.key === "Enter" || e.key === " ")) {
               e.preventDefault();
               handleSelectLockerMethod(savedLocker);
             }
@@ -263,12 +310,14 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2 font-semibold mb-1">
-                <MapPin className="w-5 h-5 text-purple-600 flex-shrink-0" />
-                <span className="text-base sm:text-lg">BobGo Locker</span>
+                <MapPin className="w-5 h-5 text-book-600 flex-shrink-0" />
+                <span className="text-base sm:text-lg">Pudo Locker</span>
                 {savedLocker && <Badge className="bg-green-100 text-green-800 text-xs ml-auto">Saved</Badge>}
               </div>
               <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-                Pick up at a convenient locker location near you
+                {hasLockerMismatch
+                  ? "Unavailable due to provider incompatibility"
+                  : "Pick up at a convenient Pudo locker near you"}
               </p>
             </div>
           </div>
@@ -316,7 +365,7 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
 
       {/* Locker Selection Section */}
       {deliveryMethod === "locker" && (
-        <Card className="border border-purple-200 bg-purple-50 shadow-md">
+        <Card className="border border-book-200 bg-book-50 shadow-md">
           <CardContent className="p-5 sm:p-6 space-y-5">
             {/* Saved Locker Display */}
             {savedLocker && !wantToChangeLocker && (
@@ -340,7 +389,7 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
                   onClick={() => setWantToChangeLocker(true)}
                   className="w-full border-2 py-2 text-sm font-medium"
                 >
-                  Change Locker
+                  Change Pudo Locker
                 </Button>
               </div>
             )}
@@ -348,18 +397,23 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
             {/* Locker Selector */}
             {!savedLocker || wantToChangeLocker ? (
               <div>
-                <BobGoLockerSelector
+                <PudoLockerSelector
                   onLockerSelect={setSelectedLocker}
+                  onAfterSave={(locker) => {
+                    setSelectedLocker(locker);
+                    onSelectDeliveryMethod("locker", locker);
+                  }}
                   selectedLockerId={selectedLocker?.id}
-                  title="Select Locker"
-                  description="Enter an address to find nearby locations"
+                  title="Select Pudo Locker"
+                  description="Enter an address to find nearby Pudo lockers"
                   showCardLayout={false}
+                  requiredProviderSlug={requiredProviderSlug}
                 />
               </div>
             ) : null}
 
-            {/* Selected Different Locker */}
-            {selectedLocker && savedLocker && selectedLocker.id !== savedLocker.id && (
+            {/* Selected Different Locker or New Locker Selection */}
+            {selectedLocker && (!savedLocker || selectedLocker.id !== savedLocker.id) && (
               <div className="p-4 sm:p-5 bg-white border-2 border-blue-200 rounded-lg shadow-sm">
                 <div className="flex items-center gap-2 font-semibold text-sm text-gray-900 mb-3">
                   <div className="p-1 bg-blue-100 rounded-full flex-shrink-0">
@@ -367,24 +421,29 @@ const Step1point5DeliveryMethod: React.FC<Step1point5DeliveryMethodProps> = ({
                   </div>
                   <span>{selectedLocker.name}</span>
                 </div>
-                <Button
-                  onClick={handleSaveLockerToProfile}
-                  disabled={isSavingLocker}
-                  size="sm"
-                  className="w-full bg-blue-600 hover:bg-blue-700 py-2 text-sm font-medium"
-                >
-                  {isSavingLocker ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Saving Locker...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-4 h-4 mr-2" />
-                      Save to Profile
-                    </>
-                  )}
-                </Button>
+                <div className="space-y-3">
+                  <Button
+                    onClick={handleSaveLockerToProfile}
+                    disabled={isSavingLocker}
+                    size="sm"
+                    className="w-full bg-blue-600 hover:bg-blue-700 py-2 text-sm font-medium"
+                  >
+                    {isSavingLocker ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Saving Locker...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 mr-2" />
+                        Save to Profile & Continue
+                      </>
+                    )}
+                  </Button>
+                  <p className="text-[10px] text-center text-gray-500">
+                    Saving to profile will automatically take you to the next step
+                  </p>
+                </div>
               </div>
             )}
           </CardContent>

@@ -164,15 +164,15 @@ const Navbar = () => {
               <span>Shipping/Payments</span>
             </Link>
 
-            <a
-              href="https://track.bobgo.co.za/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center space-x-1 text-sm font-medium transition-colors hover:text-book-600 text-gray-700"
+            <Link
+              to="/tracking"
+              className={`flex items-center space-x-1 text-sm font-medium transition-colors hover:text-book-600 ${
+                isActive("/tracking") ? "text-book-600" : "text-gray-700"
+              }`}
             >
               <PackageSearch className="w-4 h-4" />
               <span>Track</span>
-            </a>
+            </Link>
 
             {/* DISABLED - Locker functionality removed */}
             {/* <Link
@@ -300,16 +300,18 @@ const Navbar = () => {
                 <span>Shipping/Payments</span>
               </Link>
 
-              <a
-                href="https://track.bobgo.co.za/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center space-x-3 px-4 py-3 text-base font-medium rounded-md transition-colors min-h-[44px] text-gray-700 hover:bg-gray-50 hover:text-book-600"
+              <Link
+                to="/tracking"
+                className={`flex items-center space-x-3 px-4 py-3 text-base font-medium rounded-md transition-colors min-h-[44px] ${
+                  isActive("/tracking")
+                    ? "bg-book-50 text-book-600"
+                    : "text-gray-700 hover:bg-gray-50 hover:text-book-600"
+                }`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 <PackageSearch className="w-5 h-5" />
                 <span>Track Order</span>
-              </a>
+              </Link>
 
               {/* DISABLED - Locker functionality removed */}
               {/* <Link

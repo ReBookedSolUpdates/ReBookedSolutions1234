@@ -10,7 +10,7 @@ export const useChatbot = (userId: string | null | undefined) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const dataRef = useRef(chatStorage.getOrCreateData());
+  const [data, setData] = useState<ChatStorageData>(() => chatStorage.getOrCreateData(userId));
 
   // Fetch chat history from database for logged-in users
   const loadChatHistory = useCallback(async () => {
@@ -54,9 +54,14 @@ export const useChatbot = (userId: string | null | undefined) => {
         },
       ]);
 
-      // Load into local storage and display
-      historyMessages.forEach((msg) => {
-        chatStorage.addMessage(msg, dataRef.current);
+      // Update local storage with history - effectively syncing it
+      // We'll replace the local cache with history for this user to ensure consistency
+      setData((prevData) => {
+        const newData = { ...prevData, chatbot_messages: [] };
+        historyMessages.forEach((msg) => {
+          chatStorage.addMessage(msg, newData, userId);
+        });
+        return newData;
       });
 
       // Update conversation context with history
@@ -64,7 +69,12 @@ export const useChatbot = (userId: string | null | undefined) => {
         role: msg.role,
         content: msg.content,
       }));
-      chatStorage.setCurrentConversation(contextMessages, dataRef.current);
+
+      setData((prevData) => {
+        const newData = { ...prevData };
+        chatStorage.setCurrentConversation(contextMessages, newData);
+        return newData;
+      });
 
       setMessages((prev) => {
         // Combine existing messages with history, avoiding duplicates
@@ -80,9 +90,12 @@ export const useChatbot = (userId: string | null | undefined) => {
     }
   }, [userId]);
 
-  // Initialize messages from storage on mount and load history for logged-in users
+  // Initialize messages from storage on mount and when userId changes
   useEffect(() => {
-    const storedMessages = chatStorage.getMessages(dataRef.current);
+    const freshData = chatStorage.getOrCreateData(userId);
+    setData(freshData);
+
+    const storedMessages = chatStorage.getMessages(freshData, userId);
     setMessages(storedMessages);
 
     // Load chat history if user is logged in
@@ -109,25 +122,31 @@ export const useChatbot = (userId: string | null | undefined) => {
       };
 
       setMessages((prev) => [...prev, userChatMessage]);
-      chatStorage.addMessage(userChatMessage, dataRef.current);
 
-      // Update current conversation with user message
-      const currentConversation = chatStorage.getCurrentConversation(dataRef.current);
-      currentConversation.push({ role: "user", content: userMessage });
-      chatStorage.setCurrentConversation(currentConversation, dataRef.current);
+      setData((prevData) => {
+        const newData = { ...prevData };
+        chatStorage.addMessage(userChatMessage, newData, userId);
+
+        // Update current conversation with user message
+        const currentConversation = chatStorage.getCurrentConversation(newData);
+        currentConversation.push({ role: "user", content: userMessage });
+        chatStorage.setCurrentConversation(currentConversation, newData);
+
+        return newData;
+      });
 
       setIsLoading(true);
 
       try {
         // Prepare request
-        const contextMessages = chatStorage.getConversationContext(dataRef.current, 10);
+        const contextMessages = chatStorage.getConversationContext(data, 10);
         const currentPageUrl = window.location.pathname || "/";
         const isLoggedIn = !!userId;
 
         const request: ChatSubmitRequest = {
           message: userMessage,
           conversation_history: contextMessages,
-          session_id: chatStorage.getSessionId(dataRef.current),
+          session_id: chatStorage.getSessionId(data),
           page_url: currentPageUrl,
           is_logged_in: isLoggedIn,
           user_id: userId || null,
@@ -178,12 +197,18 @@ export const useChatbot = (userId: string | null | undefined) => {
         };
 
         setMessages((prev) => [...prev, botChatMessage]);
-        chatStorage.addMessage(botChatMessage, dataRef.current);
 
-        // Update current conversation with bot response
-        const updatedConversation = chatStorage.getCurrentConversation(dataRef.current);
-        updatedConversation.push({ role: "assistant", content: data.response });
-        chatStorage.setCurrentConversation(updatedConversation, dataRef.current);
+        setData((prevData) => {
+          const newData = { ...prevData };
+          chatStorage.addMessage(botChatMessage, newData, userId);
+
+          // Update current conversation with bot response
+          const updatedConversation = chatStorage.getCurrentConversation(newData);
+          updatedConversation.push({ role: "assistant", content: data.response });
+          chatStorage.setCurrentConversation(updatedConversation, newData);
+
+          return newData;
+        });
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : "Failed to send message. Please try again.";
         setError(errorMessage);
@@ -201,7 +226,11 @@ export const useChatbot = (userId: string | null | undefined) => {
       const newState = !prev;
       // Clear current conversation when closing the widget
       if (!newState) {
-        chatStorage.clearCurrentConversation(dataRef.current);
+        setData((prevData) => {
+          const newData = { ...prevData };
+          chatStorage.clearCurrentConversation(newData);
+          return newData;
+        });
       }
       return newState;
     });
@@ -210,7 +239,11 @@ export const useChatbot = (userId: string | null | undefined) => {
   // Close widget
   const close = useCallback(() => {
     setIsOpen(false);
-    chatStorage.clearCurrentConversation(dataRef.current);
+    setData((prevData) => {
+      const newData = { ...prevData };
+      chatStorage.clearCurrentConversation(newData);
+      return newData;
+    });
   }, []);
 
   // Open widget
@@ -220,10 +253,14 @@ export const useChatbot = (userId: string | null | undefined) => {
 
   // Clear chat history
   const clearHistory = useCallback(() => {
-    chatStorage.clearMessages(dataRef.current);
+    setData((prevData) => {
+      const newData = { ...prevData };
+      chatStorage.clearMessages(newData, userId);
+      chatStorage.clearCurrentConversation(newData);
+      return newData;
+    });
     setMessages([]);
-    chatStorage.clearCurrentConversation(dataRef.current);
-  }, []);
+  }, [userId]);
 
   // Clear error
   const clearError = useCallback(() => {

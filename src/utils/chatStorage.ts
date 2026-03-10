@@ -1,18 +1,19 @@
 import { ChatMessage, ChatStorageData, ChatContextMessage } from "@/types/chatbot";
 import debugLogger from "@/utils/debugLogger";
 
-const STORAGE_KEY = "rebooked_chatbot_data";
+const getStorageKey = (userId?: string | null) => userId ? `rebooked_chatbot_data_${userId}` : "rebooked_chatbot_data";
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 
 export const chatStorage = {
   // Initialize or get existing chat data
-  getOrCreateData(): ChatStorageData {
+  getOrCreateData(userId?: string | null): ChatStorageData {
+    const key = getStorageKey(userId);
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
+      const stored = localStorage.getItem(key);
       if (stored) {
         const data = JSON.parse(stored) as ChatStorageData;
         // Clean expired messages on load
-        this.cleanExpiredMessages(data);
+        this.cleanExpiredMessages(data, userId);
         return data;
       }
     } catch (error) {
@@ -39,28 +40,38 @@ export const chatStorage = {
   },
 
   // Save data to storage
-  save(data: ChatStorageData): void {
+  save(data: ChatStorageData, userId?: string | null): void {
+    const key = getStorageKey(userId);
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      localStorage.setItem(key, JSON.stringify(data));
     } catch (error) {
       debugLogger.warn("chatStorage", "Failed to save chat data to storage:", error);
     }
   },
 
   // Add a new message to storage
-  addMessage(message: ChatMessage, data: ChatStorageData): void {
-    data.chatbot_messages.push(message);
-    this.save(data);
+  addMessage(message: ChatMessage, data: ChatStorageData, userId?: string | null): void {
+    // Basic deduplication by content and timestamp (within 2 seconds) to avoid immediate repeats
+    const now = new Date(message.timestamp).getTime();
+    const isDuplicate = data.chatbot_messages.some(m =>
+      m.content === message.content &&
+      Math.abs(new Date(m.timestamp).getTime() - now) < 2000
+    );
+
+    if (!isDuplicate) {
+      data.chatbot_messages.push(message);
+      this.save(data, userId);
+    }
   },
 
   // Get all stored messages
-  getMessages(data: ChatStorageData): ChatMessage[] {
-    this.cleanExpiredMessages(data);
+  getMessages(data: ChatStorageData, userId?: string | null): ChatMessage[] {
+    this.cleanExpiredMessages(data, userId);
     return data.chatbot_messages;
   },
 
   // Clean expired messages (older than 30 days)
-  cleanExpiredMessages(data: ChatStorageData): void {
+  cleanExpiredMessages(data: ChatStorageData, userId?: string | null): void {
     const now = new Date().getTime();
     const originalLength = data.chatbot_messages.length;
 
@@ -72,12 +83,12 @@ export const chatStorage = {
 
     // If messages were cleaned, save the updated data
     if (data.chatbot_messages.length < originalLength) {
-      this.save(data);
+      this.save(data, userId);
 
       // If all messages are gone, clear the entire history
       if (data.chatbot_messages.length === 0) {
         data.last_cleared = new Date().toISOString();
-        this.save(data);
+        this.save(data, userId);
       }
     }
   },
@@ -88,10 +99,10 @@ export const chatStorage = {
   },
 
   // Clear all messages
-  clearMessages(data: ChatStorageData): void {
+  clearMessages(data: ChatStorageData, userId?: string | null): void {
     data.chatbot_messages = [];
     data.last_cleared = new Date().toISOString();
-    this.save(data);
+    this.save(data, userId);
   },
 
   // Get current conversation context (last N messages for API context)

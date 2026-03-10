@@ -52,10 +52,14 @@ const AddressInput: React.FC<AddressInputProps> = ({
 }) => {
   const [address, setAddress] = useState<CheckoutAddress>({
     street: initialAddress.street || "",
+    suburb: initialAddress.suburb || "",
     city: initialAddress.city || "",
     province: initialAddress.province || "",
     postal_code: initialAddress.postal_code || "",
     country: "South Africa",
+    type: initialAddress.type || "residential",
+    latitude: initialAddress.latitude,
+    longitude: initialAddress.longitude,
     additional_info: initialAddress.additional_info || "",
   });
 
@@ -100,6 +104,7 @@ const AddressInput: React.FC<AddressInputProps> = ({
 
   // Handle suggestion selection and auto-fill
   const handleSelectSuggestion = async (placeId: string, description: string) => {
+    console.log("[ADDRESS_INPUT] Suggestion selected:", description, placeId);
     setSearchInput(description);
     setShowDropdown(false);
 
@@ -114,10 +119,14 @@ const AddressInput: React.FC<AddressInputProps> = ({
         // Use the parsed components directly from the API response
         setAddress({
           street: details.street_address || '',
+          suburb: (details as any).suburb || (details as any).local_area || '',
           city: details.city || '',
           province: normalizedProvince,
           postal_code: details.postal_code || '',
           country: details.country || 'South Africa',
+          type: address.type,
+          latitude: details.lat,
+          longitude: details.lng,
           additional_info: address.additional_info,
         });
       }
@@ -165,8 +174,10 @@ const AddressInput: React.FC<AddressInputProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("[ADDRESS_INPUT] Form submitted. Current address state:", address);
 
     if (!validateAddress()) {
+      console.warn("[ADDRESS_INPUT] Validation failed:", errors);
       return;
     }
 
@@ -180,10 +191,14 @@ const AddressInput: React.FC<AddressInputProps> = ({
     // Convert normalized address to CheckoutAddress format
     const cleanAddress: CheckoutAddress = {
       street: normalized.street,
+      suburb: address.suburb || (normalized as any).suburb,
       city: normalized.city,
       province: normalized.province,
       postal_code: normalized.postalCode,
       country: normalized.country || "South Africa",
+      type: address.type,
+      latitude: address.latitude,
+      longitude: address.longitude,
       additional_info: normalized.additionalInfo || "",
     };
 
@@ -269,6 +284,36 @@ const AddressInput: React.FC<AddressInputProps> = ({
             {errors.street && (
               <p className="text-sm text-red-600 mt-1">{errors.street}</p>
             )}
+          </div>
+
+          {/* Suburb and Type */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="suburb">Suburb / Local Area</Label>
+              <Input
+                id="suburb"
+                value={address.suburb}
+                onChange={(e) => handleInputChange("suburb", e.target.value)}
+                placeholder="e.g. Lynnwood Park"
+                className="min-h-[44px] text-sm sm:text-base"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="address-type">Address Type *</Label>
+              <Select
+                value={address.type}
+                onValueChange={(value: "residential" | "business") => handleInputChange("type", value)}
+              >
+                <SelectTrigger className="min-h-[44px] text-sm sm:text-base">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="residential">Residential</SelectItem>
+                  <SelectItem value="business">Business</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* City */}

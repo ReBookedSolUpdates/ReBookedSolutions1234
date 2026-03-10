@@ -3055,7 +3055,7 @@ export type Database = {
       get_refund_statistics: {
         Args: { end_date?: string; start_date?: string }
         Returns: {
-          avg_processing_time: unknown
+          avg_processing_time: string
           avg_refund_amount: number
           failed_refunds: number
           pending_refunds: number
@@ -3068,6 +3068,13 @@ export type Database = {
       get_seller_available_balance: {
         Args: { p_seller_id: string }
         Returns: number
+      }
+      get_seller_average_rating: {
+        Args: { p_seller_id: string }
+        Returns: {
+          average_rating: number
+          review_count: number
+        }[]
       }
       get_seller_profile_for_checkout: {
         Args: { seller_user_id: string }

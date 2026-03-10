@@ -140,7 +140,7 @@ serve(async (req) => {
     console.log("🔍 Fetching buyer profile:", requestData.buyer_id);
     const { data: buyer, error: buyerError } = await supabase
       .from("profiles")
-      .select("id, full_name, name, first_name, last_name, email, phone_number, preferred_delivery_locker_data, preferred_delivery_locker_location_id, preferred_delivery_locker_provider_slug, shipping_address_encrypted")
+      .select("id, full_name, name, first_name, last_name, email, phone_number, preferred_delivery_locker_data, preferred_delivery_locker_location_id, preferred_delivery_locker_provider_slug, preferred_pickup_locker_data, preferred_pickup_locker_location_id, preferred_pickup_locker_provider_slug, shipping_address_encrypted")
       .eq("id", requestData.buyer_id)
       .single();
 
@@ -155,7 +155,7 @@ serve(async (req) => {
     // Fetch seller info from profiles
     const { data: seller, error: sellerError } = await supabase
       .from("profiles")
-      .select("id, full_name, name, first_name, last_name, email, phone_number, pickup_address_encrypted, preferred_pickup_locker_data, preferred_pickup_locker_location_id, preferred_pickup_locker_provider_slug")
+      .select("id, full_name, name, first_name, last_name, email, phone_number, pickup_address_encrypted, preferred_pickup_locker_data, preferred_pickup_locker_location_id, preferred_pickup_locker_provider_slug, preferred_delivery_locker_data, preferred_delivery_locker_location_id, preferred_delivery_locker_provider_slug")
       .eq("id", requestData.seller_id)
       .single();
 
@@ -227,9 +227,10 @@ serve(async (req) => {
       console.log('📍 Seller preferred pickup method: locker - using locker pickup');
       pickupType = 'locker';
       // Use provided locker info or fall back to seller's profile preferred locker
-      pickupLockerData = requestData.pickup_locker_data || seller.preferred_pickup_locker_data;
-      pickupLockerLocationId = requestData.pickup_locker_location_id || seller.preferred_pickup_locker_location_id;
-      pickupLockerProviderSlug = requestData.pickup_locker_provider_slug || seller.preferred_pickup_locker_provider_slug;
+      // Support both preferred_pickup_locker_* and preferred_delivery_locker_* column names for flexibility
+      pickupLockerData = requestData.pickup_locker_data || seller.preferred_pickup_locker_data || seller.preferred_delivery_locker_data;
+      pickupLockerLocationId = requestData.pickup_locker_location_id || seller.preferred_pickup_locker_location_id || seller.preferred_delivery_locker_location_id;
+      pickupLockerProviderSlug = requestData.pickup_locker_provider_slug || seller.preferred_pickup_locker_provider_slug || seller.preferred_delivery_locker_provider_slug;
 
       // Validate that locker data exists
       if (!pickupLockerLocationId) {

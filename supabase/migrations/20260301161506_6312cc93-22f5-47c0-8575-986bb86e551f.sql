@@ -1,0 +1,1 @@
+ALTER FUNCTION public.get_seller_average_rating(uuid) SET search_path = public;

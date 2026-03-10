@@ -203,7 +203,7 @@ const Index = () => {
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">Smart Logistics</h3>
               <p className="text-gray-600 leading-relaxed">
-                Nationwide door-to-door shipping powered by BobGo. Reliable tracking and fast pickups for sellers across South Africa.
+                Nationwide door-to-door and locker shipping powered by The Courier Guy and Pudo. Reliable tracking and fast pickups for sellers across South Africa.
               </p>
             </div>
           </div>

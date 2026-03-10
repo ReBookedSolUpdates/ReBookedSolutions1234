@@ -34,6 +34,9 @@ export interface UserProfile {
   status: string;
   profile_picture_url?: string;
   bio?: string;
+  created_at?: string;
+  preferred_delivery_locker_data?: any;
+  pickup_address?: any;
 }
 
 interface AuthContextType {
@@ -89,6 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       status: "active",
       profile_picture_url: user.user_metadata?.avatar_url,
       bio: undefined,
+      created_at: user.created_at,
     }),
     [],
   );

@@ -6,16 +6,15 @@ export interface ModerationResult {
 
 // Patterns that indicate requests for sensitive data or policy violations
 const POLICY_VIOLATIONS = [
-  // Banking/financial info
-  /\b(bank|account|credit|debit|card|pin|cvv|routing|swift|iban|password|ssn|tax id|credit score)\b/i,
-  // Personal user data
-  /\b(user data|private|personal information|student id|address|phone number|email address)\b/i,
+  // Banking/financial info - only flag when asking to extract/reveal private data
+  /\b(cvv|routing number|swift code|iban|ssn|tax id|credit score)\b/i,
+  /\b(give me|show me|tell me|reveal|extract)\s+(the\s+)?(bank|account|card|pin|password)\b/i,
   // Security/hacking
   /\b(hack|crack|bypass|exploit|vulnerability|security breach|sql injection|xss|malware|virus)\b/i,
   // System access
-  /\b(system access|database|admin panel|backend|server|api key|secret|token|authentication bypass)\b/i,
+  /\b(system access|admin panel|backend|api key|secret|token|authentication bypass)\b/i,
   // Illegal activities
-  /\b(stolen|piracy|illegal|fraud|money laundering|drug)\b/i,
+  /\b(stolen|piracy|illegal|fraud|money laundering)\b/i,
 ];
 
 // Patterns for abusive language

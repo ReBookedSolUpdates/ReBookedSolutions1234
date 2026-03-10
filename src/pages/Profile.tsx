@@ -114,8 +114,12 @@ const Profile = () => {
       // Update cache for next fast load
       try {
         const cacheKey = `cached_address_${user.id}`;
-        if (typeof window !== 'undefined' && data) {
-          localStorage.setItem(cacheKey, JSON.stringify(data));
+        if (typeof window !== 'undefined') {
+          if (data) {
+            localStorage.setItem(cacheKey, JSON.stringify(data));
+          } else {
+            localStorage.removeItem(cacheKey);
+          }
         }
       } catch (cacheErr) {
         // ignore cache failures
@@ -230,21 +234,11 @@ const Profile = () => {
       await saveUserAddresses(user.id, pickup, shipping, same);
       await loadUserAddresses();
 
-      // Update all user's book listings with the new pickup address and province
-      // Only update books if the pickup address is valid (not being deleted)
-      const isPickupAddressValid = !!(
-        (pickup.street || pickup.streetAddress || pickup.street_address) &&
-        pickup.city &&
-        pickup.province &&
-        (pickup.postalCode || pickup.postal_code)
-      );
-
-      if (isPickupAddressValid) {
-        try {
-          const updateResult = await updateBooksPickupAddress(user.id, pickup);
-        } catch (bookUpdateError) {
-          // Don't fail the whole operation if book updates fail
-        }
+      // Update all user's book listings with the new pickup address (or clear it if deleted)
+      try {
+        await updateBooksPickupAddress(user.id, pickup);
+      } catch (bookUpdateError) {
+        // Don't fail the whole operation if book updates fail
       }
 
       toast.success("Addresses saved successfully");

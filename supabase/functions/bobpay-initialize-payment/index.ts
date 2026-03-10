@@ -1,8 +1,8 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.78.0';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 interface PaymentInitRequest {
@@ -54,13 +54,13 @@ Deno.serve(async (req) => {
 
     const paymentData: PaymentInitRequest = await req.json();
 
-    // Get BobPay credentials from environment
-    const bobpayApiUrl = Deno.env.get('BOBPAY_API_URL');
-    const bobpayApiToken = Deno.env.get('BOBPAY_API_TOKEN');
-    const bobpayAccountCode = Deno.env.get('BOBPAY_ACCOUNT_CODE');
+    // Get BobPay credentials from environment (support both standard and production-prefixed names)
+    const bobpayApiUrl = Deno.env.get('BOBPAY_API_URL') || Deno.env.get('PRODUCTION_BOBPAY_API_URL');
+    const bobpayApiToken = Deno.env.get('BOBPAY_API_TOKEN') || Deno.env.get('PRODUCTION_BOBPAY_API_TOKEN');
+    const bobpayAccountCode = Deno.env.get('BOBPAY_ACCOUNT_CODE') || Deno.env.get('PRODUCTION_BOBPAY_ACCOUNT_CODE');
 
     if (!bobpayApiUrl || !bobpayApiToken || !bobpayAccountCode) {
-      throw new Error('BobPay configuration missing');
+      throw new Error('BobPay configuration missing: expected BOBPAY_* (or PRODUCTION_BOBPAY_*) secrets');
     }
 
     // Remove trailing slash from API URL to avoid double slashes
@@ -91,10 +91,32 @@ Deno.serve(async (req) => {
 
     if (!bobpayResponse.ok) {
       const errorText = await bobpayResponse.text();
-      throw new Error(`BobPay API error: ${errorText}`);
+      console.error('[bobpay-initialize-payment] API error:', errorText.substring(0, 500));
+      throw new Error(`BobPay API error (${bobpayResponse.status}): ${errorText.substring(0, 200)}`);
     }
 
-    const bobpayData = await bobpayResponse.json();
+    const contentType = bobpayResponse.headers.get('content-type');
+    if (!contentType?.includes('application/json')) {
+      const textResponse = await bobpayResponse.text();
+      console.error('[bobpay-initialize-payment] Non-JSON response:', textResponse.substring(0, 200));
+      throw new Error('Invalid response format from payment gateway');
+    }
+
+    let bobpayData;
+    try {
+      bobpayData = await bobpayResponse.json();
+    } catch (parseError) {
+      console.error('[bobpay-initialize-payment] JSON parse error:', parseError);
+      throw new Error('Malformed response from payment gateway');
+    }
+
+    const paymentUrl = bobpayData?.url || bobpayData?.payment_url || bobpayData?.data?.url || bobpayData?.data?.payment_url;
+    const shortUrl = bobpayData?.short_url || bobpayData?.data?.short_url || paymentUrl;
+
+    if (!paymentUrl) {
+      console.error('[bobpay-initialize-payment] Missing payment URL in response:', JSON.stringify(bobpayData).substring(0, 300));
+      throw new Error('BobPay response missing payment URL');
+    }
 
     // Store transaction in database if order_id provided
     if (paymentData.order_id) {
@@ -132,8 +154,8 @@ Deno.serve(async (req) => {
       JSON.stringify({
         success: true,
         data: {
-          payment_url: bobpayData.url,
-          short_url: bobpayData.short_url,
+          payment_url: paymentUrl,
+          short_url: shortUrl,
           reference: paymentData.custom_payment_id,
         },
       }),

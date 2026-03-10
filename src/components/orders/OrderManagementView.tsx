@@ -297,7 +297,7 @@ const OrderManagementView: React.FC<OrderManagementViewProps> = () => {
                   rel="noopener noreferrer"
                   className="text-blue-600 underline text-xs inline-block"
                 >
-                  Open in BobGo
+                  Track Package
                 </a>
               </div>
             ) : (
