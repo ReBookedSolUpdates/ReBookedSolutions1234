@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,39 +18,30 @@ import { toast } from "sonner";
 import PayoutRequestForm from "./PayoutRequestForm";
 
 const WalletTab: React.FC = () => {
-  const [balance, setBalance] = useState<WalletBalance>({
-    available_balance: 0,
-    pending_balance: 0,
-    total_earned: 0,
-  });
-  const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showPayoutForm, setShowPayoutForm] = useState(false);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    loadWalletData();
-  }, []);
+  // Fetch wallet balance using React Query
+  const { data: balance = { available_balance: 0, pending_balance: 0, total_earned: 0 }, isLoading: balanceLoading } = useQuery({
+    queryKey: ["walletBalance"],
+    queryFn: WalletService.getWalletBalance,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
-  const loadWalletData = async () => {
-    try {
-      setLoading(true);
-      const [balanceData, transactionData] = await Promise.all([
-        WalletService.getWalletBalance(),
-        WalletService.getTransactionHistory(),
-      ]);
+  // Fetch transaction history using React Query
+  const { data: transactions = [], isLoading: transactionsLoading } = useQuery({
+    queryKey: ["walletTransactions"],
+    queryFn: () => WalletService.getTransactionHistory(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
-      setBalance(balanceData);
-      setTransactions(transactionData);
-    } catch (error) {
-      toast.error("Failed to load wallet data");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const loading = balanceLoading || transactionsLoading;
 
   const handlePayoutSubmitted = () => {
     setShowPayoutForm(false);
-    loadWalletData();
+    // Invalidate wallet queries to refetch latest data
+    queryClient.invalidateQueries({ queryKey: ["walletBalance"] });
+    queryClient.invalidateQueries({ queryKey: ["walletTransactions"] });
   };
 
   if (loading) {
@@ -132,7 +124,10 @@ const WalletTab: React.FC = () => {
           Request Payout
         </Button>
         <Button
-          onClick={loadWalletData}
+          onClick={() => {
+            queryClient.invalidateQueries({ queryKey: ["walletBalance"] });
+            queryClient.invalidateQueries({ queryKey: ["walletTransactions"] });
+          }}
           variant="outline"
         >
           Refresh
