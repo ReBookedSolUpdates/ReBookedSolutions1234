@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -29,6 +30,7 @@ const OrderCompletionCard: React.FC<OrderCompletionCardProps> = ({
   totalAmount = 0,
   sellerId = "",
 }) => {
+  const queryClient = useQueryClient();
   const [receivedStatus, setReceivedStatus] = useState<"received" | "not_received" | null>(null);
   const [feedback, setFeedback] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -40,6 +42,7 @@ const OrderCompletionCard: React.FC<OrderCompletionCardProps> = ({
   } | null>(null);
 
   // Check on mount if feedback already exists for this order
+  // Also send feedback request email to buyer if this is their first time seeing the card
   useEffect(() => {
     const checkExistingFeedback = async () => {
       try {
@@ -62,6 +65,9 @@ const OrderCompletionCard: React.FC<OrderCompletionCardProps> = ({
             buyer_feedback: existingFeedback.buyer_feedback,
           });
           setIsSubmitted(true);
+        } else {
+          // No feedback yet - send feedback request email to buyer
+          sendFeedbackRequestEmail();
         }
 
         setIsLoading(false);
@@ -72,6 +78,43 @@ const OrderCompletionCard: React.FC<OrderCompletionCardProps> = ({
 
     checkExistingFeedback();
   }, [orderId]);
+
+  const sendFeedbackRequestEmail = async () => {
+    try {
+      const { data: authData } = await supabase.auth.getUser();
+      const buyerId = authData?.user?.id;
+
+      if (!buyerId) return;
+
+      // Get buyer email
+      const { data: userData } = await supabase
+        .from("users")
+        .select("email, full_name")
+        .eq("id", buyerId)
+        .single();
+
+      if (!userData?.email) return;
+
+      // Send feedback request email using the email service
+      const { emailService } = await import("@/services/emailService");
+      const { createDeliveryConfirmationRequestEmail } = await import("@/email-templates");
+
+      const emailTemplate = createDeliveryConfirmationRequestEmail({
+        buyerName: userData.full_name || userData.email,
+        bookTitle,
+        orderId,
+      });
+
+      await emailService.sendEmail({
+        to: userData.email,
+        subject: emailTemplate.subject,
+        html: emailTemplate.html,
+        text: emailTemplate.text,
+      });
+    } catch (err) {
+      // Silently fail - this is a non-critical notification email
+    }
+  };
 
   const handleSubmitFeedback = async () => {
     if (!receivedStatus) {
@@ -178,6 +221,11 @@ const OrderCompletionCard: React.FC<OrderCompletionCardProps> = ({
             totalAmount
           );
 
+          // Invalidate wallet queries to refetch latest balance
+          if (walletResult.success) {
+            queryClient.invalidateQueries({ queryKey: ["walletBalance"] });
+            queryClient.invalidateQueries({ queryKey: ["walletTransactions"] });
+          }
         } catch (walletErr) {
         }
       }
