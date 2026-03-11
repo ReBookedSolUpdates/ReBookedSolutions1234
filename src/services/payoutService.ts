@@ -38,9 +38,6 @@ export class PayoutService {
         };
       }
 
-      // Amount is in ZAR, convert to cents for database
-      const amountInCents = Math.round(data.amount * 100);
-
       // Get current wallet balance
       const { data: walletData, error: walletError } = await supabase
         .from("user_wallets")
@@ -55,7 +52,8 @@ export class PayoutService {
         };
       }
 
-      if (walletData.available_balance < amountInCents) {
+      // Check balance - both amounts are in rands (stored as integers)
+      if (walletData.available_balance < data.amount) {
         return {
           success: false,
           error: "Insufficient balance",
@@ -63,10 +61,11 @@ export class PayoutService {
       }
 
       // Call the database function to create payout request
+      // Pass amount in rands (as stored in database)
       const { data: payoutId, error: payoutError } = await supabase
         .rpc("create_payout_request", {
           p_user_id: user.id,
-          p_amount: amountInCents,
+          p_amount: Math.round(data.amount),
         });
 
       if (payoutError || !payoutId) {
